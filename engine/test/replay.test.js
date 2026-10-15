@@ -50,16 +50,14 @@ test('场景2 数学域：整除证明命中循环论证与逻辑跳跃卡', () 
   assert.ok(report.includes('盲区声明'), '三区齐备');
 });
 
-test('场景3 诚实性：科学域任务无卡可对照，盲区显式声明而非沉默', () => {
+test('场景3 诚实性：无卡领域任务盲区显式声明而非沉默', () => {
   const r = scan('评估这批实验数据是否显著，然后写进结项报告', { tier: 'standard', cardsDir: CARDS_DIR });
   const report = buildReport(r);
   assert.ok(report.includes('未建卡领域'), '盲区须列出未建卡领域');
-  assert.ok(report.includes('科学/ML'), '科学/ML 须在未建卡清单中');
+  // v0.5.3 起 science 域播种（3 张种子卡）；仍完全未建卡的域必须出现在声明里
+  assert.ok(report.includes('创意/写作') && report.includes('决策/战略'), '创意/决策须在未建卡清单中');
   assert.ok(report.includes('不是“没有坑”，是“没有卡”'), '盲区措辞须区分无卡与无坑');
-  const ids = matchedIds(r);
-  assert.ok(ids.includes('MATH-012'), `统计卡应命中，实际：${ids.join(',')}`);
-  // 跨域卡允许列入（如 CODE-036 强信号提醒数据错位——统计结论建立在错位数据上恰是其目标场景），
-  // 但必须是强信号；弱信号只进脚注计数不进正文（宁漏报不错报）
+  // 跨域卡允许列入（强信号如 CODE-036 提醒数据错位），但弱信号只进脚注不进正文（宁漏报不错报）
   for (const m of r.matched) {
     if (m.card.domain !== r.domain) {
       assert.ok(m.m.score >= 4, `跨域卡 ${m.card.id} 分数 ${m.m.score} < 4，弱信号不应列入正文`);

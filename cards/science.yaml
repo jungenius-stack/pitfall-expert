@@ -1,0 +1,81 @@
+# 坑卡库 · 科学/ML 域（v0.5.3 播种批次：3 张种子，低于激活门槛 5 张——能力表标「播种中」，不做领域承诺）
+# 种子来源：PMC 学术研究（Rosenblatt et al. 2023）/ Kaggle 经典教程 / StackOverflow 经典案例 / Python Alchemist（2025-12）
+# 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
+# confidence: backed_by_context | needs_verification | assumption
+# evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
+version: "0.5.3"
+domain: science
+updated: "2026-10-15"
+card_count: 3
+cards:
+  - id: SCI-001
+    title: 训练/测试数据泄漏（验证分数虚高，部署后才崩）
+    description: >-
+      模型在训练时用到了预测时不可能有的信息：全量数据上 fit 预处理再切分（imputation/scaling/特征选择泄漏）、
+      目标泄漏（特征里藏着 y 的代理）、测试集混入训练。验证分数高得可疑，部署后性能跳水；
+      学术场景更狠——泄漏 bug 曾使一批已发表论文的结论翻转。AI 生成 ML 代码时此坑高发：默认流程不含 split 顺序审计。
+    symptom: >-
+      验证/CV 分数好到不信（AUC 0.99 类）；历史数据回测优秀、新数据拉胯；预处理（fit/transform）发生在 train/test 切分之前；
+      特征与目标相关性异常高
+    severity: {S: 9, O: 4, D: 8}
+    evidence:
+      source: >-
+        PMC（Rosenblatt et al. 2023，empirical）：连接组 ML 中测试数据泄漏使 train/test 切分失效、相关系列研究结论需翻转；
+        Kaggle 经典教程（Alexis Cook，train/test 污染 + 目标泄漏两类，consensus）；
+        Daily Dose of DS：泄漏常在部署后才被发现——历史数据表现好得可疑正是信号
+      level: empirical
+    fix: >-
+      先切分后 fit：任何在全量数据上拟合的步骤（插补/缩放/特征选择/过采样）全部重做到训练折内；
+      逐特征问「预测时刻这个值拿得到吗」；时序数据按时间切分不随机切
+    verifier: >-
+      打乱目标 y 重训一次（y=shuffle）——分数应跌回随机水平，仍然高 = 有泄漏；
+      分数超过领域常识上限（如结构化数据 AUC>0.95）触发人工审计
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers: [数据泄漏, 训练测试, 验证分数, leakage, data leakage, train test split, cross validation, target leakage, overfitting, auc, model training, ml pipeline]
+    hazard_type: 逻辑漏洞
+    source_ref: PMC2023/Kaggle
+
+  - id: SCI-002
+    title: join 静默行爆炸/行丢失（笛卡尔爆炸与键不匹配静默丢行）
+    description: >-
+      many-to-many join 在重复键上笛卡尔爆炸——每边 1000 个重复键单键产出百万行；键不匹配
+      （dtype 不同/前导零/首尾空格）静默丢行（NaN）；how='left' 遇右表重复键行数悄然增长。
+      数学上全对，业务上灾难，且默认无任何报错。pandas 为此专设 validate 参数即是官方承认。
+    symptom: merge 后行数变了没人断言；输出表比预期大/小；管道无行数校验
+    severity: {S: 8, O: 5, D: 7 }
+    evidence:
+      source: >-
+        StackOverflow 经典（q/37095161：how='left' 行数增长，社区高票）+ pandas 官方 validate 参数设计（consensus，
+        MergeError 替代静默错误行数）+ Python Alchemist 笛卡尔爆炸分析（2025-12，B 级）：1000×1000 重复键 → 单键百万行
+      level: consensus
+    fix: >-
+      每次 merge 带 validate='one_to_one'/'many_to_one'；join 前后断言行数（len before/after）；右表显式去重；
+      join 前检查键 dtype/空格/前导零；生产管道加行数数据质量检查
+    verifier: '每个 join 点跑 len(df_before)==预期 与 len(df_after) 断言；无 validate 参数的 merge 即命中'
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers: [join, merge, 表连接, 行数, data join, pandas merge, duplicate keys, cartesian, row count, data pipeline, vlookup, sql join]
+    hazard_type: 易错环节
+    source_ref: SO-37095161/pandas
+
+  - id: SCI-003
+    title: 同一指标跨看板数字不一致（口径与管道差异）
+    description: >-
+      同一家公司「营收」「活跃用户」在不同仪表盘给出不同数字：过滤器口径、时区、去重粒度、
+      ETL 分支差异。AI 分析师从某个看板取数时不会知道还有另一个口径存在；用错口径的结论在
+      会议上演示时才被戳穿。分析师社区普遍报告：即使有 AI 辅助，追口径仍是手工重活。
+    symptom: 两个看板同一指标差几个百分点；AI 给出的数字与业务方记忆对不上；无人能说清哪个是「官方口径」
+    severity: {S: 5, O: 5, D: 6 }
+    evidence:
+      source: 'r/dataanalysis 社区讨论（B/C 级）：分析师仍在手工修 broken joins、chasing missing fields、explaining mismatched numbers across dashboards；跨口径为 BI 领域共识问题'
+      level: consensus
+    fix: >-
+      分析开始前先做口径对齐：指标定义文档（过滤条件/时间窗/去重规则/时区）+ 指标注册表（哪个数字以哪张表为准）；
+      AI 取数时强制声明来源表与口径；关键汇报数字与官方看板 diff 一次
+    verifier: 对将引用的每个指标找到第二来源交叉核对一次——差超过 0.5% 即存在口径分歧，先查口径再出数
+    confidence: needs_verification
+    pass_k_relevant: false
+    triggers: [看板, 指标口径, 数据不一致, dashboard, metrics definition, kpi, data discrepancy, bi, reporting, 汇报数字]
+    hazard_type: 隐含前提
+    source_ref: reddit-dataanalysis
