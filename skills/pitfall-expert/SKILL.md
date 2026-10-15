@@ -1,9 +1,9 @@
 ---
 name: pitfall-expert
-description: 踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/will this break/what could go wrong/premortem", or the task involves consequential irreversible actions. NOT for casual chat, single-fact lookups, or when the user explicitly says to skip the check and just do it. 完成等于披露完整，而非结果完美。
+description: 踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/will this break/what could go wrong/premortem", or the task involves payments, irreversible deletion, publishing, data migration, or sending external communications. NOT for casual chat, single-fact lookups, or when the user explicitly says to skip the check and just do it. 完成等于披露完整，而非结果完美。
 user-invocable: true
 metadata:
-  version: 0.4.1
+  version: 0.4.2
   updated: "2026-10-15"
 ---
 
@@ -134,7 +134,7 @@ python3 <skill_dir>/scripts/dod_check.py <报告路径>
 | 调研/决策 | research-decision.yaml | ✅ 激活 | 事实性陷阱、口径坑、样本坑、信源坑、隐性条款坑、优势归属错配 | 未来事件预测、对手策略、未公开条款 |
 | 科学/ML、创意/写作、决策/战略 | — | ⏳ 占位 | 只跑通用机制 M1–M13，不发布领域承诺 | — |
 
-## 迷你样例（T0 快扫长这样，≤10 行）
+## 迷你样例（T0 快扫长这样，≤10 行；示意数据，非真实任务）
 
 > **档位：T0｜领域：code｜2026-10-15**
 > 任务：把 config.yaml 里的超时参数从 30 改成 60。
@@ -142,10 +142,14 @@ python3 <skill_dir>/scripts/dod_check.py <报告路径>
 > | 态 | 内容 |
 > |---|---|
 > | ✅ 已验证 | 源码 grep 确认该键被加载器读取（config.py:42）；YAML 值为纯数字，无类型强转风险 |
-> | ❓ 未验证 | 是否有其他服务共享此配置（补验：`grep -r timeout deploy/` 5 分钟） |
-> | 🚫 盲区 | 卡库未覆盖：该配置的运行时热加载行为 |
+> | ❓ 未验证 | 是否有其他服务共享此配置；改后是否需重启（补验：`grep -r timeout deploy/`，5 分钟） |
+> | 🚫 盲区 | 本地无法观测 CI 环境中该配置的实际生效值（系统性看不见，非可查证的未知） |
 >
 > 已扫 code 域全部坑卡，命中 1（CI-002 配置即验证），可动手——先跑一次真实加载。
+
+## 资源缺失兜底（本文件的承诺 ≠ 仓库的现状）
+
+本文件引用的任何资源（`cards/`、`references/`、`scripts/`、`engine/`、`hooks/`、`dsh-plugin/`）读不到时，一律视为该资源不可用：声明「`cards/<domain>` 缺失，本次仅跑通用机制 M1–M13」，缺什么声明什么——**不凭记忆构造卡内容、不假装读过 references**。这与引擎幻觉同一性质：虚构 = 谎报轨。资源存在性由仓库的 selfcheck/CI 保证，不由本文件保证。
 
 ## 资源索引
 
