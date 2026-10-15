@@ -3,10 +3,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.5.2
+version: 0.5.5
 domain: code
 updated: '2026-10-15'
-card_count: 41
+card_count: 43
 cards:
   - id: CODE-001
     title: 虚假不可能性
@@ -1182,3 +1182,65 @@ cards:
       - does the output make sense
     hazard_type: 易错环节
     source_ref: mljar-2026-05
+  - id: CODE-037
+    title: 过早多 Agent 化（80% 情况下精止单 Agent 更优）
+    description: >-
+      未验证单 Agent 可行就引入多 Agent：协调成本随 Agent 数指数增长（单 Agent $0.10 的任务多 Agent 花
+      $1.50），规划者突然写代码、交接丢上下文、竞态与重复工作接踵而来。跨源共识：约 80% 的情况下，精心设计的单 Agent 优于多 Agent 系统。
+    symptom: 架构图先画了五个角色；子任务之间其实要频繁互相等待/通信；成本随 agent 数暴涨；「协调崩溃」「角色退化」在生产中出现
+    severity:
+      S: 6
+      O: 4
+      D: 6
+    evidence:
+      source: >-
+        Splunk 工程博客（七种多 Agent 生产故障模式，协调税 $0.10→$1.50，80% 规则）+ Machine Learning Mastery 九大反模式（「过早多
+        Agent 化」列首位）——双源共识（AMiner DeepDive 报告汇编）
+      level: consensus
+    fix: 默认单 Agent 起步；只有子任务真正独立（零执行期通信）、读多写少、可确定性编排时才拆多 Agent；拆分前先量化单 Agent 的失败点在哪
+    verifier: 列出各子任务间的执行期通信需求——超过零且无确定性编排即命中；用单 Agent 跑同任务对比成本与成功率一次
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 多agent
+      - 编排
+      - multi-agent
+      - orchestration
+      - agent 团队
+      - swarm
+      - 子agent
+      - subagent
+      - agent 架构
+      - agent architecture
+    hazard_type: 常见错误
+    source_ref: Splunk/MLM
+  - id: CODE-038
+    title: 上下文逐跳衰减与漂移（多 Agent 传递压缩 + 长会话失忆）
+    description: >-
+      两条同族路径：①多 Agent 交接时序列链压缩早期消息，信息保真度逐跳衰减——传全文稀释指令密度（中间迷失），摘要又丢关键边界需求；②长任务中随 token
+      增长模型回忆准确性下降，早期约束被「忘记」，输出逐渐偏离原始要求。
+    symptom: 下游 agent 的产出与最初需求渐行渐远；早期明确的边界条件在后段被违反；长会话后期重复犯前期已纠正的错误
+    severity:
+      S: 7
+      O: 4
+      D: 7
+    evidence:
+      source: Splunk 故障模式 2（交接丢上下文、逐跳衰减）+ MLM 反模式 8（长任务上下文漂移，token 增长回忆下降）——双源共识（AMiner DeepDive 汇编）
+      level: consensus
+    fix: 关键约束写进持久文档随任务传递而非依赖对话历史；每跳交接附带「不可违反清单」原文（不摘要）；长任务定期重申原始验收标准；自动清理过期工具结果、限制单工具输出体积
+    verifier: 任务中途抽查：让执行方复述最初的边界条件与验收标准——复述不出即漂移命中；对照最终产出与初始需求清单逐项 diff
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 多agent协作
+      - 长任务
+      - 会话过长
+      - context drift
+      - long session
+      - handoff
+      - 交接
+      - 指令遗忘
+      - multi-agent coordination
+      - long running task
+    hazard_type: 工具链环境
+    source_ref: Splunk/MLM

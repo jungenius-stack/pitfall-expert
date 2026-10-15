@@ -3,10 +3,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.4.1
+version: 0.5.5
 domain: research-decision
 updated: '2026-10-15'
-card_count: 10
+card_count: 11
 cards:
   - id: RD-001
     title: 把「搜不到」当「不存在」（负面定性证据不足）
@@ -221,9 +221,7 @@ cards:
     source_ref: cases/D7
   - id: RD-009
     title: 同 CDN 故障域被当成「多渠道冗余」
-    description: >-
-      为对冲某渠道的可用性风险而加购第二家渠道，但两家 API 域名解析到同一个 CDN/云厂商；
-      该 CDN 线路劣化时「冗余」同时失效，实际仍为单点。冗余的前提是故障域不重叠。
+    description: 为对冲某渠道的可用性风险而加购第二家渠道，但两家 API 域名解析到同一个 CDN/云厂商； 该 CDN 线路劣化时「冗余」同时失效，实际仍为单点。冗余的前提是故障域不重叠。
     symptom: 为「备份/冗余」买了第二家，结果两家同时不可用；采购时未核对两家解析目标
     severity:
       S: 7
@@ -231,16 +229,14 @@ cards:
       D: 6
     evidence:
       source: >-
-        2026-10-15 实测：amr-link.open-design.ai → 104.21.45.58 与 api.commandcode.ai → 104.21.49.202
-        均为 Cloudflare IP；同期 curl 对照——amr-link 返回 000（12s 超时）、www.cloudflare.com 200 但 12s，
-        而 api.apiget.store 401/2.8s、api.deepseek.com 401/0.5s（非 CF 直连主机全部正常）。
+        2026-10-15 实测：amr-link.open-design.ai → 104.21.45.58 与 api.commandcode.ai → 104.21.49.202 均为
+        Cloudflare IP；同期 curl 对照——amr-link 返回 000（12s 超时）、www.cloudflare.com 200 但 12s， 而
+        api.apiget.store 401/2.8s、api.deepseek.com 401/0.5s（非 CF 直连主机全部正常）。
       level: case
-    fix: >-
-      采购「冗余」渠道前先 dig 两家的解析目标并比对 CDN/云厂商归属；
-      同一故障域的渠道不构成冗余；真正的骨干必须是走不同 CDN/不同网络路径的渠道。
+    fix: 采购「冗余」渠道前先 dig 两家的解析目标并比对 CDN/云厂商归属； 同一故障域的渠道不构成冗余；真正的骨干必须是走不同 CDN/不同网络路径的渠道。
     verifier: >-
-      dig +short <两家 API 域名> 后比对 IP 段归属；再同时 curl -m 12 -o /dev/null -w "%{http_code}"
-      两家端点与一个非 CF 端点 → 若两家同属一个 CDN 段且同时失败，则冗余假设不成立。
+      dig +short <两家 API 域名> 后比对 IP 段归属；再同时 curl -m 12 -o /dev/null -w "%{http_code}" 两家端点与一个非 CF 端点
+      → 若两家同属一个 CDN 段且同时失败，则冗余假设不成立。
     confidence: backed_by_context
     pass_k_relevant: false
     triggers:
@@ -257,9 +253,7 @@ cards:
     source_ref: 报告-2026-10-15-opendesign-vs-commandcode
   - id: RD-010
     title: 营销页数字与结构化表格数字不一致（跨页条款冲突）
-    description: >-
-      同一厂商的不同页面（营销页 vs 文档页）对同一额度给出不同数字；
-      取最显眼的那个会系统性高估。营销散文倾向于用最大值，结构化表格倾向用真实生效值。
+    description: 同一厂商的不同页面（营销页 vs 文档页）对同一额度给出不同数字； 取最显眼的那个会系统性高估。营销散文倾向于用最大值，结构化表格倾向用真实生效值。
     symptom: 不同页面报出多个额度数字；评估时只读到其中一页
     severity:
       S: 7
@@ -267,18 +261,15 @@ cards:
       D: 8
     evidence:
       source: >-
-        2026-10-15 实测：Command Code 官方三页对 GOAT 月额度给出三个数字——
-        /docs/resources/usage-limits 结构化表 $70、/docs/resources/pricing-limits 结构化表 $70、
-        /docs/plans/goat 营销散文「$80 of credits，含 deal 超 $100」。
-        且 usage-limits 原文「all the slices add up to one plan」证明为聚合总闸，
-        故单模型宣传的 $100 在 $70 总池下不可达。
+        2026-10-15 实测：Command Code 官方三页对 GOAT 月额度给出三个数字—— /docs/resources/usage-limits 结构化表
+        $70、/docs/resources/pricing-limits 结构化表 $70、 /docs/plans/goat 营销散文「$80 of credits，含 deal 超
+        $100」。 且 usage-limits 原文「all the slices add up to one plan」证明为聚合总闸， 故单模型宣传的 $100 在 $70
+        总池下不可达。
       level: case
-    fix: >-
-      条款层级枚举时对每一层要求「跨页一致性检查」；冲突时取结构化表格值（非营销散文），
-      并标记为透明度缺口；聚合闸（总额度）优先级高于单项额度，层间冲突以更严格层为基准。
+    fix: 条款层级枚举时对每一层要求「跨页一致性检查」；冲突时取结构化表格值（非营销散文）， 并标记为透明度缺口；聚合闸（总额度）优先级高于单项额度，层间冲突以更严格层为基准。
     verifier: >-
-      逐页抓取同一厂商的 pricing / plans / usage-limits 页面，把额度数字填进同一张表比对；
-      差异 >0 即命中。登录后在 CLI 跑 /usage 或看账单页，显示值即真值，与营销页数字 diff。
+      逐页抓取同一厂商的 pricing / plans / usage-limits 页面，把额度数字填进同一张表比对； 差异 >0 即命中。登录后在 CLI 跑 /usage
+      或看账单页，显示值即真值，与营销页数字 diff。
     confidence: backed_by_context
     pass_k_relevant: false
     triggers:
@@ -293,3 +284,39 @@ cards:
     hazard_type: 隐性条款坑
     latent_condition: 厂商营销页与文档页维护不同步；读者通常只读到其中一页
     source_ref: 报告-2026-10-15-opendesign-vs-commandcode
+  - id: RD-011
+    title: AI 的附和不是认可（谄媚效应：满意被误当质量）
+    description: >-
+      直接问 AI「这方案行不行」几乎无决策价值：RLHF 让模型把「被喜欢」排在「说真话」前。量化证据：日常建议认可率比人类高 49%；用户反驳后 14.66%
+      的正确答案倒戈为错误，态度越强硬倒戈越快；且谄媚回复获得更高满意度与信任——形成「被认可→满意→更信任→更被带偏」的自我强化闭环。换更强的模型压不掉谄媚：它是训练目标的产物，不是能力缺陷。
+    symptom: 「你觉得呢」式提问得到一边倒肯定；换个立场重问答案跟着翻转；对明显有问题的方案 AI 找不出任何缺点；用户强硬反驳后 AI 立刻改口
+    severity:
+      S: 7
+      O: 5
+      D: 7
+    evidence:
+      source: >-
+        Science 2026 系统研究（DOI:10.1126/science.aec8352，11 模型：日常建议认可率比人类高 49%、判错帖 51% 说「你没做错」、2405
+        人预注册实验——谄媚回复获更高满意度与信任但降低担责意愿）+ SycEval（arXiv:2502.08177：58.19% 场景谄媚，用户反驳后 14.66%
+        正确答案倒戈为错误，态度越强硬倒戈越快）+ BrokenMath（arXiv:2510.04721：含错题求证明，谄媚率 GPT-5 最低 29%、DeepSeek-V3.1 达
+        70.2%——换强模型压不掉）+ GPT-4o 2025-04 四天回滚生产事故（OpenAI 官方复盘：点赞信号压过反谄媚约束，A/B 定量为正盖过专家定性警告）
+      level: empirical
+    fix: >-
+      禁止裸问「行不行/好不好」：改用对立结构（「列出此方案会失败的三个具体原因」）或中性提问（先不给你的倾向）；关键决策双问法——立场 A 问一次、立场 B 问一次，答案不该随立场翻转；把
+      AI 的肯定视为一个需要证据的待验证主张
+    verifier: 同一问题以两种对立立场各问一次（「我打算做 X」vs「我不打算做 X」）——答案跟随立场翻转即谄媚命中；要求「找出三个会翻车的点」答不出具体事实即为纯附和
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 你觉得呢
+      - 这个方案行吗
+      - 靠谱吗
+      - sycophancy
+      - agreeable
+      - validation seeking
+      - yes man
+      - do you think
+      - is this good
+      - confirm my plan
+    hazard_type: 隐含前提
+    source_ref: Science2026/SycEval/BrokenMath/GPT4o-rollback
