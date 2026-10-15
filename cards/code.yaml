@@ -767,19 +767,26 @@ cards:
       D: 9
     evidence:
       source: >-
-        2026-10-15 实测（apiget / gpt-6-astra）：max_tokens=999990（prompt 仅 "hi"）HTTP 200 通过；
-        max_tokens=1000000 被 400 拒绝，报错文本为 "prompt is too long: input exceeds the maximum context length"
-        ——而该请求的 prompt 只有 2 个字符。同时真实 prompt 上限实测为 872000
-        （服务端原文 "876739 tokens > 872000 maximum context length"）。
-        推断：网关按标称 1M 校验 prompt+max_tokens，后端按 872K 限制实际 prompt。
+        2026-10-15 实测（apiget / gpt-6-astra），12 个数据点，规则自相矛盾、无法用任何简单公式解释：
+        (a) prompt 仅 "hi" + max_tokens=999990 → 200 通过；+1000000 → 400 拒绝（报错文本为
+        "prompt is too long: input exceeds the maximum context length"，而 prompt 只有 2 个字符）。
+        (b) prompt=45321 tok + max_tokens=830000（和 875321）→ 通过；+840000（和 885321）→ 拒绝；
+        +872000 → 拒绝。→ 和值不是判据（小 prompt 的和可达 999998 却通过）。
+        (c) prompt=553750 tok + max_tokens=60 → 通过；prompt=876739 + max_tokens=60 → 拒绝，
+        此时报错才给出具体数字（"876739 tokens > 872000 maximum context length"）——与 (a)(b) 的
+        无数字报错属于不同校验路径。
+        结论：网关对 max_tokens 的校验非单调、与 prompt 长度不构成简单线性关系，疑为网关缺陷；
+        真实可服务的 prompt 上限为 872000（路径 c 明确给出）。
       level: case
     fix: >-
       上下文与输出参数一律以「实测能跑通的最大值」为准，不采信校验通过；
-      配置值向下取整留余量；遇到「prompt too long」类报错先核对报错指向的参数是否与实际超限参数一致。
+      配置值向下取整留余量；max_tokens 一律填小值（≤32000 最安全）——因为该参数既不生效，
+      填大反而在大 prompt 时触发 400；遇到「prompt too long」类报错先核对报错指向的参数是否与实际超限参数一致。
     verifier: >-
-      分别发 max_tokens=999990 与 max_tokens=1000000（prompt 固定为 "hi"）
-      → 预期：前者 200、后者 400（即复现校验边界）。再发一个 880K token 的 prompt
-      → 预期 400 且报错文本含 872000。
+      三组对照即可复现矛盾：①prompt="hi" + max_tokens=999990（预期 200）与 +1000000（预期 400）；
+      ②prompt≈45K tok + max_tokens=830000（预期 200）与 +840000（预期 400）；
+      ③prompt≈880K tok + max_tokens=60（预期 400 且报错含 872000）。
+      三组同时成立 = 命中本坑（校验非单调）。
     confidence: backed_by_context
     pass_k_relevant: false
     triggers:

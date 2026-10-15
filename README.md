@@ -2,11 +2,11 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
-# pitfall-expert · 踩坑专家
+# pitfall-expert: Check the Pitfalls Before Your Agent Starts
 
-### Walk the minefield BEFORE your agent starts the task.
+### One pre-task risk scan for AI agents across code, math, and decisions.
 
-**Not "trust me, it's fine" — but "these 3 are verified pits, these 2 I suspect but couldn't verify, and here's what I systematically cannot see."**
+**See a task you want done. Know where it breaks, before it starts.**
 
 [![License: MIT](https://img.shields.io/badge/code-MIT-f4c430?style=flat-square)](LICENSE)
 [![Content: CC BY 4.0](https://img.shields.io/badge/cards_&_docs-CC_BY_4.0-3f9f7f?style=flat-square)](LICENSE-CONTENT.md)
