@@ -27,8 +27,10 @@ test('场景1 代码域：CSV 汇总任务命中空值卡与 CSV 卡', () => {
   const ids = matchedIds(r);
   assert.ok(ids.includes('CODE-013'), `应命中空值卡，实际：${ids.join(',')}`);
   assert.ok(ids.includes('CODE-014'), `应命中 CSV 卡，实际：${ids.join(',')}`);
-  assert.strictEqual(r.coverage.code.total, 27, '代码域 27 张卡应全部加载（v0.4.3：CODE 18 + CI 5 + 外部纪要回写 4）');
-  assert.strictEqual(r.cardsLoaded, 47, '共 47 张卡（v0.4.3：code 27 + math 12 + research-decision 8）');
+  // 动态断言（防写死数字反复过期——已三次）：卡库只增不减 + 各域计数与总数一致（防加载静默丢卡）
+  assert.ok(r.coverage.code.total >= 27, `代码域卡不应少于 27（实际 ${r.coverage.code.total}，若删卡请同步本断言）`);
+  const totalAll = Object.values(r.coverage).reduce((s, d) => s + d.total, 0);
+  assert.strictEqual(totalAll, r.cardsLoaded, '各域 coverage 总和必须等于 cardsLoaded（防 yaml 加载静默丢卡）');
   const report = buildReport(r);
   assert.ok(report.includes('## ✅ 已查证区'), '报告须含已查证区');
   assert.ok(report.includes('## ❓ 未验证区'), '报告须含未验证区');
