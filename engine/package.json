@@ -1,0 +1,23 @@
+{
+  "name": "pitfall-expert-engine",
+  "version": "0.2.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "description": "踩坑专家扫描引擎：AI 任务执行前的系统性风险预判（MCP server，坑卡库 + 三区诚实报告 + 验证器清单）",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "js-yaml": "^5.4.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "pitfall-expert-scan": "src/cli.js"
+  }
+}

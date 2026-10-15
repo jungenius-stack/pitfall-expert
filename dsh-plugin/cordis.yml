@@ -1,0 +1,7 @@
+# cordis.yml —— dsh 插件注册覆盖层（官方格式，2026-10-14 核验）
+# 用法：把 name 替换为本仓库的绝对路径，然后
+#   pnpm dsh web --patch /绝对路径/pitfall-expert/dsh-plugin/cordis.yml
+# 注意：官方要求插件路径必须是绝对路径；patch 只贡献配置，不改 loader 的 profile 目录。
+- insert:
+    - id: pitfall-expert
+      name: '/绝对路径/pitfall-expert/dsh-plugin/src/index.mjs'

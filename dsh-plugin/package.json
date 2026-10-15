@@ -1,0 +1,21 @@
+{
+  "name": "@pitfall-expert/dsh-plugin",
+  "version": "0.3.0",
+  "description": "踩坑专家 dsh 插件：tools/pre-execute 门禁 + pitfall_scan 工具（DeepSeek Harness / Cordis）",
+  "type": "module",
+  "main": "src/index.mjs",
+  "license": "MIT",
+  "files": ["src", "cordis.yml", "README.md"],
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh-tools": "*"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": { "optional": true },
+    "@deepseek-ai/dsh-tools": { "optional": true }
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": { "node": ">=18" }
+}
