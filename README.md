@@ -4,14 +4,14 @@
 
 # pitfall-expert: Check the Pitfalls Before Your Agent Starts
 
-### One pre-task risk scan for AI agents across code, math, and decisions.
+### One pre-task risk scan for AI agents across six domains: code, math, decisions, agent security, science/ML, creative writing.
 
 **See a task you want done. Know where it breaks, before it starts.**
 
 [![License: MIT](https://img.shields.io/badge/code-MIT-f4c430?style=flat-square)](LICENSE)
 [![Content: CC BY 4.0](https://img.shields.io/badge/cards_&_docs-CC_BY_4.0-3f9f7f?style=flat-square)](LICENSE-CONTENT.md)
 [![Skill](https://img.shields.io/badge/form-skill_+MCP_engine_+hooks-5c4ee5?style=flat-square)](#architecture)
-[![Cards](https://img.shields.io/badge/pitfall_cards-77-cb3837?style=flat-square)](cards/)
+[![Cards](https://img.shields.io/badge/pitfall_cards-92-cb3837?style=flat-square)](cards/)
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
 
@@ -25,7 +25,7 @@ sh install.sh
 
 AI coding agents have two structural flaws that bite *before* work starts: they **agree with your plan** (sycophancy), and when they say "verified" you **can't tell what was actually tested vs. guessed**. Independent research confirms the failure modes: agents declare solvable tasks impossible (54.9% of WebArena failures), claim completion while the environment is unchanged (MAST), pass weak test suites (7.8% of "passing" SWE-bench patches are wrong), and mistake single-run luck for reliability (pass^8 < 25%). Those exact findings are seed cards in this library.
 
-pitfall-expert runs a systematic pitfall scan **before** the task starts: it matches the task against a 77-card domain library (code / math / research-decisions / agent-security), binds every blocking pit to an **executable verifier**, and outputs a **three-zone honest report** — ✅ verified (with evidence chains) / ❓ unverified (with 5-minute follow-up actions) / 🚫 declared blind spots.
+pitfall-expert runs a systematic pitfall scan **before** the task starts: it matches the task against a six-domain card library in `cards/` (90+ cards as of v0.7 — trust the directory, not any hardcoded number), binds every blocking pit to an **executable verifier** (pre-declared decision table + executed-result write-back), and outputs a **three-zone honest report** — ✅ verified (with evidence chains and quotable sources) / ❓ unverified (with 5-minute follow-up actions) / 🚫 declared blind spots.
 
 > **Done = fully disclosed, not perfect. Missed pits are forgivable; false "verified" claims are not.**
 > 完成等于披露完整，而非结果完美。漏报可原谅，谎报不可原谅。
@@ -60,6 +60,10 @@ node engine/src/cli.js "migrate users.csv into SQLite, watch nulls and encodings
 
 Skills auto-activate only 20–50% of the time (community measurements). The gate doesn't rely on anyone's discipline — see [`hooks/README.md`](hooks/README.md) (PreToolUse: report-by-default, `PITFALL_HOOK_MODE=block` hard-blocks `rm -rf` / `git push --force`) and [`dsh-plugin/README.md`](dsh-plugin/README.md).
 
+### Zero-install tryout
+
+No harness? Paste the lite prompt from [`docs/入门版-贴即用.md`](docs/入门版-贴即用.md) into any chat model — it keeps the four survival mechanisms (tier gate, specificity filter, three-zone disclosure, blocking checklist); card matching and verifiers are full-version features.
+
 ## How it works
 
 Your agent (or the CLI) scans the task against `cards/<domain>.yaml` — every card matched with evidence, every blocking pit bound to a runnable verifier. The skill persona (L0–L5 pipeline, 13 mechanisms) runs the parts engines can't: assumption dumping, pre-mortem, user-constraint profiling. Then the report passes a six-item DoD machine check (`dod_check.py`). Skill = the instructions, engine = the muscle, hooks = the seatbelt.
@@ -68,14 +72,15 @@ Your agent (or the CLI) scans the task against `cards/<domain>.yaml` — every c
 
 | Domain | Cards | Catches | Honest "cannot" |
 |---|---|---|---|
-| Code / engineering | `code.yaml` (27) | hallucinated completion, flaky-passing-as-stable, weak test suites, irreversible ops, default-behavior traps, type coercion, falsehoods (time/names/i18n), cascade failures, hidden business rules, no-impact-analysis changes, error-process automation, unisolated parallel agents | architecture taste, business-logic correctness, closed-source internals |
-| Math | `math.yaml` (12) | circular proofs, converse confusion, induction gaps, unit/sign errors, boundary misses, probability & p-value traps | open conjectures |
-| Agent security | `agent-security.yaml` (5) | MCP supply-chain poisoning, OAuth adapter RCE, indirect prompt injection triad, zero tool-call visibility, sampling reverse control | physical isolation, zero-days |
-| Research / decisions | `research-decision.yaml` (8) | "not-found ≠ non-existent" false negatives, unit-of-account mismatches, small-sample capacity claims, rumor-driven analysis, hidden clause layers, advantage misattribution | predicting the future, competitors' plans |
-| Science/ML | `science.yaml` (5) | ✅ active | train/test leakage, join explosion/loss, cross-dashboard mismatch, backtest look-ahead, accuracy paradox | feature-engineering traps, experiment design, misleading charts |
-| Creative · strategy | — | placeholder, runs generic mechanisms only, **promises nothing** | — |
+| Code / engineering | `code.yaml` | hallucinated completion, flaky-passing-as-stable, weak test suites, irreversible ops, default-behavior traps, type coercion, falsehoods, cascade failures, LLM code-review misjudgment | architecture taste, business-logic correctness, closed-source internals |
+| Math | `math.yaml` | circular proofs, converse confusion, induction gaps, unit/sign errors, boundary misses, probability & p-value traps | open conjectures |
+| Agent security | `agent-security.yaml` | MCP supply-chain poisoning, OAuth adapter RCE, indirect prompt injection triad, zero tool-call visibility, sampling reverse control, agent identity/credential abuse | physical isolation, zero-days |
+| Research / decisions | `research-decision.yaml` | "not-found ≠ non-existent" false negatives, unit-of-account mismatches, small-sample claims, rumor-driven analysis, hidden clause layers, advantage misattribution, judge-bias family (stable ≠ correct, judges miss bad answers, self-correction illusion, authority bias) | predicting the future, competitors' plans |
+| Science/ML | `science.yaml` | train/test leakage, join explosion/loss, cross-dashboard mismatch, backtest look-ahead, accuracy paradox, factuality scoring failure | feature-engineering traps, experiment design, misleading charts |
+| Creative writing | `creative.yaml` | long-form consistency drift, lost-in-the-middle, slop/style convergence, weak AI judging of creative work, structure/pacing collapse | real reader taste, originality |
+| Strategy | — | placeholder, runs generic mechanisms only, **promises nothing** | — |
 
-Card counts live in `cards/` — trust the directory, not this table. Science/ML, creative and collaboration-management domains are declared placeholders: no cards means no cards, stated out loud in every report's blind-spot zone.
+Card counts live in `cards/` — trust the directory, not this table. The strategy domain is a declared placeholder: no cards means no cards, stated out loud in every report's blind-spot zone.
 
 ## Battle record
 
@@ -83,7 +88,8 @@ Numbers, not adjectives — every claim replay-tested:
 
 - **10/10** real failure-case replays passed (cards distilled from a 56K-char incident log);
 - **12/13** coverage on an *external* blind test — 13 real-world pitfalls from two practitioner talk transcripts (one uncovered item = collaboration-management domain, exactly where the capability table said "no cards");
-- **4 meta-pitfalls caught on ourselves** during development (e.g. an allow-list rule that silently passed `git push --force`) — logged openly in the [meta-pitfall registry](skills/pitfall-expert/references/meta-pitfalls.md), now 13 entries;
+- **4 meta-pitfalls caught on ourselves** during development (e.g. an allow-list rule that silently passed `git push --force`) — logged openly in the [meta-pitfall registry](skills/pitfall-expert/references/meta-pitfalls.md), now 17 entries including two "looked like pure gain, rolled back same day" matching experiments;
+- **Dual-source red-team reviews** (v0.6): a fresh-context subagent and an out-of-family GLM-4.6 each attacked the design; 20+ failure modes archived, 13 fixed ([red team](docs/红队评审-v1.md) / [adversarial review](docs/沉思评审-v1.md));
 - Two independent implementations (built in parallel on two platforms) converged on the same honesty axioms — merged in v0.4. A 240K-star tool ([REA](https://github.com/morluto/rea)) independently ships the same skill+engine+plugin distribution shape.
 
 ## FAQ
