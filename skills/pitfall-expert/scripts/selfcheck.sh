@@ -61,10 +61,11 @@ if [ -f "$ENGINE_DIR/src/cli.js" ] && command -v "$NODE_BIN" >/dev/null 2>&1; th
   echo "$OUT_EN" | grep -qE "CODE-00[19]|CODE-011" && pass "英文任务命中预期坑卡（timezone/float）" || fail "英文任务未命中 CODE-009/CODE-011（双语 triggers 失效？）"
 fi
 
-# 7. 报告机检自测（合格样例应通过，不合格样例应被拒）
+# 7. 报告机检自测（合格样例应通过，不合格样例应被拒，T0 紧凑样例应通过）
 if command -v "$PYTHON_BIN" >/dev/null 2>&1; then
   "$PYTHON_BIN" "$SKILL_DIR/scripts/dod_check.py" "$SKILL_DIR/tests/sample-pass.md" >/dev/null 2>&1 && pass "dod_check：合格样例通过" || fail "dod_check：合格样例被误判失败"
   "$PYTHON_BIN" "$SKILL_DIR/scripts/dod_check.py" "$SKILL_DIR/tests/sample-fail.md" >/dev/null 2>&1 && fail "dod_check：不合格样例被误判通过" || pass "dod_check：不合格样例正确被拒"
+  "$PYTHON_BIN" "$SKILL_DIR/scripts/dod_check.py" "$SKILL_DIR/tests/sample-t0.md" >/dev/null 2>&1 && pass "dod_check：T0 紧凑样例通过（豁免逻辑正确）" || fail "dod_check：T0 样例被误判失败（豁免逻辑坏）"
 else
   fail "找不到 python3（可用 PYTHON_BIN 指定路径）"
 fi

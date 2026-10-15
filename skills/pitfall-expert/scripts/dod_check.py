@@ -35,16 +35,24 @@ def check_report(path: Path) -> int:
     # 1. 档位已声明
     tier = re.search(r"档位[:：]\s*(T[012])", text)
     item(1, "档位已声明（T0/T1/T2）", bool(tier), "未找到 '档位：T0/T1/T2' 字段")
+    is_t0 = bool(tier) and tier.group(1) == "T0"
 
-    # 2. 画像已生成（## 0 节）
-    sec0 = section(text, 0)
-    item(2, "第0节 任务理解+用户约束画像", sec0 is not None, "缺 ## 0 节")
+    # 2. 画像已生成（T1/T2 要求 ## 0 节；T0 紧凑模式豁免——任务即表格标题，无画像义务）
+    if is_t0:
+        print("  [2] 用户约束画像：T0 豁免（紧凑模式，低风险任务无画像义务）")
+    else:
+        sec0 = section(text, 0)
+        item(2, "第0节 任务理解+用户约束画像", sec0 is not None, "缺 ## 0 节")
 
-    # 3. 覆盖率 100%（坑卡扫描 N/N）
+    # 3. 覆盖率 100%（T1/T2 需 N/N 计数；T0 紧凑模式允许「全部」声明）
     cov = re.search(r"坑卡扫描[^\n]*?(\d+)\s*/\s*(\d+)", text)
-    cov_ok = bool(cov) and cov.group(1) == cov.group(2)
-    item(3, "坑卡扫描覆盖率 100%（N/N）", cov_ok,
-         "未找到 '坑卡扫描 … N/N' 行，或 N<N（抽样跳过）")
+    if is_t0:
+        cov_ok = bool(cov) or bool(re.search(r"已扫[^\n]*全部", text))
+        item(3, "坑卡覆盖（T0：全部扫描声明即可）", cov_ok, "未找到 '已扫 … 全部' 或 'N/N' 声明")
+    else:
+        cov_ok = bool(cov) and cov.group(1) == cov.group(2)
+        item(3, "坑卡扫描覆盖率 100%（N/N）", cov_ok,
+             "未找到 '坑卡扫描 … N/N' 行，或 N<N（抽样跳过）")
 
     # 4. 🐯 真坑三态完整
     sec2 = section(text, 2)
@@ -59,14 +67,22 @@ def check_report(path: Path) -> int:
     item(4, f"🐯 真坑三态完整（{taint_count}/{pit_count}）", pit_count == taint_count,
          "存在缺少 '三态：✅/❓' 行的阻断级坑条目")
 
-    # 5. 披露率：## 3 与 ## 4 节存在且非空
-    sec3, sec4 = section(text, 3), section(text, 4)
-    item(5, "❓未验证区 与 🚫盲区声明 均显式存在", bool(sec3) and bool(sec4),
-         f"## 3 {'缺' if not sec3 else 'ok'} / ## 4 {'缺' if not sec4 else 'ok'}（空区也须写「本区为空」）")
+    # 5. 披露率：T1/T2 要求 ## 3 与 ## 4 节存在且非空；T0 紧凑模式豁免独立节，改为三态标记齐备
+    if is_t0:
+        zones_ok = all(z in text for z in ("✅", "❓", "🚫"))
+        item(5, "T0 紧凑模式：三态标记（✅/❓/🚫）齐备", zones_ok,
+             "T0 报告缺少三态标记之一（紧凑表格也须三行齐备）")
+    else:
+        sec3, sec4 = section(text, 3), section(text, 4)
+        item(5, "❓未验证区 与 🚫盲区声明 均显式存在", bool(sec3) and bool(sec4),
+             f"## 3 {'缺' if not sec3 else 'ok'} / ## 4 {'缺' if not sec4 else 'ok'}（空区也须写「本区为空」）")
 
-    # 6. 回写就绪（## 6 节）
-    sec6 = section(text, 6)
-    item(6, "第6节 回写预告", sec6 is not None, "缺 ## 6 节")
+    # 6. 回写就绪（T1/T2 要求 ## 6 节；T0 仅在发现新坑时要求回写，无新坑则豁免）
+    if is_t0:
+        print("  [6] 回写预告：T0 豁免（仅发现新坑时要求，本次以正文声明为准）")
+    else:
+        sec6 = section(text, 6)
+        item(6, "第6节 回写预告", sec6 is not None, "缺 ## 6 节")
 
     ok = not failures
     print(f"\n{'✅ DoD 机检通过（六条结构项全过）' if ok else '❌ DoD 机检未通过：条目 ' + ','.join(map(str, failures))}")

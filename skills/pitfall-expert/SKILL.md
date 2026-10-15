@@ -1,7 +1,10 @@
 ---
 name: pitfall-expert
-description: 踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/will this break/what could go wrong/premortem", or the task involves irreversible actions. 完成等于披露完整，而非结果完美。
+description: 踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/will this break/what could go wrong/premortem", or the task involves consequential irreversible actions. NOT for casual chat, single-fact lookups, or when the user explicitly says to skip the check and just do it. 完成等于披露完整，而非结果完美。
 user-invocable: true
+metadata:
+  version: 0.4.1
+  updated: "2026-10-15"
 ---
 
 # 踩坑专家（Pitfall Expert）
@@ -14,25 +17,29 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 2. **内省不算验证**：同一上下文里「我再想想」不产生新信息。验证只能来自外部信号：检索、实测、工具输出、独立上下文。
 3. **披露重于正确**：用户最大的损失不是漏坑，而是分不清哪些是验证过的、哪些是猜的。输出契约的完备性优先于坑清单的长度。
 
-## 引擎优先（可用则必须用）
+## 触发策略分层（主路径是自动，不是用户自觉）
 
-若已连接 pitfall-expert 引擎（MCP 工具 `scan_task` 或 CLI），直接调用并进入 L4 解读，跳过 L1–L3 手工执行：
+1. **主路径**：description 自动激活（本 skill 在任务匹配时被 harness 自动选中）；
+2. **硬门控**：装了 `hooks/`（PreToolUse，默认先报告后放行、block 模式拦破坏性命令）或 `dsh-plugin/` 的用户，门控在 shell 层强制生效——**安全机制不押在用户疲惫时的自觉上**；
+3. **兜底**：用户手动说「先踩坑」/ 调 `/pitfall-expert`。装了门控的用户请把手动唤起当冗余备份而非主路径。
+
+## 引擎优先——引擎只是加速器，永远不是前置条件
+
+若已连接 pitfall-expert 引擎（MCP 工具 `scan_task` 或 CLI），调用它替代 **L1 第 3 路（坑卡召回）**——确定性匹配优于人工翻卡；但 **L1 第 1、2 路（假设倾倒、预验尸）仍由你执行**，引擎没有这两路，跳过它们就是单层防御依赖（M9 禁止）。
 
 ```bash
 node <repo>/engine/src/cli.js "task description" --tier standard   # 或 quick / deep
 ```
 
-- 参数默认值：`domain=auto`（自动判定），`tier=standard`。
-- 解读：✅ 区逐条转行动项；❓ 区决定是否升档；🚫 区**原文转述，不许删改弱化**。
-- 引擎不可用/报错 → 显式声明「本次未产出引擎报告，匹配为人工对照」，走 L1–L3 手工流程。引擎失败不得被理解为「没有坑」。
+**防幻觉铁律**：未收到真实引擎输出（工具返回/命令 stdout）之前，一律视为引擎不可用。**禁止虚构引擎报告**——「我调用了引擎，结果如下」而无真实输出 = 谎报轨。引擎不可用/报错 → 报告头声明「未使用引擎，匹配为人工对照」，L1 三路全手工。引擎失败不得被理解为「没有坑」。
 
-## 主流程（L0–L5，严格顺序）
+## 主流程（L0–L5，严格顺序；摩擦预算与档位成正比）
 
 ### L0 定级层：先定档，再干活
 
 1. 判断任务领域（能力表见本文件末尾；已建卡领域读仓库 `cards/<domain>.yaml`）；
 2. 定档位（与用户协商时**必须附白话解释**，直接抛术语等于没协商）：
-   - **T0 快扫**（分钟级，"quick check, no deep verification"）：低风险小任务。M1 简版 + M5 样本声明 + 坑卡速查 + 三态输出（允许大量 ❓）。
+   - **T0 快扫**（分钟级，"quick check, no deep verification"）：低风险小任务。**轻量子集**——坑卡速查 + 假设倾倒简版 + 紧凑三行输出（见 L4），**无验证器清单义务、无回写预告（除非发现新坑）、DoD 六条内部自检不写入报告、机检豁免**。
    - **T1 标准**（默认，十分钟级，"verify the top risks before starting"）：M1–M7 全跑，🐯 真坑实测验证 + 验证器清单。
    - **T2 深审**（小时级，"adversarial review for high-stakes calls"）：全部机制 + FMEA S/O/D（D 隐蔽度权重最高）+ 三层检查 + 红队对抗。
 3. 自动升档触发器：①异常便宜/顺利/优惠（M6）②不可逆动作（付款/删除/发布/公开外发）③用户明示高风险。降档：用户明示低风险且无外发副作用。
@@ -60,6 +67,8 @@ node <repo>/engine/src/cli.js "task description" --tier standard   # 或 quick /
 
 - 每条陈述落入且仅落于一态：✅ 已验证（附证据链：来源+方式+时间）/ ❓ 未验证（附原因+5 分钟内可执行的补验动作）/ 🚫 盲区（本任务类型中系统性看不见什么 + 本次未覆盖范围）；
 - **三区都必须显式出现，空区写「本区为空」并给依据**；
+- **正文只呈现命中的坑卡**（会踩的），扫描计数一行带过（「已扫 N 张，命中 M，未命中清单见附录」）——逐卡作答塞满正文 = 报告通胀 = 没人读；
+- **T0 紧凑模式**：三区合并为一节三行表格（每态一行），总长度目标 ≤ 10 行；
 - 报告结尾声明档位边界：越档需求请升档；
 - 按模板 `references/report-template.md` 输出。
 
@@ -76,7 +85,7 @@ node <repo>/engine/src/cli.js "task description" --tier standard   # 或 quick /
 | M1 | 用户约束画像先行 | 预检维度第一来源是用户真实约束（读账本/历史会话/配置），通用清单只兜底；画像缺失必须上报 |
 | M2 | 量纲审计前置 | 比较类结论先统一计量口径（计价基准/汇率/单位/含费/有效期），审计过程附报告 |
 | M3 | 信源分级绑定动作 | A 官方一手/B 权威二手/C 社媒传言；C 级只能触发核实任务，不得触发分析任务 |
-| M4 | 负面定性高门槛 | 指控类定性需双渠道交叉 + 附检索边界 +「搜不到≠不存在」时滞声明 + 证伪动作清单 |
+| M4 | 负面定性高门槛 | 指控类定性需双渠道交叉 + 附检索边界 +「搜不到≠不存在」时滞声明 + 证伪动作清单；无检索能力时指控类定性一律进 ❓ 区 |
 | M5 | 样本量强制声明 | 容量/速率/成本结论必须声明样本量、覆盖期、遗漏场景；不足则降级为待验证假设 |
 | M6 | 异常信号触发器 | too-good-to-be-true 自动升深审；条款层级枚举（缺层即坑）；优势归属检验 |
 | M7 | 三态披露契约 | 禁止裸「验证通过」；✅ 必附证据链，❓ 必附补验动作，🚫 必显式声明 |
@@ -108,20 +117,35 @@ node <repo>/engine/src/cli.js "task description" --tier standard   # 或 quick /
 
 判定：六条全过 = 合格（哪怕事后漏了大坑，走漏报轨）；任何一条虚报 = 不合格（哪怕没出事，走谎报轨追根因）。
 
-产出报告后运行机检（不通过 → 修报告再交付）：
+机检规则（**只对 T1/T2 强制；T0 豁免**——摩擦预算与档位成正比）：
 
 ```bash
 python3 <skill_dir>/scripts/dod_check.py <报告路径>
 ```
 
-## 领域能力表（诚实声明）
+**机检不可用兜底**（脚本缺失/跑不起来/自身报错）：报告头声明「本次未过机检，已人工自检六条」，DoD 判定降级为人工，**不可静默跳过**——静默跳过 = 机检形同虚设；机检失败 ≠ 不合格死循环，人工自检即降级合格路径。
+
+## 领域能力表（诚实声明；卡数以 `cards/` 目录实数为准，勿信任何写死的数字）
 
 | 领域 | cards/ | 状态 | 能防 | 不能防 |
 |---|---|---|---|---|
-| 代码/工程 | code.yaml（23） | ✅ 激活 | 幻觉式完成、复跑不一致、测试假绿、不可逆操作、缺省行为、类型强转、falsehoods、级联失败 | 架构品味、业务逻辑正确性、闭源组件内部行为 |
-| 数学 | math.yaml（12） | ✅ 激活 | 循环论证、逆否命题混淆、归纳跳步、量纲误用、边界遗漏、概率/统计陷阱 | 开放猜想、非形式化推理 |
-| 调研/决策 | research-decision.yaml（8） | ✅ 激活 | 事实性陷阱、口径坑、样本坑、信源坑、隐性条款坑、优势归属错配 | 未来事件预测、对手策略、未公开条款 |
+| 代码/工程 | code.yaml | ✅ 激活 | 幻觉式完成、复跑不一致、测试假绿、不可逆操作、缺省行为、类型强转、falsehoods、级联失败 | 架构品味、业务逻辑正确性、闭源组件内部行为 |
+| 数学 | math.yaml | ✅ 激活 | 循环论证、逆否命题混淆、归纳跳步、量纲误用、边界遗漏、概率/统计陷阱 | 开放猜想、非形式化推理 |
+| 调研/决策 | research-decision.yaml | ✅ 激活 | 事实性陷阱、口径坑、样本坑、信源坑、隐性条款坑、优势归属错配 | 未来事件预测、对手策略、未公开条款 |
 | 科学/ML、创意/写作、决策/战略 | — | ⏳ 占位 | 只跑通用机制 M1–M13，不发布领域承诺 | — |
+
+## 迷你样例（T0 快扫长这样，≤10 行）
+
+> **档位：T0｜领域：code｜2026-10-15**
+> 任务：把 config.yaml 里的超时参数从 30 改成 60。
+>
+> | 态 | 内容 |
+> |---|---|
+> | ✅ 已验证 | 源码 grep 确认该键被加载器读取（config.py:42）；YAML 值为纯数字，无类型强转风险 |
+> | ❓ 未验证 | 是否有其他服务共享此配置（补验：`grep -r timeout deploy/` 5 分钟） |
+> | 🚫 盲区 | 卡库未覆盖：该配置的运行时热加载行为 |
+>
+> 已扫 code 域全部坑卡，命中 1（CI-002 配置即验证），可动手——先跑一次真实加载。
 
 ## 资源索引
 
@@ -130,6 +154,6 @@ python3 <skill_dir>/scripts/dod_check.py <报告路径>
 - `references/report-template.md` — 踩坑报告模板（六节）
 - `references/dod.md` — DoD 六条与判定规则
 - `references/meta-pitfalls.md` — 元坑登记簿（本方法论自身的翻车记录）
-- `cards/<domain>.yaml` — 坑卡库单一真源（43 张，与引擎共用）
+- `cards/<domain>.yaml` — 坑卡库单一真源（张数以目录实数为准，与引擎共用）
 - `scripts/dod_check.py` — 报告 DoD 机检
 - 引擎/门控安装：仓库根 `engine/README.md`、`hooks/README.md`、`dsh-plugin/README.md`
