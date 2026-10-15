@@ -32,9 +32,14 @@ def check_report(path: Path) -> int:
         if not ok:
             failures.append(idx)
 
-    # 1. 档位已声明
+    # 1. 档位已声明（T1/T2 另要求定级理由——防「协商」幽灵与无理由降档）
     tier = re.search(r"档位[:：]\s*(T[012])", text)
-    item(1, "档位已声明（T0/T1/T2）", bool(tier), "未找到 '档位：T0/T1/T2' 字段")
+    if tier and tier.group(1) == "T0":
+        item(1, "档位已声明（T0/T1/T2）", True)
+    else:
+        has_reason = bool(re.search(r"定级理由", text))
+        item(1, "档位已声明 + 定级理由（T1/T2）", bool(tier) and has_reason,
+             "未找到 '档位：T0/T1/T2' 或缺 '定级理由' 字段")
     is_t0 = bool(tier) and tier.group(1) == "T0"
 
     # 2. 画像已生成（T1/T2 要求 ## 0 节；T0 紧凑模式豁免——任务即表格标题，无画像义务）
@@ -54,18 +59,25 @@ def check_report(path: Path) -> int:
         item(3, "坑卡扫描覆盖率 100%（N/N）", cov_ok,
              "未找到 '坑卡扫描 … N/N' 行，或 N<N（抽样跳过）")
 
-    # 4. 🐯 真坑三态完整
+    # 4. 🐯 真坑三态完整 + 验证器闭环（三态/验证器/判定表/执行结果；T0 无 ## 2 节自然通过）
     sec2 = section(text, 2)
-    pit_count = taint_count = 0
+    pit_count = taint_count = verifier_count = 0
     if sec2:
         tiger_zone = re.split(r"^###?\s*[🟡🐘🐺]", sec2, maxsplit=1, flags=re.M)[0]
         pit_count = len(re.findall(r"[-*]\s*\*\*坑\*\*", tiger_zone))
         for block in re.split(r"(?=^[-*]\s*\*\*坑\*\*)", tiger_zone, flags=re.M):
             if block.startswith(("- **坑**", "* **坑**")) or "**坑**" in block.split("\n", 1)[0]:
-                if re.search(r"三态\*{0,2}[:：]\s*[✅✓❓?]", block):
+                has_taint = bool(re.search(r"三态\*{0,2}[:：]\s*[✅✓❓?]", block))
+                if has_taint:
                     taint_count += 1
+                if (has_taint and "验证器" in block and "判定表" in block
+                        and "执行结果" in block):
+                    verifier_count += 1
     item(4, f"🐯 真坑三态完整（{taint_count}/{pit_count}）", pit_count == taint_count,
          "存在缺少 '三态：✅/❓' 行的阻断级坑条目")
+    item("4b", f"🐯 验证器闭环：判定表+执行结果（{verifier_count}/{pit_count}）",
+         pit_count == verifier_count,
+         "存在缺 验证器/判定表/执行结果 的阻断级坑条目（M13 四规）")
 
     # 5. 披露率：T1/T2 要求 ## 3 与 ## 4 节存在且非空；T0 紧凑模式豁免独立节，改为三态标记齐备
     if is_t0:
@@ -73,9 +85,13 @@ def check_report(path: Path) -> int:
         item(5, "T0 紧凑模式：三态标记（✅/❓/🚫）齐备", zones_ok,
              "T0 报告缺少三态标记之一（紧凑表格也须三行齐备）")
     else:
-        sec3, sec4 = section(text, 3), section(text, 4)
-        item(5, "❓未验证区 与 🚫盲区声明 均显式存在", bool(sec3) and bool(sec4),
+        sec3, sec4, sec5 = section(text, 3), section(text, 4), section(text, 5)
+        gate_ok = bool(sec3) and bool(sec4)
+        todo_ok = bool(sec5) and "动手前" in sec5
+        item(5, "❓未验证区 与 🚫盲区声明 均显式存在", gate_ok,
              f"## 3 {'缺' if not sec3 else 'ok'} / ## 4 {'缺' if not sec4 else 'ok'}（空区也须写「本区为空」）")
+        item("5b", "阻断待办前置（第5节含「动手前必须完成的检查」）", todo_ok,
+             "## 5 缺或无 '动手前' 清单（无阻断待办也须写「无」）")
 
     # 6. 回写就绪（T1/T2 要求 ## 6 节；T0 仅在发现新坑时要求回写，无新坑则豁免）
     if is_t0:
