@@ -116,7 +116,7 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 
 ## 领域能力（诚实声明）
 
-已激活：code / math / research-decision / agent-security / science（卡数以 `cards/` 目录实数为准，勿信任何写死的数字；「能防/不能防」逐格边界表见 `references/capability.md`）。未建卡领域（创意写作、决策战略等）：只跑通用机制 M1–M13，不发布领域承诺。
+已激活：code / math / research-decision / agent-security / science / creative（卡数以 `cards/` 目录实数为准，勿信任何写死的数字；「能防/不能防」逐格边界表见 `references/capability.md`）。未建卡领域（决策战略等）：只跑通用机制 M1–M13，不发布领域承诺。
 
 ## 迷你样例（T0 快扫，示意数据非真实任务）
 

@@ -1,0 +1,156 @@
+# 坑卡库 · 创意/写作域（v0.7.0 激活批次：5 张，文献驱动）
+# 来源：ConStory-Bench / EQ-Bench / Lost-in-the-Middle / MDPI 创作评估 / 长篇叙事生成研究，均带出处
+# 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
+
+version: 0.7.0
+domain: creative
+updated: '2026-10-16'
+card_count: 5
+cards:
+  - id: CRT-001
+    title: 长篇一致性漂移（角色/设定/事实前后矛盾）
+    description: "LLM 写长文时无法稳定维持既定事实：角色性格漂移、设定自相矛盾、前文细节（物品/时间线/称谓）被遗忘或改写。ConStory-Bench（2000 条提示）系统记录了数千到十万词尺度上叙事一致性的崩坏；随篇幅增长一致性单调劣化。AI 生成时「每一段都通顺」掩盖了跨段矛盾——读者第十章才发现第五章的伏笔被吃掉。"
+    symptom: 续写/扩写任务中角色突然变了性格或知识；设定（规则/地理/时间线）前后冲突；早期伏笔无回收或被 contradictory 改写
+    severity:
+      S: 6
+      O: 8
+      D: 6
+    evidence:
+      source: "Consistency Bugs in Long Story Generation by LLMs（ConStory-Bench，arXiv:2603.05890，2026）；Scaling Long-Form Story Generation via Narrative State（arXiv:2609.35759：1万–10万词一致性随长度劣化）"
+      level: empirical
+    fix: 显式维护「设定状态表」（角色/事实/伏笔三清单）并随写随更；分章生成时每章开头喂状态表而非依赖上下文记忆；交付前跑一致性核对（见 verifier）
+    verifier: 抽取全文实体清单（人名/物品/时间），逐实体 grep 前后文出现处，人工比对属性是否一致——任一实体两种说法即命中
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 续写
+      - 改写
+      - 长篇小说
+      - 世界观设定
+      - 角色一致性
+      - 写后十章
+      - 续写小说
+      - story continuation
+      - long form
+      - novel
+      - chapter
+      - worldbuilding
+      - character consistency
+      - 续写故事
+      - 前后一致
+    hazard_type: 常见错误
+    source_ref: ConStoryBench-2026/NarrativeState-2026
+  - id: CRT-002
+    title: 长上下文中段遗忘（设定埋在中段=等于没写）
+    description: "Lost in the Middle 实证：长上下文里模型对中段信息的利用显著弱于首尾。写作场景的具体化：大纲第 3 条设定、中段埋的伏笔、章节中段的关键约束最容易被忽略——不是模型没读到，是读到也没用上。以为「已经写进上下文了」不等于「会被遵守」。"
+    symptom: 明明贴了大纲/设定全文，生成结果仍违反其中中段条目；中段伏笔无回收；约束清单靠前靠后条目被遵守、中间条目被跳过
+    severity:
+      S: 5
+      O: 7
+      D: 7
+    evidence:
+      source: "Liu et al., Lost in the Middle（TACL 2024，arXiv:2307.03172）；EQ-Bench 长篇创作评测（质量维持随长度衰减）"
+      level: empirical
+    fix: 关键设定放上下文首尾并重复出现；生成后对照约束清单逐条勾验，缺项重生成该段；约束超过 ~10 条时分批处理
+    verifier: 把 10 条编号约束埋入中段后生成，逐条核对输出——中段条目（4–7 号）违例率显著高于首尾即命中
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 大纲
+      - 设定集
+      - 约束清单
+      - 按要求写
+      - 伏笔
+      - outline
+      - constraints
+      - writing prompt
+      - follow the brief
+      - story bible
+    hazard_type: 隐含前提
+    source_ref: LostInMiddle-TACL2024
+  - id: CRT-003
+    title: 风格趋同与 AI 味（slop：模板化表达、节奏单一、形容词堆砌）
+    description: "AI 长文输出的风格收敛：高频套路句式（「不是……而是……」「仿佛整个世界都……」类）、节奏均匀无张弛、辞藻堆砌而细节稀薄、不同题材读起来像同一个人写的。跨模型横向对比（EQ-Bench 系）显示风格区分度远低于人类作者分布；社区已形成 slop 检测清单（低Distinctiveness词表）。对「要写出个人风格/特定文风」的任务是直接失败。"
+    symptom: 指定文风仿写但成品一眼 AI 味；多个不同题材产出风格雷同；细节密度低、修辞密度高；去 AI 味提示词治标不治本
+    severity:
+      S: 4
+      O: 8
+      D: 5
+    evidence:
+      source: "EQ-Bench Creative Writing 长篇榜（风格与质量维持评测）；社区 slop 词表/检测共识（2025–2026，consensus 级）"
+      level: consensus
+    fix: 提供目标文风的实文样本（few-shot 锚定，远胜形容词描述）；生成后跑 slop 词表抽检并要求重写命中段落；接受「AI 味无法归零只能压低」的现实，关键作品人工润色
+    verifier: 对成品跑高频 AI 套路句式清单（≥20 条）grep 计数——命中密度高于阈值（如每千字 ≥3 处）即命中
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 仿写
+      - 文风模仿
+      - 个人风格
+      - 润色
+      - 去AI味
+      - 像人写的
+      - style transfer
+      - mimic author
+      - tone of voice
+      - humanize
+      - 写得像人
+      - de-slop
+    hazard_type: 常见错误
+    source_ref: EQBench/SlopChecklist-社区共识
+  - id: CRT-004
+    title: 主观/创作维度是 AI 评委最弱区（跨裁判一致性显著低于技术类）
+    description: "GraderAssist 多裁判实证：技术类标准（对错可查）的裁判一致性显著强于论证类/主观类任务；创作质量恰落在最弱区。叠加 LLM 评委已知偏差（偏爱长文、偏爱 LLM 生成文本、正面偏差抓不出坏答案），用 AI 给创作打分/选优的结论噪声极大——「AI 说这段写得好」接近无信息。"
+    symptom: 用 AI 给多个版本打分选优；用「AI 觉得哪个好」决定文风/标题/情节走向；多版本 AI 评分差异微小却据此定稿
+    severity:
+      S: 5
+      O: 7
+      D: 7
+    evidence:
+      source: "Kim et al., Can LLMs Be Good Evaluators in Creative Writing Tasks?（MDPI Applied Sciences 2025）；GraderAssist（Informatics 2025，主观维度一致性弱）；结合 RD-013/RD-014 通用裁判偏差"
+      level: empirical
+    fix: 创作质量判定以目标读者样本/人工盲评为准；AI 评审仅用于可核对维度（一致性/字数/设定符合度——CRT-001 类客观检查）；多版本选优用位置平衡+异源双评，分歧即弃判
+    verifier: 同批作品交换呈现顺序让 AI 重选一次——选择翻转即本坑命中（与 RD-015 验证器同构）
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - AI评分
+      - 哪个版本好
+      - 帮我选标题
+      - 评价一下写得怎么样
+      - ai critique
+      - which version is better
+      - rate my writing
+      - score this story
+      - 帮我挑一版
+    hazard_type: 隐含前提
+    source_ref: MDPI2025/GraderAssist2025
+  - id: CRT-005
+    title: 长篇结构与计划失守（大纲漂移、结局仓促、节奏失控）
+    description: "长文生成中全局规划能力不足：写着写着偏离大纲、前松后紧导致结局仓促收束、支线失控吞掉主线。长篇叙事生成研究（推理式生成管线、叙事状态扩展）的动机正是：直接生成在 10K+ 词尺度上结构质量崩坏，需要显式规划与状态维护机制——裸生成不具备。"
+    symptom: 成品与大纲结构对不上；最后 1/5 篇幅 rushed；支线喧宾夺主；章节比例失衡（前 80% 慢后 20% 快）
+    severity:
+      S: 5
+      O: 7
+      D: 6
+    evidence:
+      source: "Learning to Reason for Long-Form Story Generation（arXiv:2503.22828，Gurung et al. 2025）；Scaling Long-Form Story Generation via Narrative State（arXiv:2609.35759）"
+      level: empirical
+    fix: 大纲细化到章级带字数配额；分章生成+每章完成后对照大纲勾验；预留结局篇幅硬约束（如最后 15% 只写收束）；结构核对进交付前检查单
+    verifier: 章节字数/情节点对照大纲逐项核——偏离配额 >30% 或大纲条目缺失即命中
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 分章写
+      - 全书结构
+      - 章节大纲
+      - 结局
+      - 节奏
+      - story structure
+      - pacing
+      - ending
+      - plot outline
+      - multi-chapter
+      - 写一个系列
+    hazard_type: 常见错误
+    source_ref: ReasonLongForm2025/NarrativeState2026
