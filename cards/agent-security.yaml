@@ -4,7 +4,7 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.5.7
+version: 0.5.8
 domain: agent-security
 updated: '2026-10-15'
 card_count: 6
@@ -111,7 +111,6 @@ cards:
       - customer ticket
     hazard_type: 事实性陷阱
     source_ref: InvariantLabs/Supabase-Cursor/AmazonQ
-    priority: core
   - id: SEC-004
     title: agent 工具调用零可见性（安全监控的盲区就是攻击者的通道）
     description: >-
