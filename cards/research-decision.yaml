@@ -355,7 +355,7 @@ cards:
       O: 7
       D: 8
     evidence:
-      source: "Reliability Without Validity（2026 预印本，21 裁判/54.1 万次判断，aminer.cn/pub/6a34a4580a96f8c83c4cf656）；Judge's Verdict Benchmark（ICLR 2026，54 裁判 Kappa 分层）"
+      source: "Reliability Without Validity（arXiv:2606.19544，2026，21 裁判/54.1 万次判断，aminer.cn/pub/6a34a4580a96f8c83c4cf656）；Judge's Verdict Benchmark（arXiv:2510.09738，54 裁判 Kappa 分层）"
       level: empirical
     fix: 一致性只作为信度证据；正确性必须独立取证——换顺序重判、换裁判交叉、或对照外部事实各做一次，任一翻转即降级
     verifier: 对同一判断对象交换呈现顺序重判一次——结论翻转即位置偏差命中；不翻转也只说明信度达标，不得标 ✅ 正确
@@ -382,7 +382,7 @@ cards:
       O: 8
       D: 7
     evidence:
-      source: "Beyond Consensus: Mitigating the Agreeableness Bias（ICLR 2026，aminer.cn/pub/68eeef5e163c01c850f75191）"
+      source: "Beyond Consensus: Mitigating the Agreeableness Bias（arXiv:2510.11822，2025，NUS AI-CET，aminer.cn/pub/68eeef5e163c01c850f75191）"
       level: empirical
     fix: 「通过」类结论的复核从多数投票改为否决式——任一渠道（人或独立裁判）否决即挂起；对「AI 说没问题」的条目默认进 ❓ 而非 ✅
     verifier: 在送审材料中故意混入一份已知有错样本——AI 评审未抓出即本坑命中（预期：多数情况抓不出）
