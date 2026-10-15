@@ -3,10 +3,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.5.1
+version: 0.5.2
 domain: code
 updated: '2026-10-15'
-card_count: 37
+card_count: 41
 cards:
   - id: CODE-001
     title: 虚假不可能性
@@ -42,7 +42,9 @@ cards:
       O: 3
       D: 3
     evidence:
-      source: MAST, Cemri et al., NeurIPS 2025 (arXiv:2503.13657); τ-bench ICLR 2025
+      source: >-
+        MAST, Cemri et al., NeurIPS 2025 (arXiv:2503.13657); τ-bench ICLR 2025；IEEE
+        Spectrum（2026-01，B 级转述研究）：新一代模型静默失败上升——代码能跑、错误更隐蔽、更难调试
       level: empirical
     fix: 完成声明必须附环境状态证据：文件存在性+内容抽样、数据库查询结果、外部 API 响应；无证据的完成声明不予采信
     verifier: 任务结束后运行状态断言脚本，逐项比对"预期状态 vs 实际状态"，输出差异清单
@@ -1057,3 +1059,126 @@ cards:
       - 行为基线
     hazard_type: 工具链环境
     source_ref: claude-code#102276/#29311
+  - id: CODE-033
+    title: 幻觉包名被抢注（slopsquatting：AI 编的包，攻击者先注册）
+    description: >-
+      AI 幻觉出看似合理的包名，攻击者预先在 npm/PyPI 注册同名恶意包等开发者安装。实证：模型幻觉的包名 20–35% 已被真实注册（常为恶意）；38%
+      的幻觉名是两个真包名的混血。agent 自动安装依赖时风险放大——没有人工「这包没听过」的直觉拦截。
+    symptom: AI 推荐的包在官方注册表查无历史但能装上（装上的就是攻击者的）；包名像两个熟悉包的拼接；新注册+低下载量
+    severity:
+      S: 9
+      O: 4
+      D: 8
+    evidence:
+      source: >-
+        USENIX Security 2025（幻觉包名分类与注册率实证，empirical）+ Cloud Security Alliance 研究注记（2026-04）+ 2025
+        年注册表 45 万+恶意新包/npm 首个自复制蠕虫（业界多源交叉）
+      level: empirical
+    fix: AI 推荐的任何依赖，安装前在官方注册表核对：存在性、发布时间、下载量；包名混血特征（两个熟名拼接）额外警惕；agent 自动装依赖时用白名单锁定
+    verifier: 对 AI 给出的每个 import/require 跑一次注册表核对（npm view <pkg> / PyPI 页）——不存在、新注册或低下载即停
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 依赖安装
+      - 幻觉包名
+      - 装包
+      - slopsquatting
+      - hallucinated package
+      - typosquat
+      - dependency install
+      - npm install
+      - pypi
+      - supply chain
+    hazard_type: 事实性陷阱
+    source_ref: USENIX2025/CSA
+  - id: CODE-034
+    title: agent 后台进程资源无上限（遥测/日志吃穿磁盘）
+    description: >-
+      agent 工具的反馈遥测/日志/缓存后台写入无配额：Codex 的 SQLite 反馈日志可年写约 640TB，静默消耗 SSD
+      直至磁盘满——功能「正常」的工具以资源枯竭方式翻车，发生在用户感知之外。
+    symptom: 磁盘莫名上涨；SSD 健康度异常下降；agent 工具的数据目录数百 GB
+    severity:
+      S: 7
+      O: 3
+      D: 7
+    evidence:
+      source: >-
+        openai/codex#28224（2026-06-14，A 级官方 issue，616👍）：Codex SQLite feedback logs 年写 ~640TB 迅速消耗
+        SSD
+      level: case
+    fix: agent 工具安装后设磁盘配额/日志轮转上限；定期审计 agent 数据目录大小；把「工具自身的资源足迹」列入环境检查清单
+    verifier: du -sh 各 agent 数据目录 + 检查日志轮转配置——无上限即命中
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 磁盘满
+      - 日志膨胀
+      - 遥测
+      - resource exhaustion
+      - disk full
+      - log rotation
+      - telemetry
+      - ssd wear
+      - cache growth
+    hazard_type: 工具链环境
+    source_ref: codex#28224
+  - id: CODE-035
+    title: 执行环境被静默重置而模型不自知（notebook 状态/文件消失）
+    description: 交互式执行环境（code interpreter/notebook）在轮次间静默清空状态与生成文件，模型不知道，继续引用已不存在的变量/路径——轻则后续失败，重则基于空状态编造结果。
+    symptom: 后续轮次报「文件不存在」但模型坚称已生成；模型引用上一轮变量实则已被清空
+    severity:
+      S: 6
+      O: 3
+      D: 7
+    evidence:
+      source: OpenAI 社区报告（2025-07，B 级单源）：code interpreter 生成的文件路径在后续轮次失效，notebook 状态与文件被静默清除而模型无感知
+      level: case
+    fix: 跨轮次依赖产物的任务，每轮开头重验关键状态（文件存在性/变量探测）；重要产物即时落盘到持久路径，不留在会话沙盒内
+    verifier: 跨轮任务开头跑一次状态存在性断言（文件/变量清单与预期 diff）——发现消失即命中
+    confidence: needs_verification
+    pass_k_relevant: false
+    triggers:
+      - notebook
+      - interpreter
+      - 状态丢失
+      - 文件消失
+      - notebook state
+      - wiped
+      - files missing across turns
+      - session reset
+      - kernel restart
+    hazard_type: 工具链环境
+    source_ref: openai-community
+  - id: CODE-036
+    title: 代码正确 ≠ 数据正确（静默列错位与不可能值）
+    description: >-
+      CSV 多一个逗号 → read_csv 把首列当索引、全部值右移一列——代码零报错、形状正常、预览能看，数据全错：Pregnancies 出现 148、Age 变
+      0/1。唯一防线是语义合理性检查（不可能值哨兵），而 AI 的「生成→执行→展示」默认流程不含这一步。
+    symptom: df.head() 出现领域不可能值；末列全空；统计量可疑但无任何报错；「代码跑通、无异常」被当作数据正确
+    severity:
+      S: 8
+      O: 4
+      D: 8
+    evidence:
+      source: MLJAR 创始人一手复盘（2026-05）：糖尿病数据集加载，代码与人类所写无异，768×9 形状正常，「148 次怀孕」哨兵值靠肉眼+AI 输出分析双路径才发现；医疗场景高危
+      level: case
+    fix: >-
+      数据加载后强制追加「输出合理性检查」：dtype/缺失/不可能值逐列与领域常识比对（怀孕>20、年龄<0）；AI 数据分析流程必须含 Does the output make sense?
+      步骤，human in the loop 保留领域直觉
+    verifier: df.describe() 逐列核对领域界限（min/max 是否可能）；抽取首行与原始 CSV 文本逐字段比对一次
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 数据加载
+      - csv
+      - 列错位
+      - 不可能值
+      - dataframe
+      - pandas
+      - data validation
+      - column shift
+      - sentinel value
+      - data cleaning
+      - does the output make sense
+    hazard_type: 易错环节
+    source_ref: mljar-2026-05
