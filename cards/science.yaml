@@ -1,81 +1,185 @@
-# 坑卡库 · 科学/ML 域（v0.5.3 播种批次：3 张种子，低于激活门槛 5 张——能力表标「播种中」，不做领域承诺）
-# 种子来源：PMC 学术研究（Rosenblatt et al. 2023）/ Kaggle 经典教程 / StackOverflow 经典案例 / Python Alchemist（2025-12）
+# 坑卡库 · 科学/ML 域（v0.5.4 激活批次：5 张，达到激活门槛）
+# 来源：PMC/Kaggle/SO 经典/量化社区共识/DS 教程生态，均带出处
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
-version: "0.5.3"
+
+version: 0.5.4
 domain: science
-updated: "2026-10-15"
-card_count: 3
+updated: '2026-10-15'
+card_count: 5
 cards:
   - id: SCI-001
     title: 训练/测试数据泄漏（验证分数虚高，部署后才崩）
     description: >-
-      模型在训练时用到了预测时不可能有的信息：全量数据上 fit 预处理再切分（imputation/scaling/特征选择泄漏）、
-      目标泄漏（特征里藏着 y 的代理）、测试集混入训练。验证分数高得可疑，部署后性能跳水；
-      学术场景更狠——泄漏 bug 曾使一批已发表论文的结论翻转。AI 生成 ML 代码时此坑高发：默认流程不含 split 顺序审计。
-    symptom: >-
-      验证/CV 分数好到不信（AUC 0.99 类）；历史数据回测优秀、新数据拉胯；预处理（fit/transform）发生在 train/test 切分之前；
-      特征与目标相关性异常高
-    severity: {S: 9, O: 4, D: 8}
+      模型在训练时用到了预测时不可能有的信息：全量数据上 fit 预处理再切分（imputation/scaling/特征选择泄漏）、 目标泄漏（特征里藏着 y
+      的代理）、测试集混入训练。验证分数高得可疑，部署后性能跳水； 学术场景更狠——泄漏 bug 曾使一批已发表论文的结论翻转。AI 生成 ML 代码时此坑高发：默认流程不含 split
+      顺序审计。
+    symptom: 验证/CV 分数好到不信（AUC 0.99 类）；历史数据回测优秀、新数据拉胯；预处理（fit/transform）发生在 train/test 切分之前； 特征与目标相关性异常高
+    severity:
+      S: 9
+      O: 4
+      D: 8
     evidence:
       source: >-
-        PMC（Rosenblatt et al. 2023，empirical）：连接组 ML 中测试数据泄漏使 train/test 切分失效、相关系列研究结论需翻转；
-        Kaggle 经典教程（Alexis Cook，train/test 污染 + 目标泄漏两类，consensus）；
-        Daily Dose of DS：泄漏常在部署后才被发现——历史数据表现好得可疑正是信号
+        PMC（Rosenblatt et al. 2023，empirical）：连接组 ML 中测试数据泄漏使 train/test 切分失效、相关系列研究结论需翻转； Kaggle
+        经典教程（Alexis Cook，train/test 污染 + 目标泄漏两类，consensus）； Daily Dose of
+        DS：泄漏常在部署后才被发现——历史数据表现好得可疑正是信号
       level: empirical
-    fix: >-
-      先切分后 fit：任何在全量数据上拟合的步骤（插补/缩放/特征选择/过采样）全部重做到训练折内；
-      逐特征问「预测时刻这个值拿得到吗」；时序数据按时间切分不随机切
-    verifier: >-
-      打乱目标 y 重训一次（y=shuffle）——分数应跌回随机水平，仍然高 = 有泄漏；
-      分数超过领域常识上限（如结构化数据 AUC>0.95）触发人工审计
+    fix: 先切分后 fit：任何在全量数据上拟合的步骤（插补/缩放/特征选择/过采样）全部重做到训练折内； 逐特征问「预测时刻这个值拿得到吗」；时序数据按时间切分不随机切
+    verifier: 打乱目标 y 重训一次（y=shuffle）——分数应跌回随机水平，仍然高 = 有泄漏； 分数超过领域常识上限（如结构化数据 AUC>0.95）触发人工审计
     confidence: backed_by_context
     pass_k_relevant: true
-    triggers: [数据泄漏, 训练测试, 验证分数, leakage, data leakage, train test split, cross validation, target leakage, overfitting, auc, model training, ml pipeline]
+    triggers:
+      - 数据泄漏
+      - 训练测试
+      - 验证分数
+      - leakage
+      - data leakage
+      - train test split
+      - cross validation
+      - target leakage
+      - overfitting
+      - auc
+      - model training
+      - ml pipeline
     hazard_type: 逻辑漏洞
     source_ref: PMC2023/Kaggle
-
   - id: SCI-002
     title: join 静默行爆炸/行丢失（笛卡尔爆炸与键不匹配静默丢行）
     description: >-
-      many-to-many join 在重复键上笛卡尔爆炸——每边 1000 个重复键单键产出百万行；键不匹配
-      （dtype 不同/前导零/首尾空格）静默丢行（NaN）；how='left' 遇右表重复键行数悄然增长。
-      数学上全对，业务上灾难，且默认无任何报错。pandas 为此专设 validate 参数即是官方承认。
+      many-to-many join 在重复键上笛卡尔爆炸——每边 1000 个重复键单键产出百万行；键不匹配 （dtype 不同/前导零/首尾空格）静默丢行（NaN）；how='left'
+      遇右表重复键行数悄然增长。 数学上全对，业务上灾难，且默认无任何报错。pandas 为此专设 validate 参数即是官方承认。
     symptom: merge 后行数变了没人断言；输出表比预期大/小；管道无行数校验
-    severity: {S: 8, O: 5, D: 7 }
+    severity:
+      S: 8
+      O: 5
+      D: 7
     evidence:
       source: >-
         StackOverflow 经典（q/37095161：how='left' 行数增长，社区高票）+ pandas 官方 validate 参数设计（consensus，
         MergeError 替代静默错误行数）+ Python Alchemist 笛卡尔爆炸分析（2025-12，B 级）：1000×1000 重复键 → 单键百万行
       level: consensus
     fix: >-
-      每次 merge 带 validate='one_to_one'/'many_to_one'；join 前后断言行数（len before/after）；右表显式去重；
-      join 前检查键 dtype/空格/前导零；生产管道加行数数据质量检查
-    verifier: '每个 join 点跑 len(df_before)==预期 与 len(df_after) 断言；无 validate 参数的 merge 即命中'
+      每次 merge 带 validate='one_to_one'/'many_to_one'；join 前后断言行数（len before/after）；右表显式去重； join 前检查键
+      dtype/空格/前导零；生产管道加行数数据质量检查
+    verifier: 每个 join 点跑 len(df_before)==预期 与 len(df_after) 断言；无 validate 参数的 merge 即命中
     confidence: backed_by_context
     pass_k_relevant: false
-    triggers: [join, merge, 表连接, 行数, data join, pandas merge, duplicate keys, cartesian, row count, data pipeline, vlookup, sql join]
+    triggers:
+      - join
+      - merge
+      - 表连接
+      - 行数
+      - data join
+      - pandas merge
+      - duplicate keys
+      - cartesian
+      - row count
+      - data pipeline
+      - vlookup
+      - sql join
     hazard_type: 易错环节
     source_ref: SO-37095161/pandas
-
   - id: SCI-003
     title: 同一指标跨看板数字不一致（口径与管道差异）
     description: >-
-      同一家公司「营收」「活跃用户」在不同仪表盘给出不同数字：过滤器口径、时区、去重粒度、
-      ETL 分支差异。AI 分析师从某个看板取数时不会知道还有另一个口径存在；用错口径的结论在
+      同一家公司「营收」「活跃用户」在不同仪表盘给出不同数字：过滤器口径、时区、去重粒度、 ETL 分支差异。AI 分析师从某个看板取数时不会知道还有另一个口径存在；用错口径的结论在
       会议上演示时才被戳穿。分析师社区普遍报告：即使有 AI 辅助，追口径仍是手工重活。
     symptom: 两个看板同一指标差几个百分点；AI 给出的数字与业务方记忆对不上；无人能说清哪个是「官方口径」
-    severity: {S: 5, O: 5, D: 6 }
+    severity:
+      S: 5
+      O: 5
+      D: 6
     evidence:
-      source: 'r/dataanalysis 社区讨论（B/C 级）：分析师仍在手工修 broken joins、chasing missing fields、explaining mismatched numbers across dashboards；跨口径为 BI 领域共识问题'
+      source: >-
+        r/dataanalysis 社区讨论（B/C 级）：分析师仍在手工修 broken joins、chasing missing fields、explaining
+        mismatched numbers across dashboards；跨口径为 BI 领域共识问题
       level: consensus
-    fix: >-
-      分析开始前先做口径对齐：指标定义文档（过滤条件/时间窗/去重规则/时区）+ 指标注册表（哪个数字以哪张表为准）；
-      AI 取数时强制声明来源表与口径；关键汇报数字与官方看板 diff 一次
+    fix: 分析开始前先做口径对齐：指标定义文档（过滤条件/时间窗/去重规则/时区）+ 指标注册表（哪个数字以哪张表为准）； AI 取数时强制声明来源表与口径；关键汇报数字与官方看板 diff 一次
     verifier: 对将引用的每个指标找到第二来源交叉核对一次——差超过 0.5% 即存在口径分歧，先查口径再出数
     confidence: needs_verification
     pass_k_relevant: false
-    triggers: [看板, 指标口径, 数据不一致, dashboard, metrics definition, kpi, data discrepancy, bi, reporting, 汇报数字]
+    triggers:
+      - 看板
+      - 指标口径
+      - 数据不一致
+      - dashboard
+      - metrics definition
+      - kpi
+      - data discrepancy
+      - bi
+      - reporting
+      - 汇报数字
     hazard_type: 隐含前提
     source_ref: reddit-dataanalysis
+  - id: SCI-004
+    title: 时序回测用了未来数据（look-ahead bias 与指标重绘）
+    description: >-
+      回测用了决策时刻不可能有的信息：用当根收盘价出信号又按当根收盘成交、指标用当前 bar
+      收盘值重绘（repaint，实盘无法复现）、幸存者偏差（只用至今活着的标的）、全量数据归一化。结果：回测永远赚钱，实盘「从一开始就不可交易」。
+    symptom: 回测收益好到不信；指标在历史图上完美但实时图不断改写；实盘与回测持续背离
+    severity:
+      S: 8
+      O: 4
+      D: 8
+    evidence:
+      source: >-
+        量化社区多源共识（consensus）：Quantreo「实盘不可交易的真实案例」+ Mike Harris 检测方法论 + WallStreetMojo 偏差分类 +
+        r/algotrading 社区讨论（Lookahead bias 普遍性）；Pine Script 官方生态承认 repaint 问题
+      level: consensus
+    fix: >-
+      信号时点与成交时点强制错开一根 bar（signal at close → trade at next open）；指标必须用已收盘 bar
+      计算；时序任务按时间切分+walk-forward 验证；标的池用历史时点成分（防幸存者偏差）；归一化只用训练窗
+    verifier: 把信号整体前移一根 bar 重跑回测——收益大幅变化即存在时点泄漏；对比实盘前 N 笔与回测同期——持续背离即命中
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 回测
+      - 时序
+      - 量化
+      - backtest
+      - look-ahead
+      - lookahead bias
+      - time series
+      - walk forward
+      - repaint
+      - survivorship bias
+      - trading strategy
+      - forecast evaluation
+    hazard_type: 逻辑漏洞
+    source_ref: quant-consensus
+  - id: SCI-005
+    title: 准确率悖论（不平衡数据：99% 准确率、0 召回的废模型）
+    description: >-
+      欺诈率 0.1–1% 时，「全部预测为正常」的哑模型轻松拿到 99%+ 准确率却抓不到一个欺诈；医疗同理——99% 准确率从未识别出一个病人，实际无用。AI 汇报「模型准确率
+      99%」时若未看类别分布与召回，等于汇报了一个漂亮的废物。
+    symptom: 以 accuracy 为唯一指标汇报；类别分布严重倾斜（正类 <5%）；哑基线（全预测多数类）分数接近模型分数
+    severity:
+      S: 7
+      O: 5
+      D: 6
+    evidence:
+      source: >-
+        多源共识（consensus）：Train in Data 实例（dummy 99.83% 准确、零欺诈召回）+ Medium 实例（97.5% 准确、250 例欺诈全漏）+
+        MachineLearningMastery 教程（accuracy 对不平衡分布失效的经典论证）
+      level: consensus
+    fix: 不平衡任务禁用裸 accuracy：先算哑基线（全预测多数类的分数），模型必须显著超过它才算数；换 precision/recall/F1/PR-AUC + 混淆矩阵汇报；汇报时附类别分布
+    verifier: 先跑 dummy classifier（全预测多数类）——模型分数与哑基线差 <2 个点即命中；混淆矩阵查少数类召回是否为 0
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 准确率
+      - 不平衡数据
+      - 欺诈检测
+      - accuracy
+      - imbalanced
+      - class imbalance
+      - recall
+      - precision
+      - fraud detection
+      - rare event
+      - confusion matrix
+      - dummy classifier
+    hazard_type: 逻辑漏洞
+    source_ref: trainindata/MLM
