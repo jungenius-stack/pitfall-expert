@@ -58,7 +58,13 @@ test('场景3 诚实性：科学域任务无卡可对照，盲区显式声明而
   assert.ok(report.includes('不是“没有坑”，是“没有卡”'), '盲区措辞须区分无卡与无坑');
   const ids = matchedIds(r);
   assert.ok(ids.includes('MATH-012'), `统计卡应命中，实际：${ids.join(',')}`);
-  assert.ok(!ids.includes('CODE-014'), '跨域弱信号（CSV 卡）不应列入数学域任务');
+  // 跨域卡允许列入（如 CODE-036 强信号提醒数据错位——统计结论建立在错位数据上恰是其目标场景），
+  // 但必须是强信号；弱信号只进脚注计数不进正文（宁漏报不错报）
+  for (const m of r.matched) {
+    if (m.card.domain !== r.domain) {
+      assert.ok(m.m.score >= 4, `跨域卡 ${m.card.id} 分数 ${m.m.score} < 4，弱信号不应列入正文`);
+    }
+  }
 });
 
 test('场景4 档位行为：quick 不产验证器清单，deep 产 RPN 表', () => {
