@@ -1,0 +1,126 @@
+# 坑卡库 · Agent 安全域（v0.5.0 首批，源自 2025-2026 真实 MCP/agent 安全事件）
+# 种子来源：UpGuard 六案汇编（B 级，事件均有独立原始报告交叉）+ Docker MCP Horror Stories + Palo Alto Unit42
+# 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
+# confidence: backed_by_context | needs_verification | assumption
+# evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
+version: "0.5.0"
+domain: agent-security
+updated: "2026-10-15"
+card_count: 5
+cards:
+  - id: SEC-001
+    title: MCP 供应链投毒（仿冒服务器与正常外皮下的恶意行为）
+    description: >-
+      向 MCP 注册表提交仿冒知名服务的木马服务器：功能外观完全正常（邮件照发、数据照查），
+      恶意行为藏在正常路径之外——静默 BCC、凭据外传、持久化后门。SmartLoader 案中攻击者
+      花三个月搭假开发者生态（5 个假 GitHub 账号互 fork 制造活跃）通过审核；Postmark 仿冒
+      服务器每封邮件被密送攻击者，发收件双方均不可见。
+    symptom: 新装的 MCP 服务器来源只有注册表搜索结果；行为「完全正常」；出现无法解释的出站连接
+    severity: {S: 9, O: 3, D: 9}
+    evidence:
+      source: >-
+        UpGuard 六案汇编（2026）：SmartLoader 仿 Oura Ring MCP（2026-02，StealC 窃密，窃取浏览器密码/云令牌/SSH 密钥/钱包）
+        + Postmark 邮件 MCP 仿冒（2025-09，npm 首个野外恶意 MCP，密送 BCC）；原始报告独立可查
+      level: case
+    fix: >-
+      MCP 只从官方/项目一手仓库安装并核对发布者身份；新装服务器审计其网络行为（出站目标白名单）；
+      记住「工具工作正常 ≠ 工具安全」——正常性测试测不出投毒；高权限（邮件/文件/凭据类）服务器装前查源码
+    verifier: >-
+      装前核验：发布者 GitHub 账号注册时长/fork 网络/提交历史是否像三个月内搭建的假生态；
+      装后抓一次出站连接清单（lsof/网络面板）比对文档声明
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers: [MCP安装, 第三方服务器, 注册表, npm包, MCP server, supply chain, typosquat, registry poisoning, fake server, install mcp]
+    hazard_type: 事实性陷阱
+    source_ref: UpGuard/SmartLoader/Postmark
+
+  - id: SEC-002
+    title: MCP 适配层漏洞放大（代理/桥接包成为攻击面）
+    description: >-
+      广泛使用的适配器/代理层缺审计成为跳板：mcp-remote（下载 43.7 万+）不验证远程服务器
+      提供的 OAuth 授权 URL，恶意服务器在握手时注入 URL 即可在开发者本地执行任意 shell 命令
+      （CVE-2025-6514，CVSS 9.6）。拼写相近的服务器名（typosquat）即可诱导连接。
+    symptom: 连接 MCP 服务器时弹出的 OAuth 授权页域名与官方不一致；适配器版本长期未更新
+    severity: {S: 9, O: 2, D: 8}
+    evidence:
+      source: 'CVE-2025-6514（2025-07，CVSS 9.6）：mcp-remote OAuth URL 未验证致本地 RCE，可窃取环境变量/云凭据/SSH 密钥/浏览器会话；UpGuard 六案汇编'
+      level: case
+    fix: >-
+      适配器/桥接包列入与 MCP 服务器同级的审计范围（版本、CVE 订阅）；OAuth 授权页域名逐字符核对；
+      连接串来源固定写死，不从搜索/记忆里抄（防 typosquat）
+    verifier: '查已装适配器的 CVE 记录（一次搜索「<包名> CVE」）；核对 OAuth 域名与官方文档完全一致'
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers: [OAuth, 适配器, mcp-remote, 代理层, adapter, OAuth flow, bridge, CVE, typosquat, authorize url]
+    hazard_type: 工具链环境
+    source_ref: CVE-2025-6514
+
+  - id: SEC-003
+    title: 间接提示注入的「致命三要素」（不可信输入×特权访问×外发渠道）
+    description: >-
+      agent 同时持有三样东西即可被注入攻击：读不可信外部内容（issue/工单/PR/网页）＋特权访问
+      （私有仓库/生产数据库/AWS 凭据）＋对外通信渠道（回帖/回单）。真实案例：GitHub issue 里藏
+      指令诱导 Claude 读取并公开私有仓库（Invariant Labs 演示）；客户工单嵌指令让 Cursor 把
+      Supabase 令牌表完整贴回工单；PR 注入让 Amazon Q 清除本地文件系统并删除 AWS 资源。
+      三要素测试五分钟可完成，且默认开发配置常常三项全中。
+    symptom: 拥有 GitHub/工单读权限的 agent 同时挂着私有仓库或生产库凭据；agent 会被要求处理外部用户提交的内容
+    severity: {S: 9, O: 4, D: 8}
+    evidence:
+      source: >-
+        三案交叉（均为 2025，独立原始报告）：Invariant Labs GitHub issue 注入窃取私有仓库（2025-05）；
+        Supabase/Cursor 工单注入回显集成令牌（2025-07）；Amazon Q VS Code PR 注入清除文件系统与 AWS 资源；
+        UpGuard 六案汇编 + Docker MCP Horror Stories
+      level: case
+    fix: >-
+      对每个 agent 会话做三要素审计：读不可信内容的会话不挂特权凭据（拆分会话/最小令牌）；
+      回帖渠道禁止携带凭据类查询结果；不可信内容与特权操作之间设人工确认门（破坏性操作前必过）
+    verifier: >-
+      五分钟三问：本会话读不读外部提交内容？挂没挂特权凭据？能不能对外发内容？——三个「是」即 🐯，
+      拆掉任意一要素再开工
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers: [提示注入, 工单, issue, PR, 私有仓库, 生产凭据, prompt injection, untrusted input, privileged access, exfiltration, issue triage, customer ticket]
+    hazard_type: 事实性陷阱
+    source_ref: InvariantLabs/Supabase-Cursor/AmazonQ
+
+  - id: SEC-004
+    title: agent 工具调用零可见性（安全监控的盲区就是攻击者的通道）
+    description: >-
+      六起真实 MCP 事件的共性：传统端点监控与网络监控均未检测到攻击——agent 的工具调用层
+      不在任何监控视野内。「环境里装了哪些 MCP 服务器、各自有什么权限」没有人答得上来。
+      攻击面已经存在，可见性还没有。
+    symptom: 无法在 5 分钟内列出当前环境全部 MCP 服务器及其权限清单；工具调用量与内容无日志
+    severity: {S: 7, O: 4, D: 8}
+    evidence:
+      source: 'UpGuard 六案汇编（2026）共同模式结论：「六起事件中安全团队对工具调用均无可见性」；Docker MCP Horror Stories 系列'
+      level: case
+    fix: >-
+      维护一张 agent 资产清单：每个会话挂载的服务器、凭据、权限域；工具调用留痕（transcript
+      可导出可审计）；清单每变一次（装/卸/授权）同步更新
+    verifier: '现在尝试列出全部 MCP 服务器+权限——列不出来即本卡命中；抽查最近会话的 transcript 是否可导出'
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers: [安全审计, 权限清单, 监控盲区, 工具调用日志, security audit, inventory, visibility, tool call logging, agent permissions]
+    hazard_type: 隐含前提
+    source_ref: UpGuard共性
+
+  - id: SEC-005
+    title: MCP sampling 反向操控（服务器反向指挥客户端模型）
+    description: >-
+      MCP sampling 让服务器可以请求客户端的模型「帮忙生成内容」——恶意服务器可借此把指令
+      注入回客户端上下文（角色反转：不是客户端用工具，而是工具用客户端）。跨会话场景下
+      还可借采样建立隐式通信信道。属新披露攻击向量，防御面尚不成熟。
+    symptom: 客户端弹「服务器请求模型采样」类确认；对要求 sampling 权限的第三方服务器未加审视
+    severity: {S: 7, O: 2, D: 9}
+    evidence:
+      source: 'Palo Alto Unit42（2025-12）：MCP sampling 针对广泛使用的编程工具的攻击向量研究；单源一手安全研究'
+      level: case
+    fix: >-
+      默认拒绝第三方服务器的 sampling 请求；仅对自有/审计过的服务器开启；开启处视为
+      「该服务器可向模型上下文注入内容」对待，与 SEC-003 同级设防
+    verifier: '检查客户端 sampling 确认设置是否默认询问/拒绝；grep 当前授权过 sampling 的服务器清单'
+    confidence: needs_verification
+    pass_k_relevant: false
+    triggers: [sampling, 跨会话信道, 反向注入, sampling permission, cross-session channel, reverse injection, elicit]
+    hazard_type: 逻辑漏洞
+    source_ref: Unit42-2025-12

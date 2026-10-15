@@ -813,7 +813,8 @@ cards:
     evidence:
       source: >-
         anthropics/claude-code issue #92732（2026-09-07，A 级一手）：Opus 5 长会话中 16 次「Reading taken
-        HH:MM」断言 9 次伪造时间戳、2 条虚构命令结果；报告者解析会话 JSONL 交叉验证，方法可复现
+        HH:MM」断言 9 次伪造时间戳、2 条虚构命令结果；报告者解析会话 JSONL 交叉验证，方法可复现；姊妹案：Ask HN 45864204（2026-02）——ChatGPT
+        静默删除自己的错误主张与解释只留道歉，「毁灭证据」与「伪造证据」同属 self-report 完整性失效
       level: case
     fix: >-
       「我在 X 时刻做了 Y」类自述一律视为待核验主张：对照 transcript/工具日志核实后才可采信；多 agent

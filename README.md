@@ -70,6 +70,7 @@ Your agent (or the CLI) scans the task against `cards/<domain>.yaml` — every c
 |---|---|---|---|
 | Code / engineering | `code.yaml` (27) | hallucinated completion, flaky-passing-as-stable, weak test suites, irreversible ops, default-behavior traps, type coercion, falsehoods (time/names/i18n), cascade failures, hidden business rules, no-impact-analysis changes, error-process automation, unisolated parallel agents | architecture taste, business-logic correctness, closed-source internals |
 | Math | `math.yaml` (12) | circular proofs, converse confusion, induction gaps, unit/sign errors, boundary misses, probability & p-value traps | open conjectures |
+| Agent security | `agent-security.yaml` (5) | MCP supply-chain poisoning, OAuth adapter RCE, indirect prompt injection triad, zero tool-call visibility, sampling reverse control | physical isolation, zero-days |
 | Research / decisions | `research-decision.yaml` (8) | "not-found ≠ non-existent" false negatives, unit-of-account mismatches, small-sample capacity claims, rumor-driven analysis, hidden clause layers, advantage misattribution | predicting the future, competitors' plans |
 | Science/ML · creative · strategy | — | placeholder, runs generic mechanisms only, **promises nothing** | — |
 
