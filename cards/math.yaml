@@ -1,0 +1,297 @@
+# 坑卡库 · 数学域（v0.3 种子批次）
+# 字段规范见 docs/踩坑专家方法论_v0.3.md 第 9.1 条：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
+# confidence: backed_by_context | needs_verification | assumption
+# evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
+
+version: 0.4.0
+domain: math
+updated: '2026-10-15'
+card_count: 12
+cards:
+  - id: MATH-001
+    title: 循环论证
+    description: 证明中使用了待证结论本身（或其等价变形）——结论在前悄悄入场，证明只是原地转圈。最常见于"恒等式变形后原式重现"。
+    symptom: 证明后段出现"显然成立"且该步用到了结论；变换一圈回到原式；辅助量定义里藏着结论
+    severity:
+      S: 5
+      O: 2
+      D: 4
+    evidence:
+      source: Stanford Math 79SI Common Proof Mistakes
+      level: consensus
+    fix: 动笔前写下"前提清单"与"目标"两张表；每一步只允许引用清单内条目；关键步标注依据编号
+    verifier: 前提-步骤-结论追溯表：逐步标注引用了哪条前提/已知定理，无依据步即暴露循环
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 证明题
+      - 恒等式推导
+      - 解方程后验根
+      - 算法正确性证明
+      - proof
+      - circular reasoning
+      - identity
+  - id: MATH-002
+    title: 逆命题/否命题混淆
+    description: 要证"若 A 则 B"却证了"若 B 则 A"（或否命题），就以为完成了。全称命题举几个例子"验证"也属同类错误。
+    symptom: 证明方向与题目方向相反；"由结论出发也能推出条件"被当作证明；用特例验证一般命题
+    severity:
+      S: 5
+      O: 3
+      D: 3
+    evidence:
+      source: Stanford Math 79SI; 中研院《數學證明錯誤類型》
+      level: consensus
+    fix: 动笔前把原命题/逆命题/否命题/逆否命题四形式写出并标明要证哪个；全程核对逻辑方向与量词
+    verifier: 四形式对照表 + 逐步核对蕴含方向与量词（任意/存在）使用
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 条件命题证明
+      - 充分必要性问题
+      - 逻辑推导
+      - converse
+      - contrapositive
+      - if and only if
+      - logic
+  - id: MATH-003
+    title: 归纳法基例与跳步
+    description: 基例错误或缺失、归纳假设未真正使用（或越级用到 n+2）、归纳步中出现未经假设的断言。
+    symptom: 基例如"n=1 显然成立"未实际验算；归纳步里出现无法由 n 情形推出的断言；对非自然数集用归纳
+    severity:
+      S: 4
+      O: 3
+      D: 3
+    evidence:
+      source: Stanford Math 79SI Common Proof Mistakes
+      level: consensus
+    fix: 基例显式计算不省略；归纳步逐行标注假设来源；明确归纳对象与递推结构
+    verifier: 前 3 个值手工验证 + 归纳步逐行审计（每行注明依据：假设/定义/定理）
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 归纳证明
+      - 递归定义
+      - 组合计数
+      - 数列通项
+      - induction
+      - base case
+      - recursion
+      - combinatorics
+  - id: MATH-004
+    title: 特例当一般
+    description: 用有限个具体值"验证"一般命题，或从若干例子归纳出一般规律当证明用。
+    symptom: 出现"代入 x=1,2,3 都成立所以恒成立"或"试了几个例子都符合"式论证
+    severity:
+      S: 4
+      O: 3
+      D: 3
+    evidence:
+      source: 中研院《數學證明錯誤類型》; 数学教学共识
+      level: consensus
+    fix: 例子只用于启发与反驳（找反例），不作为证明；一般命题必须一般论证
+    verifier: 证明文本中检索"代入/例如/取…得"附近是否存在论证跳跃；主动寻找反例尝试
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 恒等式证明
+      - 公式推导
+      - 猜想验证
+      - 程序计算结果外推
+      - counterexample
+      - generalization
+      - conjecture
+  - id: MATH-005
+    title: 量纲/符号误用
+    description: 等式两边量纲不同、同一符号在不同式子含义不同、隐式单位换算（角度弧度混用、百分比当小数、米厘米混算）。
+    symptom: 长度+时间出现在同一等式；sin 的参数一时弧度一时度；符号表从未建立
+    severity:
+      S: 4
+      O: 3
+      D: 3
+    evidence:
+      source: 量纲分析教材; 工程计算共识
+      level: consensus
+    fix: 推导全程带单位；建立符号表（符号→含义→单位→取值范围）；换单位处显式标注换算
+    verifier: 关键等式逐项做量纲检查（两边量纲必须一致）+ 符号表核对
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 物理公式推导
+      - 工程计算
+      - 单位换算
+      - 建模
+      - unit conversion
+      - dimensional analysis
+      - sign convention
+  - id: MATH-006
+    title: 边界条件遗漏
+    description: 定义域端点、0、∞、空集、退化情形（空向量/零矩阵/单点集/空区间）未讨论，结论适用范围被悄悄放大。
+    symptom: 结论如"显然连续/可导/收敛"未说明适用范围；极限过程未统一（左右极限、次序极限）；解集边界未分类
+    severity:
+      S: 4
+      O: 4
+      D: 4
+    evidence:
+      source: 数学分析教学共识; 0xelitesystem/agent-failure-modes
+      level: consensus
+    fix: 每个结论必须带适用范围声明；边界情形逐类列出并单独处理；极限换序给依据
+    verifier: 边界清单对照表：端点/零/无穷/退化/空集/定义域外，逐项检查是否被结论覆盖
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 定理应用
+      - 极限
+      - 连续性/可导性判断
+      - 优化问题
+      - 解方程
+      - boundary condition
+      - limit
+      - continuity
+      - optimization
+  - id: MATH-007
+    title: 逻辑跳跃（"显然"）
+    description: 用"显然/易证/不难得到/众所周知"跳过关键推导步——读者（和未来的自己）无法一步复现的步骤。
+    symptom: 证明文中出现显然但需要多步才能补出的步骤；两个式子间凭空出现桥梁
+    severity:
+      S: 4
+      O: 3
+      D: 4
+    evidence:
+      source: Stanford Math 79SI Common Proof Mistakes
+      level: consensus
+    fix: 凡"显然"出现处强制展开为可复现的一步或两步；每步给出依据（定义/定理/假设编号）
+    verifier: 独立复述测试：把每个"显然"步骤遮住，尝试仅凭前文一步复现，失败即缺口
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 任何证明
+      - 推导链
+      - 解答书写
+      - proof writing
+      - obviously
+      - derivation chain
+  - id: MATH-008
+    title: 存在性与唯一性混谈
+    description: 结论声称"存在唯一"但只证了一半；解方程后未讨论增解/失解/多解分类。
+    symptom: 结论"存在唯一解"只完成存在性证明；平方类操作后未验根；解集边界（无解/无穷多解）未分类
+    severity:
+      S: 4
+      O: 3
+      D: 3
+    evidence:
+      source: 数学教学共识; 中研院证明错误分类
+      level: consensus
+    fix: 结论拆成存在性/唯一性/范围三问逐一回答；方程解完必须代回原式验根
+    verifier: 三问检查表（存在？唯一？范围？）+ 增根检查（每个解代回原式）
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 解方程
+      - 存在唯一性定理
+      - 不动点
+      - 最值问题
+      - existence and uniqueness
+      - fixed point
+      - extremum
+  - id: MATH-009
+    title: 运算前提失效
+    description: 除以可能为 0 的量、偶次根号下可能为负、log/arcsin 走出定义域、开方丢支、绝对值忘记分类讨论。
+    symptom: 分母含变量但未声明非零；方程两边平方/开方后未验根；分段函数只算一段
+    severity:
+      S: 4
+      O: 4
+      D: 3
+    evidence:
+      source: 中研院《數學證明錯誤類型》; 代数教学共识
+      level: consensus
+    fix: 每个除法/开方/取 log 前显式声明前提并验证；平方类操作后系统性验根；绝对值/分段显式分类
+    verifier: 前提声明清单（每个限制运算对应一条前提）+ 全部解代回原式
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 解方程
+      - 分式运算
+      - 根式
+      - 对数/指数
+      - 绝对值
+      - 不等式放缩
+      - divide by zero
+      - domain of definition
+      - logarithm
+      - inequality
+  - id: MATH-010
+    title: 数值稳定性
+    description: 大数吃小数、灾难性抵消、病态条件数、迭代无收敛判据——数学上正确的算法数值上可能给出垃圾。
+    symptom: 同样算式换顺序结果不同；迭代到上限步数但无收敛判据；方差/协方差矩阵出现微小负特征值
+    severity:
+      S: 4
+      O: 3
+      D: 3
+    evidence:
+      source: 数值分析教材 (Trefethen; Higham)
+      level: consensus
+    fix: 稳定算法选型（如 Kahan 求和、中心化再相乘）；显式容差与收敛判据；关键计算估条件数
+    verifier: 病态输入对比测试（数量级差异输入/近相关变量）+ 收敛曲线审查
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 数值计算
+      - 迭代算法
+      - 统计计算
+      - 线性代数
+      - 优化求解
+      - numerical stability
+      - iteration
+      - linear algebra
+      - solver
+  - id: MATH-011
+    title: 概率直觉陷阱
+    description: 基率谬误、P(A|B)≠P(B|A)、独立与互斥混淆、条件更新遗漏（Monty Hall 类）——概率陈述的方向与基率最常被搞反。
+    symptom: 出现"検査阳性所以大概率患病"式推理（无视基率）；两事件概率相乘用错独立前提；条件概率写反方向
+    severity:
+      S: 4
+      O: 3
+      D: 3
+    evidence:
+      source: 概率论教学共识; Ioannidis PLoS Med 2005 (观点+实证混合)
+      level: consensus
+    fix: 概率陈述先画样本空间或概率树；条件概率写全条件（谁给定谁）；基率显式入式
+    verifier: 贝叶斯公式方向检查 + 数值小例手工计算对照
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 概率推断
+      - 贝叶斯更新
+      - 统计报告
+      - A/B 实验解读
+      - 风险评估
+      - probability
+      - bayesian
+      - base rate
+      - risk
+  - id: MATH-012
+    title: 统计推断误用
+    description: p 值误读（显著性≠效应存在/效应大小）、多重比较未校正、相关当因果、选择性样本偏差——复现危机的主要制造机。
+    symptom: 出现"p<0.05 所以为真"式推断；显著性当效应量；多次检验取显著的那个；相关叙述成因果
+    severity:
+      S: 4
+      O: 3
+      D: 4
+    evidence:
+      source: Simmons et al., Psych Science 2011; Open Science Collaboration, Science 2015
+      level: empirical
+    fix: 分析计划前置（预注册思想：先声明假设与分析方法再动手）；报告效应量与置信区间；多重比较校正；相关表述禁用因果词
+    verifier: 分析计划 vs 实际报告逐条对照 + 偏差审查清单（选择偏差/测量偏差/幸存者偏差）
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 假设检验
+      - A/B 实验
+      - 相关性分析
+      - 研究报告
+      - 数据驱动决策
+      - hypothesis test
+      - p-value
+      - ab test
+      - correlation

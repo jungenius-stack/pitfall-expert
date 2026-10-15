@@ -1,0 +1,607 @@
+# 坑卡库 · 代码域（v0.4 融合批次（+ZCode 案例卡 CI-001~005））
+# 字段规范见 docs/踩坑专家方法论_v0.3.md 第 9.1 条：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
+# confidence: backed_by_context | needs_verification | assumption
+# evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
+
+version: 0.4.0
+domain: code
+updated: '2026-10-15'
+card_count: 23
+cards:
+  - id: CODE-001
+    title: 虚假不可能性
+    description: Agent 把可完成的任务误判为"不可做/无法实现"，据此过早放弃或改道，且放弃陈述本身未经任何验证。WebArena 实测中此类失败占 54.9%。
+    symptom: 出现"这个做不到""没有这样的 API""只能换方案"类陈述，但未附任何查证动作
+    severity:
+      S: 4
+      O: 3
+      D: 4
+    evidence:
+      source: Zhou et al., WebArena, ICLR 2024 (arXiv:2307.13854)
+      level: empirical
+    fix: 放弃类陈述必须附带验证证据（读过文档/列过 API/试过调用）；无法验证的放弃降级为假设并在三区报告中进入 ❓ 区
+    verifier: 对每个"做不到"的陈述执行一次最小探查：读官方文档相关章节或发起一次探测性调用，记录结果
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 方案选型
+      - API能力判断
+      - 不支持类陈述
+      - 技术可行性结论
+      - feasibility
+      - impossible
+      - unsupported
+      - no such api
+      - cannot be done
+  - id: CODE-002
+    title: 幻觉式完成
+    description: 宣称任务完成但环境状态未变或不符合预期——文件不存在/内容为空/数据库值未更新/外部系统无预期响应。MAST 将其归为"未经验证的终止"。
+    symptom: 出现"已完成""应该可以了"类陈述但无状态证据；输出物缺失或内容不符
+    severity:
+      S: 5
+      O: 3
+      D: 3
+    evidence:
+      source: MAST, Cemri et al., NeurIPS 2025 (arXiv:2503.13657); τ-bench ICLR 2025
+      level: empirical
+    fix: 完成声明必须附环境状态证据：文件存在性+内容抽样、数据库查询结果、外部 API 响应；无证据的完成声明不予采信
+    verifier: 任务结束后运行状态断言脚本，逐项比对"预期状态 vs 实际状态"，输出差异清单
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 任务收尾
+      - 已完成类声明
+      - 交付物生成
+      - 多步长任务终点
+      - task complete
+      - done statement
+      - delivery claim
+      - finished
+  - id: CODE-003
+    title: 复跑不一致（方差陷阱）
+    description: 单次成功掩盖高方差——同一任务多次运行结果漂移。τ-bench 实测：SOTA function-calling agent 单次成功率约 60%，八次全对（pass^8）低于 25%。
+    symptom: 将"刚才明明可以"当作稳定性证据；一次性 demo 通过即宣告可靠
+    severity:
+      S: 4
+      O: 4
+      D: 4
+    evidence:
+      source: τ-bench, Yao et al., ICLR 2025 (arXiv:2406.12045)
+      level: empirical
+    fix: 关键任务设计复跑比对（≥3 次），报告一致性与方差而非单次结果；不可复跑任务显式声明为不可验证项
+    verifier: 同输入连跑 N 次，对输出做结构化 diff 比对，统计一致率
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 可靠性宣称
+      - 生产就绪评估
+      - 演示通过后上线
+      - 随机性涉及的任务
+      - flaky
+      - reproducibility
+      - rerun
+      - consistency check
+      - works on my machine
+      - pass@k
+  - id: CODE-004
+    title: 测试通过 ≠ 正确
+    description: 弱测试套件给出虚高通过率。SWE-bench 实证：7.8% "通过"的 patch 实际错误，29.6% 与 ground truth 行为分歧——测试全绿不代表修复正确。
+    symptom: 测试全绿即宣布修复；断言只检查"不抛异常"不检查行为值；边界输入不在测试集
+    severity:
+      S: 5
+      O: 3
+      D: 5
+    evidence:
+      source: Wang et al., ICSE 2026 (arXiv:2503.15223)
+      level: empirical
+    fix: 断言行为值与边界值；新测试先红后绿；把"测试是否可靠"本身列入审查
+    verifier: 审查测试断言强度（是否断言行为）+ 对已知边界/对抗输入跑一遍，观察是否暴露空洞
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 修复完成声明
+      - 测试全绿
+      - CI 通过
+      - 回归验证
+      - tests pass
+      - all green
+      - unit test
+      - ci pass
+      - coverage
+  - id: CODE-005
+    title: 级联失败无检查点
+    description: 多步任务中一步错误向后传播且中途无检查点拦截，错误到很晚才暴露，前段成果被后续步骤污染（ASI08 Cascading Failures）。
+    symptom: 长链条脚本/多文件改动中段出错仍继续执行；错误在终点验收时才被发现
+    severity:
+      S: 5
+      O: 3
+      D: 4
+    evidence:
+      source: OWASP Agentic Top 10 (2025-12); MAST NeurIPS 2025
+      level: consensus
+    fix: 每步设检查点（中间状态落盘/断言），失败即停不继续；步骤间传递结构化结果而非自由文本
+    verifier: 每步结束后运行检查点断言，失败时中止流水线并报告断点位置
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 多步脚本
+      - 批处理
+      - 长任务
+      - 流水线
+      - 多文件批量改动
+      - pipeline
+      - multi-step task
+      - long-running
+      - batch job
+      - checkpoint
+  - id: CODE-006
+    title: 不可逆操作无确认
+    description: rm -rf、force push、删数据、资金/外发类操作无 dry-run、无备份、无显式确认即执行。Knight Capital 事故的核心教训之一：不可逆动作缺乏刹车。
+    symptom: 一步到位的破坏性命令；执行前无备份无快照；"应该不会出事"
+    severity:
+      S: 5
+      O: 2
+      D: 2
+    evidence:
+      source: SEC Release No. 34-70694 (Knight Capital 2012)
+      level: case
+    fix: 不可逆操作前必须 dry-run + 备份 + 显式确认；优先可逆化设计（软删除/版本控制/回收站）
+    verifier: 操作前检查备份存在性与 dry-run 输出，两者齐备才放行
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 删除
+      - 覆盖写入
+      - force push
+      - 重置
+      - 资金操作
+      - 对外发送
+      - delete
+      - drop
+      - deploy
+      - publish
+      - migration
+      - irreversible
+  - id: CODE-007
+    title: 死代码/遗留配置重新激活
+    description: >-
+      无人引用的旧代码路径、feature flag、配置项被新变更重新激活。Knight Capital：一个遗留部署 flag 被激活，45 分钟损失 4.4 亿美元。Hyrum
+      定律的镜像——你以为无人依赖的行为，有人暗中依赖。
+    symptom: 变更触及"看似无关"的共享配置/flag；上线行为与本地不一致；没人说得清某配置的确切用途
+    severity:
+      S: 5
+      O: 2
+      D: 5
+    evidence:
+      source: SEC Release No. 34-70694; Hyrum's Law
+      level: case
+    fix: 改共享配置/flag 前全仓 grep 引用；看不懂用途的先考古再动（切斯特顿栅栏）；拆除代码保持观察期
+    verifier: 变更前输出全仓引用 grep 报告并逐条确认；关键变更灰度验证生产行为
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 共享配置修改
+      - feature flag
+      - 依赖升级
+      - 删除无用代码
+      - 部署参数调整
+      - legacy code
+      - dead code
+      - re-enable
+      - cleanup
+  - id: CODE-008
+    title: 工具参数幻觉/schema 漂移
+    description: 编造工具参数、凭记忆假设 API schema，而库/服务升级后 schema 已漂移。表现为 unexpected keyword、静默忽略未知参数等。
+    symptom: 出现"我记得这个参数叫…"类陈述；调用报错后才查文档；新旧版本混用
+    severity:
+      S: 3
+      O: 4
+      D: 2
+    evidence:
+      source: τ-bench 失败分析; awesome-falsehood (版本号/依赖)
+      level: empirical
+    fix: 调用前读当前 schema（introspection/文档/类型定义），不凭记忆；关键调用先 dry-run
+    verifier: 首次调用前 schema 校验或 dry-run，确认参数名/类型/必填项
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 工具调用
+      - API 集成
+      - 库升级后首次调用
+      - 跨版本代码迁移
+      - api call
+      - sdk
+      - tool call
+      - parameters
+      - schema drift
+  - id: CODE-009
+    title: 时区与日期边界
+    description: 时区/夏令时/本地化日期/2 月 29 日/Unix 2038 等"程序员相信的谎言"。无时区声明的时间戳转换是最常见的数据正确性坑。
+    symptom: 时间转换无时区声明；月末/年末/闰年/夏令时切换小时未测；日期比较用字符串
+    severity:
+      S: 3
+      O: 4
+      D: 3
+    evidence:
+      source: awesome-falsehood (More Falsehoods about Time / Time Zones)
+      level: consensus
+    fix: 所有时间显式带时区，内部统一 UTC 存储；边界日期进测试集；日期运算用成熟库
+    verifier: 边界日期测试套件：2/29、12/31 23:59:59、夏令时切换小时、跨时区往返转换
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 时间处理
+      - 定时任务
+      - 日志分析
+      - 跨时区数据
+      - 报表日期范围
+      - timezone
+      - utc
+      - dst
+      - timestamp
+      - date handling
+      - calendar
+  - id: CODE-010
+    title: 路径/Unicode/编码
+    description: NFC/NFD 归一化分歧、中文路径、CRLF/LF、BOM、超长路径——"看起来一样"的文件名比较可能根本不相等。
+    symptom: 本地正常 CI 挂；文件名匹配失败；文件"莫名"读不到或重复
+    severity:
+      S: 3
+      O: 3
+      D: 3
+    evidence:
+      source: awesome-falsehood (Unicode/文件路径/编码)
+      level: consensus
+    fix: 文件名比较前归一化（NFC）；读写显式声明编码；路径拼接用 pathlib 类库
+    verifier: 构造 NFD/NFC/中文/空格/超长文件名测试集跑一遍读写与匹配
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 文件处理
+      - 跨平台项目
+      - macOS 产物
+      - 用户上传文件名
+      - 搜索匹配
+      - file path
+      - unicode
+      - filename
+      - encoding
+      - utf-8
+      - cross-platform
+  - id: CODE-011
+    title: 浮点与数值精度
+    description: 0.1+0.2≠0.3、大数吃小数、灾难性抵消、NaN≠NaN、累加顺序敏感——浮点相等比较是错的，金额/科学计算用 float 直接累加是错的。
+    symptom: 相等比较用 ==；金额计算出现分毫误差；同算式换顺序结果不同
+    severity:
+      S: 4
+      O: 4
+      D: 3
+    evidence:
+      source: awesome-falsehood (浮点); 数值分析教材
+      level: consensus
+    fix: 相等用容差比较；金额用整数最小单位或 decimal 类型；大累加考虑 Kahan 求和或排序累加
+    verifier: 容差断言 + 已知病态算式用例（0.1+0.2、1e16+1、大数吃小数序列）
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 数值计算
+      - 金额/价格
+      - 科学计算
+      - 聚合统计
+      - 几何/图形
+      - float precision
+      - rounding
+      - decimal
+      - numeric
+      - money
+  - id: CODE-012
+    title: 版本与依赖解析
+    description: 语义化版本不是全序（pre-release/构建元数据）、区间解析各家不同、lockfile 漂移导致 CI 与本地依赖不一致。
+    symptom: 版本区间漂移如"^1.2.3 某天装到 1.9.0 就挂"；本地好好的 CI 红；无人敢升依赖
+    severity:
+      S: 4
+      O: 3
+      D: 3
+    evidence:
+      source: awesome-falsehood (版本号/包管理器)
+      level: consensus
+    fix: 关键服务锁死版本；lockfile 提交并校验一致性；升级必须跑全量测试
+    verifier: lockfile 一致性检查（CI 中 npm ci 类严格安装）+ 依赖树 diff 审查
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 依赖安装
+      - 版本升级
+      - CI 环境差异
+      - Docker 构建
+      - 发布流程
+      - dependency
+      - version pin
+      - upgrade
+      - semver
+      - docker build
+  - id: CODE-013
+    title: 空值与边界输入
+    description: 空列表/空字符串/None/空集合的语义分歧（"空"是默认值还是错误？）；falsy 判断把 0/""/[] 误判。
+    symptom: 边界输入未测；空数据时行为与文档不符；0 值被当空处理
+    severity:
+      S: 3
+      O: 4
+      D: 3
+    evidence:
+      source: 0xelitesystem/agent-failure-modes; 通用工程共识
+      level: consensus
+    fix: 显式定义空值语义（文档写明）；区分 null/undefined/空/零；边界输入进测试集
+    verifier: 空输入测试矩阵：空列表/空串/None/0/单元素/超长，逐项断言行为
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 输入处理
+      - API 参数
+      - 数据管道
+      - 聚合函数
+      - 表单校验
+      - null check
+      - edge case
+      - boundary
+      - empty input
+      - nan
+  - id: CODE-014
+    title: CSV/数据解析
+    description: BOM、引号内换行/逗号、编码歧义、科学计数法列、超大数精度丢失——手撕解析器必踩，Excel 打开正常程序读崩是常态。
+    symptom: 行数对不上；某一列莫名全空；中文乱码；数字精度丢失
+    severity:
+      S: 3
+      O: 4
+      D: 2
+    evidence:
+      source: awesome-falsehood (CSV)
+      level: consensus
+    fix: 用成熟解析器不手撕；显式声明编码（utf-8-sig 处理 BOM）；数字列按字符串读后自选精度
+    verifier: 对抗样本 CSV 测试集：BOM/内嵌引号换行/Unicode/空行/科学计数法/超大整数
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - CSV 处理
+      - 数据导入导出
+      - 报表
+      - 用户上传表格
+      - csv
+      - data parsing
+      - delimiter
+      - spreadsheet
+      - data import
+  - id: CODE-015
+    title: 顺手过度修改（范围蔓延）
+    description: 改 A 时顺手改 B/C/D，diff 远超需求范围——Karpathy 总结的 LLM 编程四大通病之一（默默猜需求/顺手过度改/过度工程/无验证宣称完成）。
+    symptom: PR diff 与需求无关的文件占比高；"既然看到了就修一下"；一次提交混多主题
+    severity:
+      S: 3
+      O: 4
+      D: 2
+    evidence:
+      source: multica-ai/andrej-karpathy-skills (219k★)
+      level: consensus
+    fix: 需求复述 + diff 审查双动作；范围外改动单独提交或明确征求同意；克制"看到了就修"
+    verifier: 提交前 diff 逐文件对照需求清单，无关文件必须给出理由或移出本提交
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 任何代码修改
+      - 重构
+      - 顺手优化
+      - 修复时的格式调整
+      - scope creep
+      - while at it
+      - drive-by fix
+      - refactor
+  - id: CODE-016
+    title: shell 变量展开被全角字符截断
+    description: >-
+      bash/sh 中 $VAR 后紧跟全角字符（如全角括号）时，本机 locale 下全角字符的字节会被并进变量名，导致 set -u 报 unbound
+      variable（变量未绑定）错误——且错误信息里的变量名尾部带乱码字节，极具迷惑性，实际变量已正确赋值。
+    symptom: set -u 脚本报某变量 unbound 但该变量明明已赋值；错误信息中变量名后有怪异字节；赋值行与使用行之间只差一个全角符号
+    severity:
+      S: 3
+      O: 3
+      D: 5
+    evidence:
+      source: pitfall-expert 项目 P3 实测（2026-10-14，macOS /bin/sh，连踩 3 处后修复）
+      level: case
+    fix: $VAR 后紧跟非 ASCII 字符时改用 ${VAR} 花括号定界；中文提示语里的变量引用一律写 ${VAR}
+    verifier: grep 自查正则：\$[A-Za-z_][A-Za-z0-9_]*[^ -~]（$ 后变量名紧跟非 ASCII 可见字符即为嫌疑）；或 shellcheck 扫描 + set -u 实跑
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - shell 脚本
+      - sh
+      - bash
+      - 变量展开
+      - set -u
+      - 全角
+      - shell script
+      - bash variable
+      - quoting
+      - cjk
+  - id: CODE-017
+    title: await 无响应承诺（协议通知）
+    description: >-
+      对 JSON-RPC 通知（有 method 无 id 的消息，如 notifications/initialized）await 响应——协议规定通知不得回复，Promise
+      悬挂直到超时。在测试里表现为神秘的超时失败，根因与服务器无关。
+    symptom: await 一个"应该马上返回"的协议调用却超时；被 await 的消息没有 id 字段；服务器日志显示从未收到该请求的响应义务
+    severity:
+      S: 3
+      O: 3
+      D: 4
+    evidence:
+      source: pitfall-expert 项目 P2 实测（2026-10-14，node:test + MCP stdio，15s 超时后定位）; JSON-RPC 2.0 规范（通知不得响应）
+      level: case
+    fix: 严格区分请求（有 id，等响应）与通知（无 id，只发送）；通知走 fire-and-forget，不进 await 链；协议封装层对无 id 消息直接拒绝 await
+    verifier: 审查所有 await 的协议调用是否携带 id；通知路径单独写冒烟用例（只发送不断言响应）
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 协议测试
+      - JSON-RPC
+      - MCP
+      - await 超时
+      - stdio
+      - 通知
+      - json-rpc
+      - await promise
+      - notification
+      - stdio timeout
+  - id: CODE-018
+    title: 跳过规则先于阻断规则（白名单旁路）
+    description: >-
+      门控/过滤逻辑中，跳过（白名单/琐碎）规则若先于阻断（黑名单/高危）规则求值，高危输入会被静默放过。实测案例：git push --force 因首词 git
+      命中琐碎命令表，在破坏性检查执行前就被返回"跳过"——黑名单测试全过，真实高危输入却毫无记录。
+    symptom: 已知高危操作在门控日志里毫无痕迹；黑名单逐条测试通过但组合输入被放过；规则表存在"先跳过、后检查"的求值顺序
+    severity:
+      S: 4
+      O: 3
+      D: 4
+    evidence:
+      source: pitfall-expert 项目 P4 实测（2026-10-14，gate-core 测试抓出 P3 hook 潜伏旁路，修复后回归通过）
+      level: case
+    fix: 阻断/黑名单规则必须优先于跳过/白名单规则求值；两类规则分离，且顺序由对抗用例锁定（构造同时命中两类的输入，断言不被跳过）
+    verifier: 对抗用例集：对每条黑名单模式构造"同时命中白名单"的输入（如 git push --force vs git 琐碎表），断言判定为阻断而非跳过
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 门控
+      - 过滤规则
+      - 白名单
+      - 黑名单
+      - 安全策略
+      - 规则顺序
+      - 旁路
+      - allowlist
+      - denylist
+      - rule order
+      - bypass
+      - gate
+  - id: CI-001
+    title: 缺省语义按常识推断（「不传参数」≠「默认关闭」）
+    description: 按常识假设第三方服务缺省行为是保守默认——实际缺省值可能是最贵/最危险的一档。「缺省=保守」是使用者的期望，不是实现者的契约。
+    symptom: 为省事省略参数直接上线；对「不传参数时会发生什么」未做任何实测即写入结论
+    severity:
+      S: 6
+      O: 3
+      D: 8
+    evidence:
+      source: 真实翻车案例 E1（网关缺省开启思考档、插件默认档缺 sandbox 字段），10 案例回放验证
+      level: case
+    fix: 缺省语义默认标「未知」；信任等级 读源码>实测>官方文档>猜测；涉及成本/权限/安全的参数各发一次「传/不传」最小请求对比
+    verifier: 对每个被依赖的缺省行为发起一次「传参 vs 不传参」对比调用，记录实际差异；或读源码找到 default 赋值处
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - default value
+      - optional parameter
+      - sdk integration
+      - api gateway
+      - 缺省行为
+      - 不传参数
+    hazard_type: 隐含前提
+    latent_condition: 缺省值语义因服务商/版本而异，且不写在显眼文档里
+    source_ref: cases/E1
+  - id: CI-002
+    title: 配置写完不加载验证
+    description: 产出配置文件/manifest/CI 定义后不真实加载一次——类型强转与格式版本差异导致静默失效，系统带着错误配置继续跑。
+    symptom: 「配置已写好」但从未用真实加载器解析过；YAML 1.1 把 off/no/yes 解析为布尔导致键值被改义
+    severity:
+      S: 7
+      O: 3
+      D: 6
+    evidence:
+      source: 真实翻车案例 E2（思考档位 off 被解析为 false 配置静默失效），10 案例回放验证
+      level: case
+    fix: 配置即验证：写完必须用应用真实加载入口解析一次（不是语法检查）；布尔样字符串一律加引号
+    verifier: 用目标程序的真实加载路径跑一次并打印解析结果（如 import 后 dump），比对预期键值
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - config file
+      - yaml
+      - manifest
+      - ci config
+      - 配置文件
+      - 加载验证
+    hazard_type: 易错环节
+    latent_condition: 类型强转与格式版本差异导致静默失效
+    source_ref: cases/E2
+  - id: CI-003
+    title: 组件默认值不一致（同一组件不同路径默认不同）
+    description: 同一组件的 CLI、HTTP API、SDK、子进程路径可能各自携带不同默认值；用 CLI 测出的结论外推到编程路径会静默出错。
+    symptom: 「CLI 测过没问题」被当作 API 路径也没问题；跨路径外推默认行为
+    severity:
+      S: 6
+      O: 2
+      D: 9
+    evidence:
+      source: 真实翻车案例 E3（插件 CLI 可写但 app-server 路径落只读沙箱，翻源码 lib/index.js:19-30 定位），回放验证
+      level: case
+    fix: 集成路径的默认行为必须在该路径上实测，禁止跨路径外推；拿不准读源码；闭源读不到 → 标 ❓「该组件在本路径默认行为未知」
+    verifier: 在目标集成路径（而非 CLI）发起一次真实调用验证该路径的默认行为
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - cli vs api
+      - default behavior
+      - integration path
+      - sandbox
+      - 默认值
+    hazard_type: 工具链环境
+    latent_condition: 默认值分散在源码多处，文档不写「路径间差异」
+    source_ref: cases/E3
+  - id: CI-004
+    title: 类型强转暗雷（布尔、数字、编码）
+    description: YAML 1.1 布尔强转（off/no/on/yes）、环境变量全字符串、JSON 大数丢精度、前导零当八进制——语法检查不报错，读取侧才生效。
+    symptom: 布尔样字符串裸写；环境变量直接进 if 判断；跨语言传参不打印实际类型
+    severity:
+      S: 5
+      O: 4
+      D: 7
+    evidence:
+      source: 真实翻车案例 E2 同族；YAML 1.1 spec
+      level: case
+    fix: 布尔/数字样字符串显式引号；环境变量用显式白名单判断；跨边界传值先打印实际类型再写逻辑
+    verifier: 对可疑值打印 typeof/类型标签与实际解析值，与预期比对
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - type coercion
+      - yaml boolean
+      - env var
+      - string to number
+      - 类型强转
+    hazard_type: 常见错误
+    latent_condition: 强转规则是格式规范层面的，语法检查不报错
+    source_ref: cases/E2
+  - id: CI-005
+    title: Falsehoods——程序员信以为真的谎言（时间/地理/姓名/编码…）
+    description: 「一天 24 小时」「时区按国家划分」「人名分姓和名」「邮件唯一标识人」——每个数据领域都有数十条显然为真实际为假的假设，主场景测试全绿、边界数据进来静默出错。
+    symptom: 处理时间/地理/人名/邮件/电话/国际化文本时未过 falsehoods 清单即写逻辑
+    severity:
+      S: 6
+      O: 3
+      D: 8
+    evidence:
+      source: awesome-falsehood (kdeldycke, 27.8k★)，每条背后是真实事故
+      level: consensus
+    fix: 涉及时空/身份/国际化数据先过 awesome-falsehood 对应清单逐条自检数据假设，选最相关 3–5 条写进报告
+    verifier: 取清单中最反直觉的 3 条构造边界输入跑一次（如夏令时切换日、单字姓名、无邮政编码国家）
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - datetime
+      - address
+      - person name
+      - i18n
+      - phone number
+      - postal code
+      - 国际化
+    hazard_type: 事实性陷阱
+    latent_condition: 每个领域都有数十条「显然为真、实际为假」的假设
+    source_ref: github.com/kdeldycke/awesome-falsehood

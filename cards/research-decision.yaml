@@ -1,0 +1,221 @@
+# 坑卡库 · 调研/决策域（v0.4 融合批次，源自真实翻车案例 D1–D8，10 案例回放验证）
+# 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
+# confidence: backed_by_context | needs_verification | assumption
+# evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
+
+version: 0.4.0
+domain: research-decision
+updated: '2026-10-15'
+card_count: 8
+cards:
+  - id: RD-001
+    title: 把「搜不到」当「不存在」（负面定性证据不足）
+    description: 对查无资料的对象直接下负面结论（山寨/造假/跑路）——搜索引擎收录有滞后，「搜不到」是否定性弱证据，与「名字相似」组装成强指控是弱证据强结论。
+    symptom: 「搜不到独立官网 → 山寨嫌疑 → 别碰」类推理链；负面定性无第二渠道交叉
+    severity:
+      S: 7
+      O: 3
+      D: 9
+    evidence:
+      source: 真实翻车案例 D1（10 万 Star 开源项目被误判山寨，换关键词即现形），回放验证
+      level: case
+    fix: 负面定性需双渠道交叉（搜索引擎+GitHub/官网/社区任一）才可入结论；「搜不到」附检索边界（渠道/关键词/日期）与时滞声明；附证伪动作清单
+    verifier: 执行证伪动作：去 GitHub 直接搜项目名 / 查官网 about 页 / 换 2 组关键词重搜，任一命中即推翻定性
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - scam
+      - fake
+      - legitimacy
+      - not found
+      - unverified claim
+      - 山寨
+      - 负面定性
+    hazard_type: 事实性陷阱
+    latent_condition: 检索时滞（新事物未被搜索引擎收录）
+    source_ref: cases/D1
+  - id: RD-002
+    title: 验证维度按通用清单而非用户真实约束
+    description: 按通用模板验证全绿就宣布「全链路通过」——用户的核心约束可能恰好不在模板里。通用清单查大家都怕的坑，用户画像查这个用户会撞上的坑。
+    symptom: 验证清单是模板而非从用户用量/环境推导；「验证通过」未披露验了哪些维度、没验哪些
+    severity:
+      S: 9
+      O: 3
+      D: 8
+    evidence:
+      source: 真实翻车案例 D2（六项全绿漏了 context_budget 硬顶，用户 75.4% token 在超限会话），回放验证
+      level: case
+    fix: 先画像后清单：读历史用量/上下文水位/既有配置/使用路径，必检项从画像推导；未知语义字段全字段枚举查明；画像缺失字段显式标注并降级结论
+    verifier: 生成用户约束画像表（字段+值+数据来源+缺失项），逐项对照验证清单查覆盖缺口
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - verify
+      - validate
+      - compatibility
+      - good enough
+      - capacity
+      - quota
+      - 验证清单
+      - 够用
+    hazard_type: 隐含前提
+    latent_condition: 验证清单模板化——通用项全绿制造虚假安全感
+    source_ref: cases/D2
+  - id: RD-003
+    title: 样本量欺诈——小样本推容量结论
+    description: 用两天账本均值推「月耗 $29 够用」——低强度期均值天然低估峰值，偏差可达 3–7 倍。「够用」是分布尾部命题，不是均值命题。
+    symptom: 容量/成本/速率结论未声明样本量与覆盖期；均值被当作峰值
+    severity:
+      S: 8
+      O: 4
+      D: 8
+    evidence:
+      source: 真实翻车案例 D3（两天均值 $29/月 vs 真实日耗致结论偏差 3–7 倍），回放验证
+      level: case
+    fix: 容量结论强制声明样本量/覆盖期/遗漏场景；样本不足降级为待验证假设并附补数据动作；画像数据缺失本身上报为坑
+    verifier: 补全量数据重算（读完整历史账单/问用户真实量级/实测一周），对比原结论是否反转
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - capacity
+      - monthly cost
+      - estimate
+      - sample size
+      - usage forecast
+      - 容量
+      - 月耗
+    hazard_type: 逻辑漏洞
+    latent_condition: 均值掩盖分布（采样期恰好是低强度期）
+    source_ref: cases/D3
+  - id: RD-004
+    title: 计量口径不一致的比较（两家的 $1 不是同一种美元）
+    description: 「A $120 > B $100 所以 A 赢」只比面值不比含金量——计价基准（高峰/闲时）、缓存计价、隐藏费用、有效期不统一时排序整体失效甚至反转。
+    symptom: 比较/排序表无「口径」字段；面值直接比大小
+    severity:
+      S: 8
+      O: 4
+      D: 7
+    evidence:
+      source: 真实翻车案例 D4（一家按高峰扣一家按闲时记，统一口径后排序整体反转），回放验证
+      level: case
+    fix: 比较类结论先做量纲审计：换算到同一口径（计价基准/汇率/单位/含税费/有效期/版本）才排序；必检字段：计价基准、缓存计价、隐藏费用、过期/窗口/退款规则；排序附换算表
+    verifier: 对每个比较对象重算「单位面值能买的真实资源量」，重排后与原排序比对是否反转
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - price
+      - pricing
+      - compare
+      - cheaper
+      - cost
+      - plan
+      - quota
+      - 性价比
+      - 口径
+    hazard_type: 逻辑漏洞
+    latent_condition: 计价基准藏在各家文档不同位置，对比模板没有「口径」字段
+    source_ref: cases/D4
+  - id: RD-005
+    title: 低可信源先分析后核实
+    description: 拿到短视频/论坛传言就按其口径展开完整分析——标注「⚠️仅社媒来源」不是免责，C 级信源只能触发核实任务，不能触发分析任务；未核实事实上的推理大厦必然作废。
+    symptom: 基于「限时三天」类传言直接展开收益/动机测算；可信度标注与是否允许推理未分离
+    severity:
+      S: 7
+      O: 4
+      D: 6
+    evidence:
+      source: 真实翻车案例 D5（「限时三天送 $100」实为月度提升，整层分析作废），回放验证
+      level: case
+    fix: 信源分级绑定动作：A 官方一手/B 权威二手/C 社媒传言；C 级先到官方一手源核验关键事实，核验不了整体进 ❓ 区不参与结论推导
+    verifier: 访问对应官方页（pricing/公告/文档）核对关键事实 2 分钟；核对结果与传言口径 diff
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - rumor
+      - hearsay
+      - social media
+      - promo
+      - limited time
+      - 传言
+      - 短视频
+    hazard_type: 事实性陷阱
+    latent_condition: 「标注了可信度」被当成免责，而非行动指令
+    source_ref: cases/D5
+  - id: RD-006
+    title: 纸面数字与总闸——条款层级漏读
+    description: 看到「单模型月额度 $100」就按 $100 规划——同页可能还写着「月度总额度 $70」。条款呈多层结构（总额度/单项/促销/窗口/过期/隐藏费），只读最显眼一层必然漏。
+    symptom: 套餐评估只引用最显眼的数字；多层条款未逐层填值
+    severity:
+      S: 7
+      O: 4
+      D: 8
+    evidence:
+      source: 真实翻车案例 D6（$100 单项促销 vs $70 总闸，用户反问后才挖出），回放验证
+      level: case
+    fix: 条款层级枚举逐层填值：总额度/单项额度/促销加成/窗口限制/过期规则/隐藏费用；缺层即坑（标「该层不透明」）；层间冲突以更严格层为基准
+    verifier: 逐层填一张六层表，任何一层读不到值即标记透明度缺口
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - plan
+      - quota
+      - promotion
+      - terms
+      - subscription
+      - limit
+      - 套餐
+      - 额度
+      - 条款
+    hazard_type: 隐性条款坑
+    latent_condition: 条款呈多层结构，只读到最显眼的一层
+    source_ref: cases/D6
+  - id: RD-007
+    title: 优势归属错配——宣传红利在你的使用路径上不成立
+    description: 「它家缓存命中率 98% 所以额度更耐用」——红利可能只属于厂商自家客户端；走 API/自有工具链的用户一分吃不到却被计入对比优势。劣势同理要问归属。
+    symptom: 对比表中的优势项未检验「在用户实际路径上是否成立」
+    severity:
+      S: 6
+      O: 4
+      D: 8
+    evidence:
+      source: 真实翻车案例 D6 同源（CLI 专属缓存红利被计入 API 用户对比），回放验证
+      level: case
+    fix: 每项候选优势过归属检验：「该优势在用户的实际使用路径（API/CLI/网页/自动化）上是否成立？」不成立的移除或单列「仅限原生路径」
+    verifier: 对每项优势写下成立前提（客户端/路径/条件），与用户实际路径比对
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - benchmark
+      - cache hit
+      - advantage
+      - marketing claim
+      - 优势
+      - 宣传
+    hazard_type: 逻辑漏洞
+    latent_condition: 优势成立的前提（特定客户端/路径）不随优势一起宣传
+    source_ref: cases/D6
+  - id: RD-008
+    title: 裸「验证通过」——验证边界不透明
+    description: 「全链路验证通过」「技术层干净」不说明验了哪几项、用什么方式、哪些没验——用户无法区分验证过的和猜的，只能事后质疑质检，信任崩塌起点。
+    symptom: 结论无论深浅呈现同等自信外观；无验证维度清单
+    severity:
+      S: 8
+      O: 5
+      D: 7
+    evidence:
+      source: 真实翻车案例 D7（六次失误全靠用户质疑才修正），回放验证
+      level: case
+    fix: 每条关键结论三态标注：✅已验证（证据链：来源+方式+时间）/❓未验证（原因+补验动作）/🚫盲区声明；禁止裸「验证通过」；三区空也显式写空并给依据
+    verifier: 对报告逐条扫描：任何结论无证据链即违规；统计三区覆盖率
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - verified
+      - works fine
+      - all clear
+      - trust me
+      - recommendation
+      - 验证通过
+    hazard_type: 逻辑漏洞
+    latent_condition: 结论无论深浅都呈现同等的自信外观
+    source_ref: cases/D7
