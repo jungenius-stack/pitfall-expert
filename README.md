@@ -1,100 +1,138 @@
+<div align="center">
+
+**English** · [简体中文](README.zh-CN.md)
+
 # pitfall-expert · 踩坑专家
 
-> **Pitfall Expert** — a systematic pre-task risk scout for AI coding agents. Before the agent starts any task (coding, research, purchase decisions, API integrations, migrations), it walks the minefield first: matches the task against a domain pitfall-card library, then outputs a **three-zone honest report** — ✅ verified (with evidence chains) / ❓ unverified (with 5-minute follow-up actions) / 🚫 declared blind spots — plus a list of **executable verifiers**.
->
+### Walk the minefield BEFORE your agent starts the task.
+
+**Not "trust me, it's fine" — but "these 3 are verified pits, these 2 I suspect but couldn't verify, and here's what I systematically cannot see."**
+
+[![License: MIT](https://img.shields.io/badge/code-MIT-f4c430?style=flat-square)](LICENSE)
+[![Content: CC BY 4.0](https://img.shields.io/badge/cards_&_docs-CC_BY_4.0-3f9f7f?style=flat-square)](LICENSE-CONTENT.md)
+[![Skill](https://img.shields.io/badge/form-skill_+MCP_engine_+hooks-5c4ee5?style=flat-square)](#architecture)
+[![Cards](https://img.shields.io/badge/pitfall_cards-47-cb3837?style=flat-square)](cards/)
+
+[Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
+
+```bash
+sh install.sh
+```
+
+</div>
+
+---
+
+AI coding agents have two structural flaws that bite *before* work starts: they **agree with your plan** (sycophancy), and when they say "verified" you **can't tell what was actually tested vs. guessed**. Independent research confirms the failure modes: agents declare solvable tasks impossible (54.9% of WebArena failures), claim completion while the environment is unchanged (MAST), pass weak test suites (7.8% of "passing" SWE-bench patches are wrong), and mistake single-run luck for reliability (pass^8 < 25%). Those exact findings are seed cards in this library.
+
+pitfall-expert runs a systematic pitfall scan **before** the task starts: it matches the task against a 47-card domain library (code / math / research-decisions), binds every blocking pit to an **executable verifier**, and outputs a **three-zone honest report** — ✅ verified (with evidence chains) / ❓ unverified (with 5-minute follow-up actions) / 🚫 declared blind spots.
+
 > **Done = fully disclosed, not perfect. Missed pits are forgivable; false "verified" claims are not.**
->
-> 在 AI 动手解决任何需求之前，先把该任务背后的坑系统性踩一遍。输出的不是「放心吧没问题」，而是「这三处是验证过的真坑、这两处我怀疑但没验出来、这类坑我系统性地看不见」。
-
-## Why this exists
-
-AI assistants have two structural flaws that bite *before* work starts:
-
-1. **Sycophancy** — the model tends to agree that your plan is fine.
-2. **Opaque verification boundaries** — when it says "verified", you can't tell what was actually tested vs. guessed. You find out when the money is spent or the code is live.
-
-Independent research backs this up: agents claim "impossible" on solvable tasks (54.9% of WebArena failures), declare completion while the environment is unchanged (MAST), pass weak test suites (7.8% of "passing" SWE-bench patches are wrong), and conflate single-run luck with reliability (pass^8 < 25% at pass@1 ≈ 60%). Those exact findings are seed pitfall cards here.
-
-Community measurements put skill auto-activation at only 20–50% — which is why this project ships an **enforcement layer** (hooks), not just a skill.
-
-## Architecture — four layers, install what you need
-
-| Layer | Path | Role | Force |
-|---|---|---|---|
-| Core | `engine/` | Pitfall-card library + scan engine (MCP server + CLI), deterministic matching | called |
-| Shell | `skills/pitfall-expert/` | Process persona: L0–L5 pipeline, 13 mechanisms (M1–M13), tier negotiation, DoD machine-check | advisory (skill) |
-| Gate | `hooks/` | PreToolUse gate + UserPromptSubmit injection — report-by-default, `PITFALL_HOOK_MODE=block` to hard-block destructive commands | **enforced (hook)** |
-| 4th port | `dsh-plugin/` | DeepSeek Harness adapter (tools/pre-execute gate) | enforced |
+> 完成等于披露完整，而非结果完美。漏报可原谅，谎报不可原谅。
 
 ## Quick start
 
+### Install the skill
+
 ```bash
 git clone <this-repo> && cd pitfall-expert
-
-# 1. Run the engine tests (15 scenarios incl. MCP stdio)
-cd engine && npm install && npm test
-
-# 2. Scan a task (works with English and Chinese tasks)
-node engine/src/cli.js "migrate our pricing data, careful with timezone and float rounding" --tier standard
-node engine/src/cli.js "帮我把 users.csv 按省份汇总人数，注意空值" --tier standard
-
-# 3. Skill self-check (29 assertions: structure, cards, bilingual smoke, DoD tester)
-sh skills/pitfall-expert/scripts/selfcheck.sh
-
-# 4. Install as a skill (any harness that reads ~/.agents/skills/ or SKILL.md)
-cp -r skills/pitfall-expert ~/.agents/skills/
-# 5. Or wire the gate — see hooks/README.md (Claude Code / WorkBuddy) and dsh-plugin/README.md
+sh install.sh          # installs to every detected agent's skills dir, cards included
 ```
 
-## The pitfall-card library (43 cards, single source of truth in `cards/`)
+Works with any harness that reads `~/.agents/skills/` (ZCode, DeepSeek Harness), `~/.claude/skills/` (Claude Code), or `~/.workbuddy/skills/`. Uninstall: `sh install.sh --uninstall`.
 
-| Domain | File | Cards | Seeded from |
+### Ask your agent
+
+```text
+先踩坑：我打算把生产数据库从 MySQL 迁到 PostgreSQL
+Pitfall-check this before you start: I'm about to migrate our pricing data pipeline
+```
+
+You get a three-zone report like the mini-sample at the bottom of [`skills/pitfall-expert/SKILL.md`](skills/pitfall-expert/SKILL.md).
+
+### Use the terminal
+
+```bash
+node engine/src/cli.js "migrate users.csv into SQLite, watch nulls and encodings" --tier standard
+```
+
+### Make it mandatory (recommended)
+
+Skills auto-activate only 20–50% of the time (community measurements). The gate doesn't rely on anyone's discipline — see [`hooks/README.md`](hooks/README.md) (PreToolUse: report-by-default, `PITFALL_HOOK_MODE=block` hard-blocks `rm -rf` / `git push --force`) and [`dsh-plugin/README.md`](dsh-plugin/README.md).
+
+## How it works
+
+Your agent (or the CLI) scans the task against `cards/<domain>.yaml` — every card matched with evidence, every blocking pit bound to a runnable verifier. The skill persona (L0–L5 pipeline, 13 mechanisms) runs the parts engines can't: assumption dumping, pre-mortem, user-constraint profiling. Then the report passes a six-item DoD machine check (`dod_check.py`). Skill = the instructions, engine = the muscle, hooks = the seatbelt.
+
+## What it can catch
+
+| Domain | Cards | Catches | Honest "cannot" |
 |---|---|---|---|
-| Code / engineering | `code.yaml` | 23 | Empirical agent-failure research (WebArena, MAST, τ-bench, SWE-bench, awesome-falsehood) + real incident cases (CI-001~005) |
-| Math | `math.yaml` | 12 | Classic proof-mistake catalogs (circular reasoning, converse confusion, induction gaps, probability traps) |
-| Research / decisions | `research-decision.yaml` | 8 | Real failure case replays (D1–D8): sample-size traps, unit-of-account mismatches, unverifiable negative claims, hidden clause layers |
+| Code / engineering | `code.yaml` (27) | hallucinated completion, flaky-passing-as-stable, weak test suites, irreversible ops, default-behavior traps, type coercion, falsehoods (time/names/i18n), cascade failures, hidden business rules, no-impact-analysis changes, error-process automation, unisolated parallel agents | architecture taste, business-logic correctness, closed-source internals |
+| Math | `math.yaml` (12) | circular proofs, converse confusion, induction gaps, unit/sign errors, boundary misses, probability & p-value traps | open conjectures |
+| Research / decisions | `research-decision.yaml` (8) | "not-found ≠ non-existent" false negatives, unit-of-account mismatches, small-sample capacity claims, rumor-driven analysis, hidden clause layers, advantage misattribution | predicting the future, competitors' plans |
+| Science/ML · creative · strategy | — | placeholder, runs generic mechanisms only, **promises nothing** | — |
 
-Every card carries the **four essentials**: description + evidence (with level: empirical/case/consensus) + mitigation + **executable verifier** — a pitfall card without a verifier is just a worry. Triggers are bilingual (zh+en) so English tasks actually match (meta-pitfall ⑩). Science/ML, creative writing and strategy domains are declared placeholders — the skill refuses to promise coverage it doesn't have.
+Card counts live in `cards/` — trust the directory, not this table. Science/ML, creative and collaboration-management domains are declared placeholders: no cards means no cards, stated out loud in every report's blind-spot zone.
 
-## What a report looks like
+## Battle record
 
-Every statement lands in exactly one zone; empty zones must be explicitly declared empty with reasons:
+Numbers, not adjectives — every claim replay-tested:
 
-- **✅ Verified** — evidence chain: source + method + date
-- **❓ Unverified** — why it wasn't verified + a follow-up action runnable in ~5 minutes
-- **🚫 Blind spots** — what this task type systematically cannot see; unbuilt domains declared ("no cards", not "no pits")
+- **10/10** real failure-case replays passed (cards distilled from a 56K-char incident log);
+- **12/13** coverage on an *external* blind test — 13 real-world pitfalls from two practitioner talk transcripts (one uncovered item = collaboration-management domain, exactly where the capability table said "no cards");
+- **4 meta-pitfalls caught on ourselves** during development (e.g. an allow-list rule that silently passed `git push --force`) — logged openly in the [meta-pitfall registry](skills/pitfall-expert/references/meta-pitfalls.md), now 13 entries;
+- Two independent implementations (built in parallel on two platforms) converged on the same honesty axioms — merged in v0.4. A 240K-star tool ([REA](https://github.com/morluto/rea)) independently ships the same skill+engine+plugin distribution shape.
 
-Findings are graded 🐯 real pit (blocking, **must** bind an executable verifier or get demoted to ❓) / 🟡 medium / 🐘 elephant (dormant, with observable trigger signals) / 🐺 paper tiger (recognized, explicitly *not* defended — anti list-inflation). Then the report passes a six-item DoD machine-check (`scripts/dod_check.py`).
+## FAQ
 
-## Mechanisms M1–M13 (distilled from real failures, replay-tested)
+<details>
+<summary><strong>Which agents/harnesses can use it?</strong></summary>
 
-User-constraint-profiling first (M1) · unit-of-account audit (M2) · source-grading bound to actions (M3) · high bar for negative claims + "not-found ≠ non-existent" (M4) · mandatory sample-size disclosure (M5) · too-good-to-be-true auto-escalation + clause-layer enumeration (M6) · three-state disclosure contract (M7) · four-way filtering incl. paper tigers (M8) · layered non-overlapping checks (M9) · default-behavior must be tested (M10) · config-is-verification (M11) · card write-back with near-miss priority (M12) · **verifier foundry** (M13). Full rules with sources: `skills/pitfall-expert/references/mechanisms.md`.
+Any harness that scans a skills directory for SKILL.md: ZCode, DeepSeek Harness (`~/.agents/skills/`), Claude Code (`~/.claude/skills/`), WorkBuddy. The engine additionally speaks MCP; the hooks follow the Claude Code / WorkBuddy hook contract.
 
-## Provenance (honest)
+</details>
 
-v0.4 (2026-10-15) is a **merger of two independent implementations** built in parallel from the same brief on two platforms (ZCode + WorkBuddy). Both converged on identical honesty axioms (three-zone disclosure, done=disclosed, introspection≠verification, dual licensing) — independent convergence is the strongest evidence the core design is right. Each side contributed what it was best at: the ZCode line contributed the evidence-chained research docs, case-driven cards (D1–D8), M1–M12 mechanisms and the report DoD checker; the WorkBuddy line contributed the engine/hooks/dsh-plugin enforcement stack, literature-driven cards and the verifier-foundry concept. The merger's own stumbles are logged in `skills/pitfall-expert/references/meta-pitfalls.md` (⑨⑩).
+<details>
+<summary><strong>Do I need Node.js?</strong></summary>
+
+No for the skill (the model reads cards directly). Yes for the engine, CLI and hooks (Node ≥18, one dependency). Everything degrades loudly, never silently: missing resources are declared, never fabricated.
+
+</details>
+
+<details>
+<summary><strong>Will the gate slow my agent down?</strong></summary>
+
+The gate runs a quick-tier scan (sub-second keyword matching, local only). Default mode only reports; block mode only stops destructive patterns. Kill switch: `PITFALL_HOOK_DISABLE=1`.
+
+</details>
+
+<details>
+<summary><strong>Is this another "risk checklist" template?</strong></summary>
+
+No — three differences: every blocking pit must bind an **executable verifier** (or be demoted to the unverified zone — worries don't count), findings are four-way graded including "paper tigers" that get explicitly *not* defended, and the report's structure is machine-checked. A checklist without verifiers is a wish list.
+
+</details>
+
+<details>
+<summary><strong>Hit a bug / missed a pit?</strong></summary>
+
+Missed pits are expected and forgivable — please [report them](../../issues) so the card gets written back (near-misses first: Heinrich 1:29:300). False "verified" claims are bugs of the worst kind; those get root-caused. Run `sh skills/pitfall-expert/scripts/selfcheck.sh` before filing.
+
+</details>
 
 ## Documentation
 
-- `docs/踩坑专家方法论_v0.3.md` — methodology source of truth (9 layers, self-bootstrap replay, evidence index) — Chinese
-- `docs/01..04` — prior-art survey (15 external solutions, gap confirmed), mechanism survey (34 items), design doc (10-case replay 100%), form-factor comparison — Chinese
-- `docs/示例报告_代码域.md` — sample engine report · `docs/使用场景示例.md` — 15 usage examples
-- `README.zh-CN.md` — 中文版说明
+- [`skills/pitfall-expert/SKILL.md`](skills/pitfall-expert/SKILL.md) — the pipeline itself (L0–L5, M1–M13 mechanisms, mini sample)
+- [`docs/踩坑专家方法论_v0.3.md`](docs/踩坑专家方法论_v0.3.md) — methodology source of truth (9 layers, self-bootstrap replay) · Chinese
+- [`docs/cases/`](docs/cases/) — the replay exam archive (real failure cases + external blind tests)
+- [`docs/01..04`](docs/) — prior-art survey (15 external solutions, gap confirmed), 34-item mechanism survey, design doc, form-factor comparison · Chinese
+- [CONTRIBUTING.md](CONTRIBUTING.md) — card contributions: four essentials, bilingual triggers, evidence levels
 
-## Roadmap
+## Provenance (honest)
 
-- [ ] Card content internationalization (titles/descriptions in English; bilingual triggers already shipped)
-- [ ] Science/ML domain cards (seed sources locked: ML-leak taxonomy, p-hacking, awesome-falsehood)
-- [ ] Semantic matching beyond deterministic keywords (current stance: prefer missing over false-alarming)
-- [ ] Real-user task replays feeding the card library (compound interest starts here)
+v0.4+ is a **merger of two independent implementations** built in parallel from one brief on two platforms (ZCode + WorkBuddy). Both converged on identical honesty axioms; each side contributed what it was best at. The merger's own stumbles are logged as meta-pitfalls ⑨–⑫, not hidden. Translations beyond English/Chinese welcome — see CONTRIBUTING.
 
 ## License
 
-Dual, split by asset class:
-
-- **Code** (engine/, skills/, hooks/, dsh-plugin/) — **MIT**, see [LICENSE](LICENSE)
-- **Card data & docs** (cards/, docs/) — **CC BY 4.0**, see [LICENSE-CONTENT.md](LICENSE-CONTENT.md) — life-saving checklists shouldn't be locked up
-
-## Contributing
-
-Pitfall cards are the core asset. New cards need the four essentials with evidence levels; new domains need the activation triple (capability boundary + ≥5 sourced cards + ≥1 case replay). **Near-misses first** — an intercepted pit is the leading indicator of a big one (Heinrich 1:29:300). See [CONTRIBUTING.md](CONTRIBUTING.md).
+Code (engine/, skills/, hooks/, dsh-plugin/): **MIT**. Pitfall-card data & docs (cards/, docs/): **CC BY 4.0** — life-saving checklists shouldn't be locked up.
