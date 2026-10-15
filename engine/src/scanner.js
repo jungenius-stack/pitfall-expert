@@ -89,6 +89,22 @@ function tokenize(text) {
   return tokens;
 }
 
+/**
+ * 单词触发词的词形变体（v0.7.0）：复数触发词 vs 单数任务文本的子串兜底；
+ * 多词短语保持原子串匹配（变体只作用于最后一个词会改错对象，不做）。
+ * 注意：词形归一曾试入 tokenize（字段 token 精确匹配层），实测通用词（agent）
+ * 字段命中扩散导致跨域噪音上升，判定表不通过，当日回滚——见元坑⑰。
+ * 触发词层保留：触发词是人工筛过的具体短语，误命中面远小于字段 token。
+ */
+function triggerVariants(tl) {
+  const vs = [tl];
+  if (tl.includes(' ')) return vs;
+  if (/ies$/.test(tl) && tl.length >= 5) vs.push(tl.slice(0, -3) + 'y');
+  else if (/(ses|xes|zes|ches|shes)$/.test(tl) && tl.length >= 5) vs.push(tl.slice(0, -2));
+  else if (/s$/.test(tl) && !/(ss|us|is)$/.test(tl) && tl.length >= 4) vs.push(tl.slice(0, -1));
+  return vs;
+}
+
 const CARD_TEXT_FIELDS = ['title', 'description', 'symptom', 'fix'];
 
 function cardFieldTokens(card) {
@@ -112,7 +128,7 @@ function scoreCard(card, taskTokens, taskLower, fieldCache) {
   const triggerHits = [];
   for (const t of card.triggers || []) {
     const tl = String(t).toLowerCase();
-    if (tl.length >= 2 && taskLower.includes(tl)) triggerHits.push(t);
+    if (tl.length >= 2 && triggerVariants(tl).some(v => taskLower.includes(v))) triggerHits.push(t);
   }
 
   let fieldsMatched = 0;

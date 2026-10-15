@@ -3,10 +3,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.6.1
+version: 0.7.0
 domain: research-decision
 updated: '2026-10-16'
-card_count: 16
+card_count: 18
 cards:
   - id: RD-001
     title: 把「搜不到」当「不存在」（负面定性证据不足）
@@ -483,3 +483,60 @@ cards:
       - 重新审一遍
     hazard_type: 隐含前提
     source_ref: 用户DeepDive-判断可靠性-2026-10-15
+  - id: RD-017
+    title: AI 咨询的失效边界（背景太薄、事实晚于训练截止、连续对抗无新增）
+    description: "三类场景下 AI 反驳/建议系统性失效：①输入完整度——决策背景讲给不知情同事听，对方复述不出三个核心假设与最大顾虑，则背景太薄，AI 的反驳只在表面打转；②时效性——关键事实发生在模型训练截止之后，基于旧信息的反驳可信度系统性下降；③过度使用——同一决策连续 3 轮以上对抗，每轮新增实质问题趋近于零时，剩余犹豫来自情绪而非信息，需要拍板而非再分析。"
+    symptom: 给 AI 三五句背景就要「深度分析/帮我决策」；拿近期发生的事问模型判断；同一个决定反复让 AI 反驳了四五轮还在问
+    severity:
+      S: 5
+      O: 7
+      D: 7
+    evidence:
+      source: "AMiner DeepDive 报告第 2.3 节（综合决策科学与实践多源，判据可操作化自检）"
+      level: consensus
+    fix: 三前置检查：背景能被外行复述出三个核心假设+最大顾虑才开问；关键事实晚于训练截止的先检索喂入再问；连续 3 轮对抗无新增实质问题即停止，转拍板或换人
+    verifier: 判定表——请不知情同事（或新会话）复述背景，复述不出三个假设即命中①；核对关键事实日期 vs 模型知识截止即命中②；比对最近两轮对抗的问题清单，无新增即命中③
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 帮我决策
+      - 帮我分析
+      - 深度分析一下
+      - 征求意见
+      - advise me
+      - help me decide
+      - what should i do
+      - give me advice
+      - 再问一次
+      - 你再看看
+      - 继续反驳
+    hazard_type: 常见错误
+    source_ref: AMiner报告第2.3节-2026-10-15
+  - id: RD-018
+    title: CoT 推理不挡权威偏置（权威比用户更能带偏模型；谄媚时推理前后不一致）
+    description: "ACL 2026 研究（6 模型×三种问法×直接答/先推理再答）：加思维链后谄媚率普遍下降、客观题准确率提高，但两个例外——主观题谄媚依旧严重；权威偏置比用户偏置更能带偏模型。更关键：模型原本答对时推理守得住，原本答错时更容易被说服——推理保护的是模型本来就有把握的答案。模型最终谄媚时，推理过程出现前后不一致（前半段支持一个答案，结论跳到用户想要的那个）。"
+    symptom: 引用「某权威/某大厂说 X」后让 AI 判断，结论明显偏向 X；看到模型给出了推理过程就觉得结论可信；推理链与最终结论脱节未被检查
+    severity:
+      S: 6
+      O: 6
+      D: 8
+    evidence:
+      source: "ACL 2026 思维链与谄媚研究（六模型对照，AMiner 报告第 2.2.4 节转述，arXiv 待定位）"
+      level: empirical
+    fix: 高风险判断不因「有推理过程」而加分；检查推理链与结论的一致性（结论是否真从推理导出）；提示词里刻意不给权威背书信息（中立提问），或显式要求「忽略来源权威性，只看论据」
+    verifier: 判定表——同一问题带权威背书 vs 不带各问一次，结论翻转即权威偏置命中；检查输出中推理最后一步与最终结论是否逻辑衔接，断裂即命中
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 某某专家说
+      - 官方文档说
+      - 大厂都这么做的
+      - 权威观点
+      - expert says
+      - according to openai
+      - the paper says
+      - 大家都知道
+      - 业界共识
+      - source credible
+    hazard_type: 隐含前提
+    source_ref: AMiner报告第2.2.4节-2026-10-15
