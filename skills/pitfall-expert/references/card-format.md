@@ -35,7 +35,8 @@ cards:
 
 - `evidence.level`：`empirical`（实证研究）/ `case`（真实翻车案例）/ `consensus`（社区共识）/ `opinion`（观点，尽量不用）；
 - `triggers` 双语是硬要求（元坑⑩）：中文任务靠中文词、英文任务靠英文词，缺一边就是半个盲区；
-- `confidence` 表达当前把握：`needs_verification` 的卡命中时只能进 ❓ 区。
+- `confidence` 表达当前把握：`needs_verification` 的卡命中时只能进 ❓ 区；
+- `priority: core`（可选）——跨领域高价值坑：引擎触发词权重 ×2（3→6）、同分优先排序。**准入门槛：多源实证**（empirical 级或 ≥3 独立来源交叉），**每域 ≤20%**（防「核心」通胀——都是核心就都不是核心）。当前 core：RD-011 谄媚 / CODE-037 过早多agent化 / CODE-038 上下文漂移 / SEC-006 隐性串谋。
 
 ## 回写流程（L5）
 

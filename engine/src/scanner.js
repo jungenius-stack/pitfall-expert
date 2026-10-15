@@ -99,14 +99,17 @@ function cardFieldTokens(card) {
 }
 
 /**
- * 评分 = 3 × 触发词字面命中数 + 命中的字段数（封顶 5）
+ * 评分 = 触发词字面命中数 ×（core 卡 ×2 加权）+ 命中的字段数（封顶 5）
  * 字段计数法（而非原始 token 计数）降低常用词噪声：
  * 任务 token 出现在坑卡的 title/description/symptom/fix/triggers 哪几个字段里，数几个。
+ * priority: core（跨领域高价值坑，准入=多源实证，见 card-format.md）触发词权重 3→6：
+ * 高含金量的坑不该被长尾词频淹没。
  */
 function scoreCard(card, taskTokens, taskLower, fieldCache) {
   const ft = fieldCache.get(card.id) || cardFieldTokens(card);
   fieldCache.set(card.id, ft);
 
+  const triggerWeight = card.priority === 'core' ? 6 : 3;
   const triggerHits = [];
   for (const t of card.triggers || []) {
     const tl = String(t).toLowerCase();
@@ -125,7 +128,7 @@ function scoreCard(card, taskTokens, taskLower, fieldCache) {
   }
 
   return {
-    score: triggerHits.length * 3 + Math.min(fieldsMatched, 5),
+    score: triggerHits.length * triggerWeight + Math.min(fieldsMatched, 5),
     triggerHits,
     matchedFields,
     sampleTokens: [...sampleTokens]
@@ -200,7 +203,8 @@ function scan(task, opts = {}) {
 
   const matched = candidates
     .filter(s => s.m.score >= MATCH_THRESHOLD)
-    .sort((a, b) => b.m.score - a.m.score);
+    .sort((a, b) => b.m.score - a.m.score
+      || (b.card.priority === 'core') - (a.card.priority === 'core')); // 同分 core 卡优先
 
   // 覆盖率（DoD 第 2 条：逐条对照，可数可查）
   const coverage = {};
