@@ -11,7 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/code-MIT-f4c430?style=flat-square)](LICENSE)
 [![Content: CC BY 4.0](https://img.shields.io/badge/cards_&_docs-CC_BY_4.0-3f9f7f?style=flat-square)](LICENSE-CONTENT.md)
 [![Skill](https://img.shields.io/badge/form-skill_+MCP_engine_+hooks-5c4ee5?style=flat-square)](#architecture)
-[![Cards](https://img.shields.io/badge/pitfall_cards-51-cb3837?style=flat-square)](cards/)
+[![Cards](https://img.shields.io/badge/pitfall_cards-64-cb3837?style=flat-square)](cards/)
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
 
@@ -25,7 +25,7 @@ sh install.sh
 
 AI coding agents have two structural flaws that bite *before* work starts: they **agree with your plan** (sycophancy), and when they say "verified" you **can't tell what was actually tested vs. guessed**. Independent research confirms the failure modes: agents declare solvable tasks impossible (54.9% of WebArena failures), claim completion while the environment is unchanged (MAST), pass weak test suites (7.8% of "passing" SWE-bench patches are wrong), and mistake single-run luck for reliability (pass^8 < 25%). Those exact findings are seed cards in this library.
 
-pitfall-expert runs a systematic pitfall scan **before** the task starts: it matches the task against a 51-card domain library (code / math / research-decisions), binds every blocking pit to an **executable verifier**, and outputs a **three-zone honest report** — ✅ verified (with evidence chains) / ❓ unverified (with 5-minute follow-up actions) / 🚫 declared blind spots.
+pitfall-expert runs a systematic pitfall scan **before** the task starts: it matches the task against a 64-card domain library (code / math / research-decisions / agent-security), binds every blocking pit to an **executable verifier**, and outputs a **three-zone honest report** — ✅ verified (with evidence chains) / ❓ unverified (with 5-minute follow-up actions) / 🚫 declared blind spots.
 
 > **Done = fully disclosed, not perfect. Missed pits are forgivable; false "verified" claims are not.**
 > 完成等于披露完整，而非结果完美。漏报可原谅，谎报不可原谅。

@@ -3,10 +3,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.5.0
+version: 0.5.1
 domain: code
 updated: '2026-10-15'
-card_count: 31
+card_count: 37
 cards:
   - id: CODE-001
     title: 虚假不可能性
@@ -94,7 +94,8 @@ cards:
     evidence:
       source: >-
         Wang et al., ICSE 2026 (arXiv:2503.15223)；现场实证（2025-2026）：r/ClaudeCode「2k tests passed
-        客户发现主流程已坏」+ Medium「46,000 tests passed, one query broke it」
+        客户发现主流程已坏」+ Medium「46,000 tests passed, one query broke it」；假绿三形态（CSDN 复盘）：断言恒真（toBe(true) 且
+        result 恒 true）/ mock 掉被测逻辑测替身 / 覆盖率 80% 线上照样出 bug——AI 生成测试的目标是「看起来完整」而非「能抓 bug」
       level: empirical
     fix: 断言行为值与边界值；新测试先红后绿；把"测试是否可靠"本身列入审查
     verifier: 审查测试断言强度（是否断言行为）+ 对已知边界/对抗输入跑一遍，观察是否暴露空洞
@@ -384,7 +385,9 @@ cards:
       O: 4
       D: 2
     evidence:
-      source: multica-ai/andrej-karpathy-skills (219k★)
+      source: >-
+        multica-ai/andrej-karpathy-skills (219k★)；现场案例：「优化一下」结果 DTO/路由/依赖全改，前端解析失败联调中断（CSDN 复盘
+        2026-06）
       level: consensus
     fix: 需求复述 + diff 审查双动作；范围外改动单独提交或明确征求同意；克制"看到了就修"
     verifier: 提交前 diff 逐文件对照需求清单，无关文件必须给出理由或移出本提交
@@ -622,7 +625,8 @@ cards:
     evidence:
       source: >-
         腾讯云开发者社区事故复盘（2026-06）：AI 删除的「死代码」实为 Spring 运行时注入的 Bean，上线故障——B 级单源 case；另有抖音实战分享共识（AGENT.md
-        规则外置）
+        规则外置）；细化案例：腾讯云复盘——37 个「无引用」候选中 11 个误判，@EventListener 类由 Spring 运行时注册，静态搜索零调用链，删除后异步通知
+        500（白名单方案：@Component/@Service/@Scheduled/@EventListener/@ControllerAdvice 注解类永不标死代码）
       level: case
     fix: 隐性业务规则外置成项目内规则文档（AGENT.md/AGENTS.md）：规则+设计原因+不可绕过条件三要素，核心模块单独文档并由主文档关联指向——知识外置优于依赖模型记忆
     verifier: 修改任何校验/分支/公共逻辑前，grep 项目规则文档是否提及目标模块；提及=先对照规则清单逐条确认再动手
@@ -869,3 +873,187 @@ cards:
       - rm production
     hazard_type: 易错环节
     source_ref: PocketOS/Replit/Reddit-202GB
+  - id: CODE-027
+    title: 密钥被 AI 写进代码与提交（context 携带泄漏）
+    description: >-
+      AI 读过 .env/配置后，把真实密钥复写进示例配置、测试 fixture、commit message 甚至开源 PR——GitHub Secret Scanning
+      报警时已公开。根因：密钥进了上下文就成了可复用素材，AI 没有「这不能写出去」的边界。
+    symptom: 仓库/PR/commit 里出现真实 token；secret 扫描报警；fixture 数据看着像生产数据
+    severity:
+      S: 9
+      O: 4
+      D: 6
+    evidence:
+      source: >-
+        CSDN 复盘《AI 工具 8 必踩坑》（2026-06，B 级）：Copilot 把 .env 密钥写进示例文件、Cursor Agent 把密钥写进 commit
+        message/fixture、开源 PR 触发 GitHub Secret Scanning；三例同文
+      level: case
+    fix: >-
+      .env 进 .gitignore、example 只留占位符；CI 接 gitleaks 且 AI 生成代码合并前必过 secret scan；给 AI
+      的上下文能不带真实密钥就不带（占位符先行，部署时注入）
+    verifier: 合并前跑一次 gitleaks/secret 扫描——报警即命中；grep AI 生成文件中的 sk-[A-Za-z0-9] 类模式
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 密钥
+      - 泄露
+      - api key
+      - secret
+      - leak
+      - .env
+      - credentials
+      - commit message
+      - open source pr
+      - gitleaks
+    hazard_type: 常见错误
+    source_ref: CSDN-8坑
+  - id: CODE-028
+    title: API 中转站风险（跑路、留底、无保留策略）
+    description: 把公司 Key 交给不知名聚合中转：对方跑路或泄露；中转层日志记录含业务数据的完整 prompt，无保留策略与访问控制。你不知道 prompt 存不存、存多久、谁能看。
+    symptom: 无法回答「是否存 prompt、retention 多久、谁有权限看日志」；中转方无主体信息
+    severity:
+      S: 8
+      O: 3
+      D: 7
+    evidence:
+      source: CSDN 复盘（2026-06，B 级）：中转站跑路/日志留底两例 + RD 域既有案例 D5 同族
+      level: case
+    fix: 中转选型三问写进合同/评估表：存不存 prompt、保留多久、日志权限；涉密数据只走官方直连或自建网关；Key 按最小权限发放、可轮换
+    verifier: 向中转方发一次三问书面确认；读其隐私/日志政策页；答不上来即 ❓ 不通过
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 中转
+      - api gateway
+      - aggregator
+      - proxy
+      - 跑路
+      - prompt 日志
+      - relay
+      - third-party gateway
+      - retention
+    hazard_type: 隐性条款坑
+    source_ref: CSDN-8坑
+  - id: CODE-029
+    title: 安全机制降级的反噬（降级模型执行危险任务）
+    description: >-
+      安全审查触发模型降级（Fable5→Opus5→4.8），降级后的弱模型执行同一危险任务更易出错：700GB
+      主目录被删案中，降级模型复用了测试阶段存有主目录路径的变量名执行清理。降级有「黏性」——整个会话不恢复，能力下降但任务复杂度不变。
+    symptom: 会话被降级后继续执行文件/删库类任务；模型自检通过但后续步骤复用危险变量；社区方案：检测到降级自动暂停会话
+    severity:
+      S: 9
+      O: 2
+      D: 8
+    evidence:
+      source: 安全内参（2026-08，B 级转述，原帖可溯）：Claude 700GB 主目录删除事故——模型自发的对抗性审查触发降级、降级模型清理步骤复用主目录路径变量
+      level: case
+    fix: 不可逆操作不依赖模型自我判断，外层设独立防护（沙盒/备份/路径白名单/回收站）；检测到降级即暂停高风险操作；测试代码自身的副作用（复用变量）列入审查
+    verifier: 检查破坏性脚本的变量作用域：测试段与执行段是否共享变量名；确认外层存在独立于模型的备份/白名单
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 降级
+      - 安全机制
+      - 模型降级
+      - degraded
+      - fallback model
+      - downgrade
+      - sandbox cleanup
+      - 700gb
+      - adversarial review
+    hazard_type: 工具链环境
+    source_ref: secrss-700GB
+  - id: CODE-030
+    title: 「只移动/只格式化」指令下的偷改（隐性行为变更）
+    description: >-
+      明确要求仅重组包结构/仅格式化，AI 却顺手删「冗余」变量、改日志拼接方式——原代码同一字符串引用被 == 比较，改动后变成两个对象，行为静默改变。指令的最小范围与 AI
+      的默认优化倾向不匹配。
+    symptom: 重构 diff 中混入语义改动；日志格式「顺手统一」；代码审查发现未授权变更
+    severity:
+      S: 6
+      O: 4
+      D: 7
+    evidence:
+      source: 腾讯云开发者（2026-06，B 级）：「只移动代码」却删 3 个变量+改日志格式，字符串 == 比较行为改变；同文另证 CODE-019
+      level: case
+    fix: >-
+      重构后用 git diff --ignore-all-space 机械检查而非肉眼；重点 grep Optional/stream()/lambda 与字符串操作；要求 AI
+      列出全部非格式性修改并说明理由
+    verifier: 对「纯移动/纯格式」任务跑 git diff --ignore-all-space——非空 diff 即偷改
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 重构
+      - 移动代码
+      - 格式化
+      - 顺手优化
+      - refactor
+      - move only
+      - reformat
+      - drive-by change
+      - scope creep
+      - diff review
+    hazard_type: 易错环节
+    source_ref: tencent-cloud
+  - id: CODE-031
+    title: AI 生成迁移脚本在生产库锁表（开发库通过≠生产安全）
+    description: >-
+      AI 生成的 Flyway 脚本（ALTER TABLE + UPDATE + 建索引）开发库 1000 行 2 秒完成；生产 5200 万行 MySQL 5.7 表级锁 8
+      分钟，下单服务写全部阻塞。AI 对生产数据量与锁行为无知，但输出看起来像知道。
+    symptom: 迁移脚本只在开发库测过；未评估锁类型与生产行数；P99 超时告警打满
+    severity:
+      S: 9
+      O: 3
+      D: 7
+    evidence:
+      source: 腾讯云开发者（2026-06，B 级）：Flyway 迁移生产 5200 万行锁表 8 分钟，下单服务全阻
+      level: case
+    fix: >-
+      迁移 checklist：生产行数、锁类型、分批执行、可回滚性逐项过；大表用 pt-online-schema-change / ALGORITHM=INSTANT；AI 生成的 SQL
+      必须人工过执行计划
+    verifier: EXPLAIN 迁移 SQL + 查目标表行数与锁粒度——未做即 🐯；小库测过不等于大库能跑
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 数据库迁移
+      - 锁表
+      - flyway
+      - migration script
+      - alter table
+      - online schema change
+      - lock
+      - 生产库
+      - production database
+    hazard_type: 易错环节
+    source_ref: tencent-cloud
+  - id: CODE-032
+    title: 平台级静默回归（升级后行为改变无任何公告）
+    description: >-
+      工具链升级后关键行为静默变化：v2.1.299→2.1.300 缓存 TTL 从 1h 掉到
+      5m，成本与性能悄然恶化，靠用户对比版本才发现。同理：会话摘要自动包含跨用户凭据（context 续传泄漏）。上游的「无公告变更」是下游的隐性成本坑。
+    symptom: 升级后账单/延迟异常但代码零改动；对比相邻版本行为才发现差异；会话摘要里出现不该有的内容
+    severity:
+      S: 7
+      O: 3
+      D: 8
+    evidence:
+      source: >-
+        claude-code#102276（2026-10-15，A 级）：v2.1.300 缓存 TTL 1h→5m 静默回归；#29311（2026-02-27，A 级）：context
+        续传摘要泄漏他人 SSH 密码；#72274（2026-06-29）：跨会话凭据泄漏致第三方生产库被改
+      level: case
+    fix: 关键依赖锁定版本+变更后跑行为基线对比（成本/延迟/输出结构）；升级前 diff 官方 changelog，无公告 ≠ 无变更；敏感凭据不长期挂在会话里
+    verifier: 升级后跑一次基线对比（同任务成本/耗时 vs 升级前）——偏差超阈值即回归命中
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 升级
+      - 静默变更
+      - 版本回归
+      - changelog
+      - upgrade
+      - silent regression
+      - cache ttl
+      - version pin
+      - 行为基线
+    hazard_type: 工具链环境
+    source_ref: claude-code#102276/#29311
