@@ -3,10 +3,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.5.8
+version: 0.6.1
 domain: research-decision
-updated: '2026-10-15'
-card_count: 11
+updated: '2026-10-16'
+card_count: 16
 cards:
   - id: RD-001
     title: 把「搜不到」当「不存在」（负面定性证据不足）
@@ -216,6 +216,19 @@ cards:
       - trust me
       - recommendation
       - 验证通过
+      - 我测过了没事
+      - 肉眼看过没问题
+      - 应该没问题
+      - 你直接信我
+      - 我拍胸脯
+      - trust me bro
+      - i checked it
+      - looks good to me
+      - it's fine
+      - verified by hand
+      - 我确认过了
+      - 亲眼看过
+      - 没问题的
     hazard_type: 逻辑漏洞
     latent_condition: 结论无论深浅都呈现同等的自信外观
     source_ref: cases/D7
@@ -318,5 +331,155 @@ cards:
       - do you think
       - is this good
       - confirm my plan
+      - 这样写没问题吧
+      - 我做的对吧
+      - 帮我把把关
+      - 有没有更烂的方案
+      - 你站哪边
+      - 你不会觉得我不行吧
+      - confirm this works
+      - am i right
+      - back me up
+      - is my approach solid
+      - do you agree
+      - sanity check my idea
+      - 帮我确认一下思路
     hazard_type: 隐含前提
     source_ref: Science2026/SycEval/BrokenMath/GPT4o-rollback
+  - id: RD-012
+    title: 判断稳定≠判断正确（重测信度>0.95 可与严重偏差共存）
+    description: "大规模审计发现 LLM 裁判「判得很稳」（重测信度>0.95）与严重位置偏差（>0.10）可以共存；「超级一致」（超过人类间一致水平）反而可疑，可能是判断过度简化。稳定是必要条件不是正确性证据。"
+    symptom: 用「两次输出一致」「多轮结论相同」当作正确性论据；裁判输出极其稳定时没人再质疑其立场偏移
+    severity:
+      S: 6
+      O: 7
+      D: 8
+    evidence:
+      source: "Reliability Without Validity（2026 预印本，21 裁判/54.1 万次判断，aminer.cn/pub/6a34a4580a96f8c83c4cf656）；Judge's Verdict Benchmark（ICLR 2026，54 裁判 Kappa 分层）"
+      level: empirical
+    fix: 一致性只作为信度证据；正确性必须独立取证——换顺序重判、换裁判交叉、或对照外部事实各做一次，任一翻转即降级
+    verifier: 对同一判断对象交换呈现顺序重判一次——结论翻转即位置偏差命中；不翻转也只说明信度达标，不得标 ✅ 正确
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 判断一致
+      - 结果稳定
+      - 复跑一致
+      - consistency
+      - reliability
+      - run-to-run
+      - same answer
+      - reproducible judgment
+      - 多次输出相同
+    hazard_type: 隐含前提
+    source_ref: 用户DeepDive-判断可靠性-2026-10-15
+  - id: RD-013
+    title: AI 裁判抓不出坏答案（正面偏差：TNR<25%，多数投票无效）
+    description: "LLM 裁判识别有效输出的 TPR>96%，但识别无效输出的 TNR<25%——几乎抓不出坏答案。简单多数投票不足以纠正（集体偏向「通过」），需少数否决式规则加回归校准。"
+    symptom: 用 AI 评审/打分/把关，几乎全部「通过」；多轮投票复核结论仍全绿，被当作质量证据
+    severity:
+      S: 7
+      O: 8
+      D: 7
+    evidence:
+      source: "Beyond Consensus: Mitigating the Agreeableness Bias（ICLR 2026，aminer.cn/pub/68eeef5e163c01c850f75191）"
+      level: empirical
+    fix: 「通过」类结论的复核从多数投票改为否决式——任一渠道（人或独立裁判）否决即挂起；对「AI 说没问题」的条目默认进 ❓ 而非 ✅
+    verifier: 在送审材料中故意混入一份已知有错样本——AI 评审未抓出即本坑命中（预期：多数情况抓不出）
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - AI评审
+      - AI打分
+      - 模型评估
+      - 质量把关
+      - llm judge
+      - ai review
+      - grading
+      - evaluation
+      - scoring
+      - 全部通过
+      - 没问题
+    hazard_type: 事实性陷阱
+    source_ref: 用户DeepDive-判断可靠性-2026-10-15
+  - id: RD-014
+    title: 模型认得出并偏爱自己的输出（自我偏好与自我识别线性相关）
+    description: "GPT-4 与 Llama 2 能以非平凡准确率区分自己生成的文本，且自我识别能力与自我偏好强度线性相关（微调实验，通过混淆因素控制）。同源模型的「好评」对自身产出不构成独立证据。"
+    symptom: 让生成模型（或同家族模型）评估自己的输出并得到高分，把该高分当作质量证明
+    severity:
+      S: 5
+      O: 6
+      D: 8
+    evidence:
+      source: "LLM Evaluators Recognize and Favor Their Own Generations（NeurIPS 2024，aminer.cn/pub/662715c213fb2c6cf65d812b）；G-Eval（EMNLP 2023，LLM 偏爱 LLM 文本）"
+      level: empirical
+    fix: 评估者与生成者必须异源（不同家族/不同供应商）；报告标注评估者与生成者的关系，同源评估降级为参考信息
+    verifier: 检查评估链路——评估模型与生成模型同家族（同为 GLM 系/同为 GPT 系）即本坑命中，换异源评估者重评
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 自我评估
+      - 同模型评审
+      - ai自评
+      - self-evaluation
+      - self-preference
+      - same model
+      - 自己写的自己评
+      - 自评通过
+    hazard_type: 隐含前提
+    source_ref: 用户DeepDive-判断可靠性-2026-10-15
+  - id: RD-015
+    title: 呈现顺序可翻转 AI 结论（位置偏差可被恶意利用）
+    description: "仅交换两个候选的呈现顺序，就能系统性操纵裁判排名——ChatGPT 当裁判时 Vicuna-13B 在 80 题中 66 题「击败」ChatGPT。位置偏差不是随机噪声，质量差距越小越容易受位置影响。"
+    symptom: 让 AI 在 A/B 之间做选择或排序，结论被呈现顺序决定；提示词里候选的先后顺序未经平衡
+    severity:
+      S: 6
+      O: 7
+      D: 7
+    evidence:
+      source: "Large Language Models Are Not Fair Evaluators（ACL 2024，aminer.cn/pub/647572e0d68f896efa7b7827）；Judging the Judges: Position Bias（ICLR 2025，12 裁判/10 万+次）"
+      level: empirical
+    fix: 成对比较必做位置平衡（AB 与 BA 各跑一次，结果不一致进 ❓）；重要选择不让单一顺序定论
+    verifier: 交换候选项顺序重问一次——结论翻转即本坑命中；两序一致可升 ✅（附双序证据）
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 二选一
+      - 方案对比
+      - A/B选择
+      - 排序
+      - compare
+      - which is better
+      - a vs b
+      - ranking
+      - prefer
+      - 对比评估
+    hazard_type: 常见错误
+    source_ref: 用户DeepDive-判断可靠性-2026-10-15
+  - id: RD-016
+    title: 无外部反馈的自我纠正不升反降（「再检查一遍」是伪动作）
+    description: "推理任务上，LLM 仅凭内在能力自我纠正（不借助外部反馈）效果不升反降。Self-Refine 报告的自提升中有一部分可归因于「改得更长更好看」而非更对。让模型「自己再想想」不产生新信息——公理 2「内省不算验证」的直接实证。"
+    symptom: 用「让 AI 再检查一遍自己的答案」「自查自纠」作为验证手段；连续追问后模型改口即信
+    severity:
+      S: 7
+      O: 8
+      D: 7
+    evidence:
+      source: "Large Language Models Cannot Self-Correct Reasoning Yet（ICLR 2024，引用 1000+，aminer.cn/pub/651ccb383fda6d7f066353c4）；Self-Refine（NeurIPS 2023，增益含长度偏好污染）"
+      level: empirical
+    fix: 纠正必须外置证据：测试套件、检索结果、异源模型、人工抽查任选其一；「再想想」类动作不写入验证维度清单，视为未验证
+    verifier: 判定表——给外部证据重查 vs 让其自省重查，仅前者结论变化可计入验证记录；自省改口即本坑命中
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 再检查一遍
+      - 自查
+      - 自我纠错
+      - 让它自己复核
+      - self-check
+      - self-correct
+      - review your answer
+      - 再想想
+      - 重新审一遍
+    hazard_type: 隐含前提
+    source_ref: 用户DeepDive-判断可靠性-2026-10-15

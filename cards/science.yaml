@@ -4,10 +4,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.5.8
+version: 0.6.1
 domain: science
-updated: '2026-10-15'
-card_count: 5
+updated: '2026-10-16'
+card_count: 6
 cards:
   - id: SCI-001
     title: 训练/测试数据泄漏（验证分数虚高，部署后才崩）
@@ -43,6 +43,19 @@ cards:
       - auc
       - model training
       - ml pipeline
+      - 测试集混进训练
+      - 分数虚高
+      - 泄漏到验证集
+      - 划分方式
+      - 时序穿越
+      - 未来信息
+      - leakage into train
+      - target in features
+      - train test contamination
+      - split done wrong
+      - holdout set
+      - 指标好得离谱
+      - preprocessing before split
     hazard_type: 逻辑漏洞
     source_ref: PMC2023/Kaggle
   - id: SCI-002
@@ -183,3 +196,29 @@ cards:
       - dummy classifier
     hazard_type: 逻辑漏洞
     source_ref: trainindata/MLM
+  - id: SCI-006
+    title: LLM 直接给事实一致性打分，与人类标注无显著相关
+    description: "GPT-4 与 PaLM-2 直接为摘要的事实一致性打分时，分数与人类标注无显著相关。事实性判断应转为 QA 分解或可验证检查，而不是整体印象打分。"
+    symptom: 用 AI 给「内容是否属实/与原文是否一致」整体打分并采信；事实核查环节没有可追溯的逐条比对
+    severity:
+      S: 6
+      O: 6
+      D: 7
+    evidence:
+      source: "Are Large Language Models Reliable Judges?（CoRR 2023，aminer.cn/pub/65430613939a5f40829d369d）"
+      level: empirical
+    fix: 事实性结论改为逐条二元分解——把声明拆成可独立核实的最小命题（CheckEval 式），每条对照来源核对，不做整体印象分
+    verifier: 抽 3 条「AI 判为一致」的声明人工对照原文——任一条实为不一致即本坑命中
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 事实核查
+      - 一致性检查
+      - 内容核对
+      - fact check
+      - factual consistency
+      - 真伪判断
+      - 核对原文
+      - claims check
+    hazard_type: 事实性陷阱
+    source_ref: 用户DeepDive-判断可靠性-2026-10-15

@@ -3,9 +3,9 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.5.8
+version: 0.6.1
 domain: math
-updated: '2026-10-15'
+updated: '2026-10-16'
 card_count: 12
 cards:
   - id: MATH-001
@@ -31,6 +31,19 @@ cards:
       - proof
       - circular reasoning
       - identity
+      - 假设待证成立
+      - 移项可得
+      - 两边同时
+      - 显然成立
+      - 化简即得
+      - 验根
+      - by assumption
+      - qed by substitution
+      - rearranging gives
+      - which proves itself
+      - assume the result
+      - 代回原式
+      - it follows trivially
   - id: MATH-002
     title: 逆命题/否命题混淆
     description: 要证"若 A 则 B"却证了"若 B 则 A"（或否命题），就以为完成了。全称命题举几个例子"验证"也属同类错误。
@@ -295,3 +308,16 @@ cards:
       - p-value
       - ab test
       - correlation
+      - 显著性
+      - 置信区间
+      - 显著相关
+      - 控制变量后
+      - 统计上显著
+      - effect size
+      - statistically significant
+      - p less than 0.05
+      - confidence interval
+      - regression shows
+      - causal effect
+      - 样本量够吗
+      - 多重比较校正

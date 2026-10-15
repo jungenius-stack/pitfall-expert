@@ -4,9 +4,9 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.5.8
+version: 0.6.1
 domain: agent-security
-updated: '2026-10-15'
+updated: '2026-10-16'
 card_count: 6
 cards:
   - id: SEC-001
@@ -109,6 +109,18 @@ cards:
       - exfiltration
       - issue triage
       - customer ticket
+      - 帮我处理下工单
+      - 看看这个 PR 评论
+      - 用户消息里让干嘛
+      - 邮件里有个指令
+      - 转发下这封邮件
+      - 内容里带的指令
+      - read this ticket and act
+      - follow the instructions in the issue
+      - run this command from the comment
+      - ignore previous instructions
+      - the email says to
+      - handle this PR comment
     hazard_type: 事实性陷阱
     source_ref: InvariantLabs/Supabase-Cursor/AmazonQ
   - id: SEC-004

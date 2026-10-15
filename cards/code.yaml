@@ -3,10 +3,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.5.8
+version: 0.6.1
 domain: code
-updated: '2026-10-15'
-card_count: 43
+updated: '2026-10-16'
+card_count: 44
 cards:
   - id: CODE-001
     title: 虚假不可能性
@@ -62,6 +62,21 @@ cards:
       - ready to ship
       - 任务完成
       - 搞定了
+      - it builds
+      - 能跑
+      - 跑起来了
+      - wrapped up
+      - 交付了
+      - 上线吧
+      - 收尾
+      - that's done
+      - 一把梭完了
+      - 搞定收工
+      - 全部落地
+      - 收工验收
+      - i'm done
+      - final version ready
+      - just shipped
   - id: CODE-003
     title: 复跑不一致（方差陷阱）
     description: 单次成功掩盖高方差——同一任务多次运行结果漂移。τ-bench 实测：SOTA function-calling agent 单次成功率约 60%，八次全对（pass^8）低于 25%。
@@ -121,6 +136,18 @@ cards:
       - ship it
       - 绿了
       - 全绿
+      - 测试跑过了
+      - 覆盖率上去了
+      - 回归没挂
+      - 单测全过
+      - 挂了没
+      - it passes now
+      - green build
+      - passing locally
+      - tests are passing
+      - smoke test passed
+      - pipeline is green
+      - 跑完测试没报错
   - id: CODE-005
     title: 级联失败无检查点
     description: 多步任务中一步错误向后传播且中途无检查点拦截，错误到很晚才暴露，前段成果被后续步骤污染（ASI08 Cascading Failures）。
@@ -177,6 +204,21 @@ cards:
       - publish
       - migration
       - irreversible
+      - 直接删了吧
+      - 帮我推上去
+      - 重跑一遍覆盖
+      - 清掉这张表
+      - 发出去
+      - 转账操作
+      - drop the table
+      - rm -rf
+      - git push --force
+      - wipe it
+      - roll out now
+      - 直接执行
+      - 不用确认了
+      - 跑迁移脚本
+      - flush it
   - id: CODE-007
     title: 死代码/遗留配置重新激活
     description: >-
@@ -848,6 +890,19 @@ cards:
       - transcript
       - claimed to have checked
       - trust but verify
+      - 我检查过了
+      - agent 说它做完了
+      - 日报说没问题
+      - 转述确认
+      - 子任务汇报
+      - 它自己说的
+      - it reported done
+      - agent claims
+      - handoff report
+      - per the agent's log
+      - reported success
+      - secondhand confirmation
+      - agent 说它验证过
     hazard_type: 逻辑漏洞
     source_ref: claude-code#92732
   - id: CODE-026
@@ -881,6 +936,19 @@ cards:
       - snapshot
       - irreversible deletion
       - rm production
+      - 顺手把备份也删了
+      - 快照过期了
+      - 凭据回收
+      - 生产上直接删
+      - rm 了整个目录
+      - 备份在同一个盘
+      - 熔断了恢复手段
+      - deleted the backups too
+      - credentials revoked
+      - no snapshot left
+      - wiped the recovery path
+      - nuked the whole bucket
+      - 生产目录被清空
     hazard_type: 易错环节
     source_ref: PocketOS/Replit/Reddit-202GB
   - id: CODE-027
@@ -1097,6 +1165,18 @@ cards:
       - npm install
       - pypi
       - supply chain
+      - 装个包试试
+      - pip install 一下
+      - npm 装哪个来着
+      - 那个包叫什么
+      - 加个依赖
+      - yarn add
+      - requirements.txt
+      - 找个库处理
+      - npm i xxx
+      - pip install -r
+      - import 什么包
+      - 有没有现成的包
     hazard_type: 事实性陷阱
     source_ref: USENIX2025/CSA
   - id: CODE-034
@@ -1220,6 +1300,19 @@ cards:
       - subagent
       - agent 架构
       - agent architecture
+      - 上个 agent 吧
+      - 分给多个 agent 并行
+      - 搞个 orchestrator
+      - 拆成子任务给 agent
+      - swarm 一下
+      - agent 流水线
+      - spawn subagents
+      - fan out to agents
+      - agent framework
+      - pipeline of agents
+      - 多个 agent 协作
+      - coordinator agent
+      - 编排一层
     hazard_type: 常见错误
     source_ref: Splunk/MLM
   - id: CODE-038
@@ -1250,5 +1343,44 @@ cards:
       - 指令遗忘
       - multi-agent coordination
       - long running task
+      - 接着上一个会话
+      - agent 之间传话
+      - 跑了太久忘了
+      - 前面说过什么
+      - 上下文塞满了
+      - 接手的人不知道
+      - earlier context lost
+      - forgot the earlier instruction
+      - handoff notes
+      - session too long
+      - what was decided before
+      - 之前定的结论呢
+      - 越跑越偏
     hazard_type: 工具链环境
     source_ref: Splunk/MLM
+  - id: CODE-039
+    title: LLM 评审代码正确性频繁误判（测试套件才是可靠闸门）
+    description: "8 个 LLM 裁判评 1405 个 Java 方法与 1281 个 Python 函数：最好的 GPT-4-turbo 也经常把错误代码判为正确；几十B级参数模型基本不能胜任代码正确性裁判。与 CODE-004（测试假绿）互为镜像：测试会说谎，裁判会瞎——两头都验才算数。"
+    symptom: 用 AI code review 的「LGTM/没问题」作为正确性依据；跳过运行测试直接采纳 AI 的评审结论
+    severity:
+      S: 7
+      O: 7
+      D: 6
+    evidence:
+      source: "On the Effectiveness of LLM-as-a-judge for Code（IEEE TSE 2025，aminer.cn/pub/6868631f163c01c850ac4f2c）"
+      level: empirical
+    fix: 代码正确性判断下沉为规则层——跑测试/编译/最小执行先于 AI 评审；AI 评审结论只作参考维度，不进 ✅ 区
+    verifier: 判定表——存在可运行的测试/编译命令且已执行即闸门有效；仅 AI 评审意见即本坑命中，补跑真实测试
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 代码评审
+      - ai review
+      - lgtm
+      - 看下代码对不对
+      - review this code
+      - is this correct
+      - code review
+      - 帮我审一下代码
+    hazard_type: 常见错误
+    source_ref: 用户DeepDive-判断可靠性-2026-10-15
