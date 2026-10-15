@@ -27,8 +27,8 @@ test('场景1 代码域：CSV 汇总任务命中空值卡与 CSV 卡', () => {
   const ids = matchedIds(r);
   assert.ok(ids.includes('CODE-013'), `应命中空值卡，实际：${ids.join(',')}`);
   assert.ok(ids.includes('CODE-014'), `应命中 CSV 卡，实际：${ids.join(',')}`);
-  assert.strictEqual(r.coverage.code.total, 23, '代码域 23 张卡应全部加载（v0.4 融合：CODE 18 + CI 5）');
-  assert.strictEqual(r.cardsLoaded, 43, '共 43 张卡（v0.4 融合：code 23 + math 12 + research-decision 8）');
+  assert.strictEqual(r.coverage.code.total, 27, '代码域 27 张卡应全部加载（v0.4.3：CODE 18 + CI 5 + 外部纪要回写 4）');
+  assert.strictEqual(r.cardsLoaded, 47, '共 47 张卡（v0.4.3：code 27 + math 12 + research-decision 8）');
   const report = buildReport(r);
   assert.ok(report.includes('## ✅ 已查证区'), '报告须含已查证区');
   assert.ok(report.includes('## ❓ 未验证区'), '报告须含未验证区');

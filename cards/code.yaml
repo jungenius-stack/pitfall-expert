@@ -3,10 +3,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.4.0
+version: 0.4.3
 domain: code
 updated: '2026-10-15'
-card_count: 23
+card_count: 27
 cards:
   - id: CODE-001
     title: 虚假不可能性
@@ -605,3 +605,114 @@ cards:
     hazard_type: 事实性陷阱
     latent_condition: 每个领域都有数十条「显然为真、实际为假」的假设
     source_ref: github.com/kdeldycke/awesome-falsehood
+  - id: CODE-019
+    title: 隐性业务规则遗漏（AI 不知道代码背后的业务约束）
+    description: AI 只能读到当前相关文件，不知道代码背后的业务规则（某条校验为何存在、哪个条件不可绕过），局部重构时顺手删掉关键规则；把全部规则灌进上下文又成本过高。(hidden business rules / invariants silently deleted during refactor)
+    symptom: 改动「看起来冗余」的校验/分支后被删除；AI 方案与隐性业务约束冲突但无人发现；上线后才由业务方发现规则丢失
+    severity:
+      S: 8
+      O: 4
+      D: 8
+    evidence:
+      source: AI 智能纪要转述（抖音实战分享《AI大项目开发五大坑》，2026-10-14）；行业共识经验，未经一手核验；解法：AGENT.md 记录业务规则+设计原因+不可绕过条件
+      level: consensus
+    fix: 隐性业务规则外置成项目内规则文档（AGENT.md/AGENTS.md）：规则+设计原因+不可绕过条件三要素，核心模块单独文档并由主文档关联指向——知识外置优于依赖模型记忆
+    verifier: 修改任何校验/分支/公共逻辑前，grep 项目规则文档是否提及目标模块；提及=先对照规则清单逐条确认再动手
+    confidence: needs_verification
+    pass_k_relevant: false
+    triggers:
+      - 业务规则
+      - 重构校验逻辑
+      - 删除冗余代码
+      - AGENT.md
+      - business rules
+      - refactor validation
+      - remove dead code
+      - hidden invariant
+      - legacy logic
+    hazard_type: 隐含前提
+    source_ref: AI纪要-2026-10-14-a
+  - id: CODE-020
+    title: 改动前缺两层影响分析（局部全绿、下游崩盘）
+    description: 局部功能测试全绿但破坏下游（佣金结算/报表统计/定时任务/消息消费者）；核心公共「大动脉」代码被顺手修改引发跨模块系统性故障——局部测试原理上发现不了。(local change passes tests but breaks downstream consumers; no impact analysis before modifying shared code)
+    symptom: 改动某类/接口后下游报表或结算数据错乱；被大量模块调用的公共方法被修改；只测了新增功能没回测关联功能
+    severity:
+      S: 9
+      O: 4
+      D: 8
+    evidence:
+      source: >-
+        AI
+        智能纪要转述（抖音实战分享《AI大项目开发五大坑》，2026-10-14）；行业共识经验，未经一手核验；解法：直接影响（待改类/接口）+间接影响（定时任务/消费者/报表）两层分析并输出回归清单，高风险目录预标注
+      level: consensus
+    fix: 修改前输出两层影响分析：直接影响=调用方全枚举；间接影响=定时任务/消息消费者/报表/下游服务；同步生成回归测试清单。公共「大动脉」代码在规则文档预标注，改动前过前置四问
+    verifier: grep 被改符号的全部调用点（含配置注册/反射/定时任务处），列出间接影响清单并逐项给出回归验证方式；清单为空时先怀疑漏查而非无影响
+    confidence: needs_verification
+    pass_k_relevant: false
+    triggers:
+      - 影响分析
+      - 公共模块修改
+      - 回归清单
+      - 下游依赖
+      - 大动脉代码
+      - impact analysis
+      - shared module
+      - regression checklist
+      - downstream
+      - breaking change
+    hazard_type: 易错环节
+    source_ref: AI纪要-2026-10-14-a
+  - id: CODE-021
+    title: 错误流程自动化（规模化的错误）
+    description: 手动流程尚未验证成熟就交给 AI 自动化。AI 擅长把已验证的流程从 1 次复制到上百次，无法证明流程本身合理——错误流程+自动化=规模化错误。
+    symptom: 「流程还没手动跑通就让它全自动跑」；自动化批量产出同构错误结果后才发现源头流程有错
+    severity:
+      S: 8
+      O: 3
+      D: 7
+    evidence:
+      source: AI 智能纪要转述（抖音实战分享《vibe coding 八条避坑》，2026-10-14）；行业共识经验，未经一手核验；原话「错误的流程加上自动化，只会得到规模化的错误」
+      level: consensus
+    fix: 顺序铁律：手动跑通全流程 → 沉淀 SOP → 半自动试点 → 全自动。自动化边界=只自动化已验证正确的流程
+    verifier: 自动化上线前检查：该流程是否存在至少一次完整手动跑通的记录/SOP？没有=先跑通再自动化
+    confidence: needs_verification
+    pass_k_relevant: false
+    triggers:
+      - 自动化流程
+      - 批量处理
+      - 流程编排
+      - automation
+      - batch pipeline
+      - sop
+      - manual run first
+      - scale up
+    hazard_type: 逻辑漏洞
+    source_ref: AI纪要-2026-10-14-b
+  - id: CODE-022
+    title: 并行任务无隔离（同工作区互相覆盖）
+    description: 多个 AI 任务同时改同一工作区：文件互相覆盖、代码冲突、两个会话各改各的不自知。并行的前提是隔离。
+    symptom: 多任务并行后出现意外覆盖/合并冲突；A 任务改完被 B 任务静默覆盖
+    severity:
+      S: 6
+      O: 3
+      D: 5
+    evidence:
+      source: >-
+        AI 智能纪要转述（抖音实战分享《vibe coding 八条避坑》，2026-10-14）；行业共识经验，未经一手核验；解法：代码项目 git worktree
+        隔离、非代码项目独立副本，各自测完再合并回主线
+      level: consensus
+    fix: 一任务一空间：代码项目为每个并行任务建独立 git worktree，测完合并回主线；非代码项目用独立文件夹/副本
+    verifier: 并行启动前检查各任务工作区路径互不重叠（git worktree list 对比）；重叠=先隔离再开工
+    confidence: needs_verification
+    pass_k_relevant: false
+    triggers:
+      - 并行任务
+      - 多会话
+      - 工作区冲突
+      - parallel tasks
+      - multiple agents
+      - worktree
+      - workspace isolation
+      - concurrent edits
+    hazard_type: 工具链环境
+    source_ref: AI纪要-2026-10-14-b
