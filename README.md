@@ -23,9 +23,37 @@ sh install.sh
 
 ---
 
-AI coding agents have two structural flaws that bite *before* work starts: they **agree with your plan** (sycophancy), and when they say "verified" you **can't tell what was actually tested vs. guessed**. Independent research confirms the failure modes: agents declare solvable tasks impossible (54.9% of WebArena failures), claim completion while the environment is unchanged (MAST), pass weak test suites (7.8% of "passing" SWE-bench patches are wrong), and mistake single-run luck for reliability (pass^8 < 25%). Those exact findings are seed cards in this library.
+Your agent said **"done"** — and the migration isn't. It agreed with the doomed plan, called single-run luck "reliable", and you found out when the bill arrived.
 
-pitfall-expert runs a systematic pitfall scan **before** the task starts: it matches the task against a six-domain card library in `cards/` (90+ cards as of v0.7 — trust the directory, not any hardcoded number), binds every blocking pit to an **executable verifier** (pre-declared decision table + executed-result write-back), and outputs a **three-zone honest report** — ✅ verified (with evidence chains and quotable sources) / ❓ unverified (with 5-minute follow-up actions) / 🚫 declared blind spots.
+**pitfall-expert** scans the task **before work starts**: it matches the task against a six-domain library of 100+ pitfall cards in `cards/` — each distilled from real incidents and peer-reviewed research — binds every blocking pit to an **executable verifier** (pre-declared decision table + executed-result write-back), and outputs a **three-zone honest report**: ✅ verified (evidence chains, quotable sources) / ❓ unverified (5-minute follow-up actions) / 🚫 declared blind spots.
+
+The failure modes come with receipts, because they've been measured: agents declare solvable tasks impossible (54.9% of WebArena failures), claim completion while the environment is unchanged (MAST), pass weak test suites (7.8% of "passing" SWE-bench patches are wrong), mistake single-run luck for reliability (pass^8 < 25%), and side with a wrong user over half the time (*Science*, 2026: 51%). Those exact findings are seed cards in this library — card counts live in `cards/`; trust the directory over any number in prose.
+
+Everything runs locally: a keyword scan over YAML cards, no network calls, no task text leaving your machine.
+
+<details>
+<summary><strong>What your agent hands back</strong> — real output, abbreviated (report skeleton is Chinese-native; fields translated here)</summary>
+
+```text
+# 踩坑报告 · ⚡ 快扫
+- 任务：aggregate users.csv by province, mind nulls and duplicate rows
+- 领域判定：code (medium) · 103 cards checked one by one, 100% coverage
+
+## ✅ 已查证区（4 项）
+### [CODE-014] CSV/数据解析
+- 症状信号：row counts off; a column suddenly all-empty; mojibake; precision loss
+- 证据：awesome-falsehood (CSV) — consensus
+- 规避动作：use a real parser; declare encoding (utf-8-sig for BOM); read numerics as strings first
+- 命中依据：trigger `csv` + fields fix/triggers
+### [CODE-013] 空值与边界输入 …
+### [CODE-036] 代码正确 ≠ 数据正确（静默列错位与不可能值）…
+
+## ❓ 未验证区（0 项）
+## 🚫 盲区声明
+- 未建卡领域：决策/战略 —— "no cards" ≠ "no pits"
+```
+
+</details>
 
 > **Done = fully disclosed, not perfect. Missed pits are forgivable; false "verified" claims are not.**
 > 完成等于披露完整，而非结果完美。漏报可原谅，谎报不可原谅。
@@ -100,12 +128,28 @@ The library upgrades on real cases. If a pit wasn't caught (false negative) or a
 node engine/src/cli.js "your task" --tier standard --feedback
 ```
 
+> **Showcase**: if it caught a real pit for you, open an issue labeled `showcase` — real cases become new cards, credited in `source_ref`.
+
 ## FAQ
 
 <details>
 <summary><strong>Which agents/harnesses can use it?</strong></summary>
 
 Any harness that scans a skills directory for SKILL.md: ZCode, DeepSeek Harness (`~/.agents/skills/`), Claude Code (`~/.claude/skills/`), WorkBuddy. The engine additionally speaks MCP; the hooks follow the Claude Code / WorkBuddy hook contract.
+
+</details>
+
+<details>
+<summary><strong>Does it upload my task or collect telemetry?</strong></summary>
+
+No. Matching is a local keyword scan over YAML card files — the engine makes no network calls. The opt-in `--feedback` bundle excludes task text by default (card IDs, scores and versions only).
+
+</details>
+
+<details>
+<summary><strong>A match looks wrong</strong></summary>
+
+Update first — `git pull`. The card library evolves, and stale cards cause most weird matches. Still wrong? Attach the `--feedback` bundle and file a false-positive issue; every case becomes a regression sample.
 
 </details>
 
