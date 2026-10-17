@@ -150,4 +150,40 @@ function buildReport(r) {
   return L.join('\n');
 }
 
-module.exports = { buildReport };
+/**
+ * 反馈包（--feedback，M1 最小化采集）：默认不含任务原文，只含聚合值（卡 ID/分数/版本/域判定），
+ * 用户自查后贴进 GitHub 误报/漏报 issue 模板；附原文须显式 --with-task。
+ */
+function buildFeedback(r, opts = {}) {
+  const pkg = require('../package.json');
+  const L = [];
+  L.push('## pitfall-expert 反馈包（--feedback 生成，可直接贴进误报/漏报 issue）');
+  L.push('');
+  L.push(`- 引擎版本：pitfall-expert-engine ${pkg.version}`);
+  const libVersions = Object.entries(r.cardVersions || {})
+    .map(([f, v]) => `${f.replace(/\.ya?ml$/, '')} ${v}`).join(' · ');
+  L.push(`- 卡库版本：${libVersions || '未知'}（共 ${r.cardsLoaded} 张）`);
+  L.push(`- 档位：${r.tier}；域判定：${r.domain || '未能判定'}（${r.domainConfidence}）`);
+  L.push(`- 信源故障：${r.sourceErrors.length ? r.sourceErrors.map(e => `${e.file}：${e.error}`).join('；') : '无'}`);
+  L.push('');
+  if (r.matched.length) {
+    L.push('| 命中卡 | 分 | 命中依据 | 区 |');
+    L.push('|---|---|---|---|');
+    for (const s of r.matched) {
+      const basis = [
+        s.m.triggerHits.length ? `触发词：${s.m.triggerHits.join('、')}` : '',
+        s.m.matchedFields.length ? `字段：${s.m.matchedFields.join('/')}` : ''
+      ].filter(Boolean).join('；') || '领域默认';
+      L.push(`| ${s.card.id} | ${s.m.score} | ${basis} | ${s.card.confidence === 'backed_by_context' ? '✅' : '❓'} |`);
+    }
+  } else {
+    L.push('命中卡：无（matched=0）——若实际踩了坑，这是漏报样本，请选「漏报」模板提交');
+  }
+  L.push('');
+  L.push(opts.withTask
+    ? `- 任务原文：${r.task}`
+    : '- 任务原文：未包含（默认脱敏；如需附原文请加 --with-task，提交前自查敏感信息）');
+  return L.join('\n');
+}
+
+module.exports = { buildReport, buildFeedback };

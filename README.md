@@ -11,7 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/code-MIT-f4c430?style=flat-square)](LICENSE)
 [![Content: CC BY 4.0](https://img.shields.io/badge/cards_&_docs-CC_BY_4.0-3f9f7f?style=flat-square)](LICENSE-CONTENT.md)
 [![Skill](https://img.shields.io/badge/form-skill_+MCP_engine_+hooks-5c4ee5?style=flat-square)](#architecture)
-[![Cards](https://img.shields.io/badge/pitfall_cards-92-cb3837?style=flat-square)](cards/)
+[![Cards](https://img.shields.io/badge/pitfall_cards-103-cb3837?style=flat-square)](cards/)
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
 
@@ -91,6 +91,14 @@ Numbers, not adjectives — every claim replay-tested:
 - **4 meta-pitfalls caught on ourselves** during development (e.g. an allow-list rule that silently passed `git push --force`) — logged openly in the [meta-pitfall registry](skills/pitfall-expert/references/meta-pitfalls.md), now 17 entries including two "looked like pure gain, rolled back same day" matching experiments;
 - **Dual-source red-team reviews** (v0.6): a fresh-context subagent and an out-of-family GLM-4.6 each attacked the design; 20+ failure modes archived, 13 fixed ([red team](docs/红队评审-v1.md) / [adversarial review](docs/沉思评审-v1.md));
 - Two independent implementations (built in parallel on two platforms) converged on the same honesty axioms — merged in v0.4. A 240K-star tool ([REA](https://github.com/morluto/rea)) independently ships the same skill+engine+plugin distribution shape.
+
+## Report misses & false hits
+
+The library upgrades on real cases. If a pit wasn't caught (false negative) or an irrelevant card fired (false positive), rerun the scan with `--feedback`: it emits a de-identified bundle — card IDs, scores, library/engine versions, domain verdict; **no task text by default** (`--with-task` to include, review before posting) — ready to paste into the [false-negative](.github/ISSUE_TEMPLATE/false-negative.md) / [false-positive](.github/ISSUE_TEMPLATE/false-positive.md) issue templates. Every case becomes a regression sample in the noise battery and the eval set.
+
+```bash
+node engine/src/cli.js "your task" --tier standard --feedback
+```
 
 ## FAQ
 

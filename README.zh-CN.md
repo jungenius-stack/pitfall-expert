@@ -76,6 +76,14 @@ agent（或 CLI）拿任务对照 `cards/<domain>.yaml` 扫描——每张命中
 - **双源红队评审**（v0.6）：同源局外人子代理 + 异源 GLM-4.6 各攻击一轮，20+ 失效场景全部落档、已修 13 条（[红队评审](docs/红队评审-v1.md)/[沉思评审](docs/沉思评审-v1.md)）；
 - 两个并行独立实现收敛到同一套诚实公理（v0.4 合并）；24 万 star 的 [REA](https://github.com/morluto/rea) 独立选了同样的「技能+引擎+插件」分发形态。
 
+## 反馈漏报 / 误报
+
+卡库靠真实案例升级。踩了坑没拦住（漏报）或不相干任务被命中（误报），重跑一次带 `--feedback`：输出脱敏反馈包——卡 ID、分数、卡库/引擎版本、域判定；**默认不含任务原文**（附原文加 `--with-task`，提交前自查敏感信息）——直接贴进[漏报](.github/ISSUE_TEMPLATE/false-negative.md)/[误报](.github/ISSUE_TEMPLATE/false-positive.md) issue 模板。每个案例都会变成噪音电池与评测集的回归样本。
+
+```bash
+node engine/src/cli.js "你的任务" --tier standard --feedback
+```
+
 ## FAQ
 
 <details>

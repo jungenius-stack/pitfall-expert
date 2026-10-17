@@ -42,6 +42,7 @@ function loadCards(cardsDir) {
   const dir = cardsDir || DEFAULT_CARDS_DIR;
   const cards = [];
   const errors = [];
+  const versions = {};
   let files = [];
   try {
     files = fs.readdirSync(dir).filter(f => f.endsWith('.yaml') || f.endsWith('.yml')).sort();
@@ -53,6 +54,7 @@ function loadCards(cardsDir) {
     try {
       const doc = yaml.load(fs.readFileSync(path.join(dir, f), 'utf8'));
       if (!doc || !Array.isArray(doc.cards)) throw new Error('文档缺少 cards 数组');
+      if (doc.version !== undefined) versions[f] = String(doc.version); // 供 --feedback 反馈包标注卡库版本
       const fileDomain = doc.domain; // 文件级 domain 下发给缺省卡
       for (const c of doc.cards) {
         if (!c.domain && fileDomain) c.domain = fileDomain;
@@ -71,7 +73,7 @@ function loadCards(cardsDir) {
       errors.push({ file: f, error: e.message });
     }
   }
-  return { cards, errors, files };
+  return { cards, errors, files, versions };
 }
 
 // ---------- 分词与匹配 ----------
@@ -188,7 +190,7 @@ function detectDomain(scored) {
 function scan(task, opts = {}) {
   const tier = TIERS[opts.tier] ? opts.tier : 'standard';
   const requestedDomain = opts.domain || 'auto';
-  const { cards, errors: sourceErrors } = loadCards(opts.cardsDir);
+  const { cards, errors: sourceErrors, versions: cardVersions } = loadCards(opts.cardsDir);
 
   const taskTokens = tokenize(task);
   const taskLower = task.toLowerCase();
@@ -256,6 +258,7 @@ function scan(task, opts = {}) {
     matched,
     verified,
     unverified,
+    cardVersions,
     cardsLoaded: cards.length
   };
 }
