@@ -38,7 +38,13 @@ jobs:
         run: sh skills/pitfall-expert/scripts/selfcheck.sh
       - name: hook 冒烟（block 拦破坏性 / 放行只读）
         run: |
-          echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /"}}' | PITFALL_HOOK_MODE=block sh hooks/pre-tool-use.sh >/dev/null 2>&1; [ $? -eq 2 ] || (echo "block 未拦截" && exit 1)
-          echo '{"tool_name":"Read","tool_input":{}}' | sh hooks/pre-tool-use.sh >/dev/null 2>&1; [ $? -eq 0 ] || (echo "只读未放行" && exit 1)
-          echo "hook 双模式 ✓"
+          set +e
+          echo '{"tool_name":"Bash","tool_input":{"command":"rm -rf /"}}' | PITFALL_HOOK_MODE=block sh hooks/pre-tool-use.sh >/dev/null 2>&1
+          BLOCK_RC=$?
+          echo '{"tool_name":"Read","tool_input":{}}' | sh hooks/pre-tool-use.sh >/dev/null 2>&1
+          READ_RC=$?
+          set -e
+          [ "$BLOCK_RC" -eq 2 ] || { echo "block 未拦截（rc=$BLOCK_RC）"; exit 1; }
+          [ "$READ_RC" -eq 0 ] || { echo "只读未放行（rc=$READ_RC）"; exit 1; }
+          echo "hook 双模式 ✓（block rc=$BLOCK_RC / read rc=$READ_RC）"
 ```
