@@ -8,6 +8,7 @@
 
 **See a task you want done. Know where it breaks, before it starts.**
 
+[![CI](https://github.com/jungenius-stack/pitfall-expert/actions/workflows/ci.yml/badge.svg)](https://github.com/jungenius-stack/pitfall-expert/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/code-MIT-f4c430?style=flat-square)](LICENSE)
 [![Content: CC BY 4.0](https://img.shields.io/badge/cards_&_docs-CC_BY_4.0-3f9f7f?style=flat-square)](LICENSE-CONTENT.md)
 [![Skill](https://img.shields.io/badge/form-skill_+MCP_engine_+hooks-5c4ee5?style=flat-square)](#architecture)
