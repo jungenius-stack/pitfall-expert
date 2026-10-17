@@ -57,7 +57,7 @@ sh install.sh
 **装技能**（一条命令，装到检测到的所有外壳目录）：
 
 ```bash
-git clone <本仓库> && cd pitfall-expert && sh install.sh
+git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-expert && sh install.sh
 ```
 
 兼容 ZCode / DeepSeek Harness（`~/.agents/skills/`）、Claude Code（`~/.claude/skills/`）、WorkBuddy。卸载：`sh install.sh --uninstall`。

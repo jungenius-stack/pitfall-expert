@@ -63,7 +63,7 @@ Everything runs locally: a keyword scan over YAML cards, no network calls, no ta
 ### Install the skill
 
 ```bash
-git clone <this-repo> && cd pitfall-expert
+git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-expert
 sh install.sh          # installs to every detected agent's skills dir, cards included
 ```
 
