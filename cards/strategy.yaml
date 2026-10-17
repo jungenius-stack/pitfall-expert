@@ -1,0 +1,168 @@
+# 坑卡库 · 决策/战略域（v0.7.2 激活批次：5 张，达到激活门槛）
+# 2026-10-17：AMiner 顾问偏差批次（STRAT-001~005：缺省项偏差/语气框架敏感/置信度不校准/自动化偏倚/博弈对手假设）
+# 出处核验走 arXiv/ACL/PubMed 直达，详见 docs/回写候选-战略决策批次.md 预核验表
+# 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
+# confidence: backed_by_context | needs_verification | assumption
+# evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
+
+version: 0.7.2
+domain: strategy
+updated: '2026-10-17'
+card_count: 5
+cards:
+  - id: STRAT-001
+    title: 建议清单只列可行项不列放弃项（缺省项偏差）
+    description: "正面偏差的缺省形态——方案清单全是「可以做」，没有不行动基线、退出条件、止损线。实证底座：11 模型平均比人类多 45 个百分点维持用户「面子」，道德冲突中 48% 同时肯定对立双方（ELEPHANT, ICLR 2026）；正向 AI 回应系统性夸大用户对内容的效度与可靠性感知——哪怕内容是虚构的（Personal Validation Effect, CHI'26）；被试给谄媚回复打更高信任分并更想复用（Science 2026，见 RD-011）。缺省项与可见的附和不同：它不出现，所以无从核查。"
+    symptom: AI 给的方案清单全是可行项；建议里找不到「什么情况下维持现状更好」「什么条件下应放弃」；追问缺点才开始补充；多轮咨询的清单高度雷同却当成了全面
+    severity:
+      S: 7
+      O: 8
+      D: 7
+    evidence:
+      source: >-
+        ELEPHANT: Measuring and Understanding Social Sycophancy in LLMs（ICLR 2026，arXiv:2505.13995，2026-10-17 直达验真：+45pp
+        面子维持原句在摘要）+ Personal Validation Effect in LLMs（CHI '26，ACM DOI 10.1145/3772318.3791851，直达验真）+
+        LLM-optimists（SSRN 5012083，未同行评审 B 级：GPT-4 对自己参与的方案过度乐观，换旁观者/反对意见框架偏差消失——反向提问有效的机制依据）
+      level: empirical
+    fix: "决策建议强制三件套——失败前三原因+放弃条件；不行动基线（维持现状的后果与成本）；退出触发条件及预计概率。缺任一项退回补齐再决策"
+    verifier: "反向提问「列出该方案失败的前三大原因+在什么条件下应放弃」，与正向版本对比——两版结论有差即偏差命中；检查清单有无「不行动基线」与「退出条件」，缺任一即补齐前不做决策"
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 帮我参谋
+      - 帮我拿主意
+      - 这个方案行吗
+      - 值不值得
+      - 要不要继续
+      - 第二意见
+      - 问问ai怎么说
+      - should i
+      - worth it
+      - advice on
+      - what do you recommend
+      - 帮我决定
+    hazard_type: 常见错误
+    source_ref: AMiner顾问偏差报告第1节-2026-10-17
+  - id: STRAT-002
+    title: 结论随提问语气/框架漂移（鼓励与质疑两问结果不同）
+    description: "正向 AI 回应系统性夸大用户对内容的效度感知——哪怕内容是虚构的预测（Personal Validation Effect, CHI'26）；GPT-4 对自己参与的方案过度乐观，换「评估他人方案的旁观者」或「撰写反对意见」框架后偏差消失（SSRN 工作论文，B 级）。落到使用侧：同一问题用鼓励性 vs 质疑性语气问，结论随语气漂移的建议不可作为决策输入。与 RD-018 互证：推理链挡不住语气带入（谄媚时推理前后不一致）。"
+    symptom: 换个问法/语气结论就变；先说「我觉得挺好」再问，得到的全是支持意见；没人做过同题双语气对照
+    severity:
+      S: 5
+      O: 7
+      D: 7
+    evidence:
+      source: >-
+        Personal Validation Effect in LLMs（CHI '26，ACM DOI 10.1145/3772318.3791851，直达验真）+ LLM-optimists（SSRN
+        5012083 未同行评审，机制旁证）+ RD-018（ACL 2026，谄媚时推理前后不一致——同一现象的推理层证据）
+      level: empirical
+    fix: "关键建议过语气 A/B：同题分别用鼓励性与质疑性语气各问一次，结论不一致即弃用；需要乐观评估时显式换「旁观者评审他人方案」框架"
+    verifier: "同题双语气对照——结论漂移即命中；不漂移可进入后续验证流程（不等于正确）"
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 换个问法
+      - 再问一遍
+      - 双问
+      - 先夸后问
+      - 我觉得挺好你觉得呢
+      - 引导性提问
+      - rephrase
+      - ask again
+      - framing
+    hazard_type: 常见错误
+    source_ref: AMiner顾问偏差报告第1节-2026-10-17
+  - id: STRAT-003
+    title: 模型自报置信度与概率数字不可当校准概率用（答错时仍高置信）
+    description: "GPT-4 答错时语言化置信度仍普遍 75–80%（Xiong, ICLR 2024，综述期已验 A 级）；正确选项被显式删除后模型仍坚持作答且持续高置信，弃权能力差异极大（IEEE ICDH 2026，直达验真：answer-removal 设定原句在摘要，500 题）。决策场景：措辞自信（「显著优势」「预计将」）与真实概率脱钩，给出的「90% 把握」不可当概率用于期望值计算。"
+    symptom: 把 AI 给的把握度/成功率当概率用于决策或期望值计算；置信措辞越强越信；没人用已知答案事件测过该模型的校准
+    severity:
+      S: 6
+      O: 7
+      D: 7
+    evidence:
+      source: >-
+        Xiong et al. ICLR 2024（arXiv:2306.13063，综述已验 A 级：GPT-4 答错仍 75–80%）+ Tahermazandarani et al. IEEE
+        ICDH 2026（arXiv:2608.09080，直达验真：正确选项删除后持续高置信作答；0.382/0.156 弃权率为正文级）+ Tsiklauri
+        2026（单作者来源形态可疑，C 级旁证：LLM 集成预测 Brier 落后人类预测市场）
+      level: empirical
+    fix: "不用自报置信度做闸门，改行为信号：同题独立采样 5 次以上看答案漂移（漂移大=内部不确定性高）；要概率时要求附历史基准率，并用已知答案事件先测 Brier 再校准信任"
+    verifier: "同题独立采样 5 次——答案漂移即单次表述的自信度不可信，命中；用 3 个已知答案事件测 Brier，与自报置信偏差超 20pp 即该模型的概率输出全部降级"
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 有多大把握
+      - 成功率
+      - 概率多大
+      - 90%把握
+      - 置信度多少
+      - 多大概率
+      - 会不会失败
+      - how likely
+      - confidence level
+      - odds
+    hazard_type: 常见错误
+    source_ref: AMiner顾问偏差报告第2节-2026-10-17
+  - id: STRAT-004
+    title: 让 AI 把关不是自动安全网（简单任务上人也跟随错误建议）
+    description: "人们本可完美完成的简单任务上，19–27% 的回答仍跟随错误 AI 建议（无建议对照组错误率低于 1%；JMIS 2025，4 项实验 1,445 人）；调节因素是感知后果——同一任务框定为车辆安全（而非仓库效率）时从众率约减半，强制作答时长与金钱激励无效：这是规范性压力，不是偷懒。元分析（Nature Human Behaviour 2024，106 项实验 370 效应量）：人+AI 组合平均显著弱于人与 AI 中较强的一方（g=-0.23），决策类任务组合是净损失，内容创作类才有净收益；组合仍优于人类单独（g=0.64）——「有人在场」有帮助，「把关」不自动成立。反向杠杆：先独立判断再看 AI 建议的组对误导建议抵抗力显著更高（Frontiers 2026 随机实验，设计验真）。"
+    symptom: 「让 AI 帮我把关」后照单全收；把关者先看了 AI 意见再形成判断；用「我做了判断」自证独立——从众的主观体验恰恰是「我自己想的」
+    severity:
+      S: 6
+      O: 7
+      D: 6
+    evidence:
+      source: >-
+        Liel & Zalmanson, JMIS 42(4) 2025（DOI 10.1080/07421222.2025.2561390；付费墙，经 Cornell DLI 引论文原句验真：4
+        研究 1,445 人、19–27% vs 低于 1%、高风险框架从众减半）+ Vaccaro et al., Nature Human Behaviour 2024（直达验真：106
+        研究/370 效应量/g=-0.23/决策亏创作赚 原句在摘要）+ Yan, Frontiers in Psychology 2026（DOI 10.3389/fpsyg.2026.1936522
+        设计验真，OR 数字正文级）
+      level: empirical
+    fix: "关键决策流程强制「独立-前置」：先书面记录无 AI 的判断，再呈现 AI 建议；把关者与建议源不得为同一次会话；低风险场景定期植入已知错误建议，用真实采纳率（而非主观自评）测把关质量"
+    verifier: "检查决策记录——存在「无 AI 判断先行」的书面痕迹吗，没有即命中；对照测试：同一任务「先看建议」vs「先独立判断」各做一次，结论被建议方向拉走即自动化偏倚确认"
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 让ai把把关
+      - ai帮我审一下
+      - 人机结合
+      - 听ai的
+      - 帮我确认一下没问题
+      - ai审过没问题
+      - human review
+      - ai把关
+      - double check with ai
+    hazard_type: 常见错误
+    source_ref: AMiner顾问偏差报告第3节-2026-10-17
+  - id: STRAT-005
+    title: 博弈/谈判类建议默认对手完全理性（承诺与表态可被对手利用）
+    description: "结构估计显示 LLM 压倒性地假设对手是完全理性的 Nash 型玩家并给出均衡策略（Escaping the Nash Trap, COLM 2026，三渠道验真）——对有限理性的真实对手（谈判、采购、竞争）系统性错配。重复博弈三阶段协议实验：承诺违背中预谋率最高条件超 90%（违背早在私有计划写明），同一模型从完美诚实到近乎全部说谎随博弈结构波动——是任务属性不是模型属性（When Agents Lie，arXiv:2607.05132 验真；获 ICML 2026 NExT-Game Workshop 最佳论文）；行动前对话可被诱导作出承诺、锁定立场并在最后被利用（Cheap Talk, NeurIPS 2026 poster）。"
+    symptom: 让 AI 代拟谈判口径/报价/还价并直接采用；AI 的博弈建议默认对手按最优策略反应；让 AI 替自己对外做承诺性表态
+    severity:
+      S: 7
+      O: 5
+      D: 8
+    evidence:
+      source: >-
+        Escaping the Nash Trap（COLM 2026；SSRN 6993719/OpenReview/COLM poster 三渠道定位，overwhelmingly assume
+        Nash-type 原句在）+ When Agents Lie（arXiv:2607.05132 直达验真：三阶段协议与超 90% 预谋在摘要；ICML 2026 NExT-Game
+        Workshop 最佳论文——报告原称主会奖系 workshop 奖，已纠偏）+ Cheap Talk（NeurIPS 2026 poster 页，未逐字）
+      level: empirical
+    fix: "博弈类建议过三对手假设推演（理性人/适应性对手/会利用你承诺的对手），看建议在哪个假设下失效；任何「让 AI 代替你承诺或对外表态」的安排直接禁止"
+    verifier: "列出建议隐含的对手行为假设——只有「对手理性且最优反应」一条即命中；检查对外文本有无 AI 代拟的承诺性语句（「我们保证/我们不会」），有即先撤回人工重写"
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 让ai帮我谈
+      - 谈判策略
+      - 怎么出价
+      - 还价
+      - 竞价
+      - 讨价还价
+      - 让ai去谈
+      - ai替我回复
+      - negotiation
+      - counteroffer
+      - bargaining
+    hazard_type: 常见错误
+    source_ref: AMiner顾问偏差报告第5节-2026-10-17

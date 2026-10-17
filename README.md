@@ -4,7 +4,7 @@
 
 # pitfall-expert: Check the Pitfalls Before Your Agent Starts
 
-### One pre-task risk scan for AI agents across six domains: code, math, decisions, agent security, science/ML, creative writing.
+### One pre-task risk scan for AI agents across seven domains: code, math, decisions, agent security, science/ML, creative writing, strategy.
 
 **See a task you want done. Know where it breaks, before it starts.**
 
@@ -12,7 +12,7 @@
 [![License: MIT](https://img.shields.io/badge/code-MIT-f4c430?style=flat-square)](LICENSE)
 [![Content: CC BY 4.0](https://img.shields.io/badge/cards_&_docs-CC_BY_4.0-3f9f7f?style=flat-square)](LICENSE-CONTENT.md)
 [![Skill](https://img.shields.io/badge/form-skill_+MCP_engine_+hooks-5c4ee5?style=flat-square)](#architecture)
-[![Cards](https://img.shields.io/badge/pitfall_cards-103-cb3837?style=flat-square)](cards/)
+[![Cards](https://img.shields.io/badge/pitfall_cards-118-cb3837?style=flat-square)](cards/)
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
 
@@ -38,7 +38,7 @@ Everything runs locally: a keyword scan over YAML cards, no network calls, no ta
 ```text
 # 踩坑报告 · ⚡ 快扫
 - 任务：aggregate users.csv by province, mind nulls and duplicate rows
-- 领域判定：code (medium) · 103 cards checked one by one, 100% coverage
+- 领域判定：code (medium) · 118 cards checked one by one, 100% coverage
 
 ## ✅ 已查证区（4 项）
 ### [CODE-014] CSV/数据解析
@@ -102,14 +102,14 @@ Your agent (or the CLI) scans the task against `cards/<domain>.yaml` — every c
 | Domain | Cards | Catches | Honest "cannot" |
 |---|---|---|---|
 | Code / engineering | `code.yaml` | hallucinated completion, flaky-passing-as-stable, weak test suites, irreversible ops, default-behavior traps, type coercion, falsehoods, cascade failures, LLM code-review misjudgment | architecture taste, business-logic correctness, closed-source internals |
-| Math | `math.yaml` | circular proofs, converse confusion, induction gaps, unit/sign errors, boundary misses, probability & p-value traps | open conjectures |
+| Math | `math.yaml` | circular proofs, converse confusion, induction gaps, unit/sign errors, boundary misses, probability & p-value traps; LLM-era quantitative pitfalls: middle-digit arithmetic collapse, complexity-cliff breakdown, mixed-notation/order-of-magnitude slips, digit-perturbation fragility, un-externalized computation | open conjectures |
 | Agent security | `agent-security.yaml` | MCP supply-chain poisoning, OAuth adapter RCE, indirect prompt injection triad, zero tool-call visibility, sampling reverse control, agent identity/credential abuse | physical isolation, zero-days |
 | Research / decisions | `research-decision.yaml` | "not-found ≠ non-existent" false negatives, unit-of-account mismatches, small-sample claims, rumor-driven analysis, hidden clause layers, advantage misattribution, judge-bias family (stable ≠ correct, judges miss bad answers, self-correction illusion, authority bias) | predicting the future, competitors' plans |
-| Science/ML | `science.yaml` | train/test leakage, join explosion/loss, cross-dashboard mismatch, backtest look-ahead, accuracy paradox, factuality scoring failure | feature-engineering traps, experiment design, misleading charts |
+| Science/ML | `science.yaml` | train/test leakage, join explosion/loss, cross-dashboard mismatch, backtest look-ahead, accuracy paradox, factuality scoring failure; table value misalignment, chart-contradiction non-refusal, statistical-test applicability errors, command-parameter mismatches, chart misreading with misleading-chart pre-checks | feature-engineering traps, experiment design |
 | Creative writing | `creative.yaml` | long-form consistency drift, lost-in-the-middle, slop/style convergence, weak AI judging of creative work, structure/pacing collapse | real reader taste, originality |
-| Strategy | — | placeholder, runs generic mechanisms only, **promises nothing** | — |
+| Strategy | `strategy.yaml` | advice omission bias (no inaction baseline/exit conditions), tone-framing sensitivity, uncalibrated self-reported confidence, automation bias (independent judgment first), game-theoretic opponent assumptions & AI-drafted commitments | real probability forecasting, non-public terms, replacing human accountability |
 
-Card counts live in `cards/` — trust the directory, not this table. The strategy domain is a declared placeholder: no cards means no cards, stated out loud in every report's blind-spot zone.
+Card counts live in `cards/` — trust the directory, not this table. What each domain can and cannot catch is maintained in `references/capability.md`.
 
 ## Battle record
 

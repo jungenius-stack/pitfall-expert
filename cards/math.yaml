@@ -1,12 +1,13 @@
 # 坑卡库 · 数学域（v0.3 种子批次）
+# 2026-10-17：AMiner 定量推理批次（MATH-013~017：LLM 时代定量坑——中间数位崩塌/复杂度断点/记法单位错位/数字扰动脆弱/计算未外化）
 # 字段规范见 docs/踩坑专家方法论_v0.3.md 第 9.1 条：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.6.1
+version: 0.7.2
 domain: math
-updated: '2026-10-16'
-card_count: 12
+updated: '2026-10-17'
+card_count: 17
 cards:
   - id: MATH-001
     title: 循环论证
@@ -321,3 +322,152 @@ cards:
       - causal effect
       - 样本量够吗
       - 多重比较校正
+  - id: MATH-013
+    title: 多位运算中间数位崩塌（首末位对、中间 1–2 位错）
+    description: "Transformer 把多位乘除拆成并行逐位子任务，进位链与中间结果缓存是瓶颈（Dissecting Multiplication, arXiv:2407.15360 直达验真：修补后 5 位乘法 99.9%）；多位乘法中间数位准确率骤降（正文级口径：首末位 >95%、中间数位约 10%）。答案两端正确、仅中间 1–2 位错——尾数首数都对时人工复核最容易放过；且模型在推理链中自主定位错误步骤的能力有限（Tyen, ACL 2024 旁证）——「让它自己检查一遍」不可靠。"
+    symptom: 让模型心算多位数乘除/百分比并直接采信；答案与真值只差中间一两位；复核只核尾数或首数
+    severity:
+      S: 6
+      O: 7
+      D: 7
+    evidence:
+      source: >-
+        Dissecting Multiplication in Transformers（arXiv:2407.15360，2026-10-17 直达验真：逐位并行子任务+进位/中间结果缓存瓶颈在摘要；中间位
+        U 型为正文级）+ Language Models are Symbolic Learners in Arithmetic（arXiv:2410.15580，未直达旁证）+ Tyen et al. ACL 2024（arXiv:2311.08516
+        未逐字，旁证：LLM 自主定位 CoT 错误步骤能力有限）
+      level: empirical
+    fix: "3 位及以上数字的乘除/幂一律外化到代码或解释器；人工抽查用逐位比对，禁止只比终值或只看尾数"
+    verifier: "任取一次模型心算的多位数结果逐位比对——中间位错而首末位对即命中；或 20 题 4–6 位乘法探针，逐位错误率超 5% 即该模型禁用心算输出"
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 心算一下
+      - 帮我算
+      - 大数相乘
+      - 口算就行
+      - 直接算给我
+      - 算一下就行
+      - mental math
+      - do the math
+      - multiply these
+      - 帮我乘一下
+    hazard_type: 常见错误
+    source_ref: AMiner定量报告一.1节-2026-10-17
+  - id: MATH-014
+    title: 多步任务超过推理断点后「格式正确的错误答案」（推理模型也崩溃）
+    description: "可控谜题环境三段式：任务规模小时标准 LLM 反而胜过推理模型；中等规模推理模型占优；超过阈值后准确率完全崩溃（complete accuracy collapse），推理 token 数不升反降（提前放弃），给显式算法也无法遵循（The Illusion of Thinking, arXiv:2506.06941, NeurIPS 2025，摘要直达验真）。最险处：崩溃前后的输出风格无差异——错误以格式工整的错误答案出现，无任何犹豫信号。"
+    symptom: 多步推理任务直接交给模型并采信输出；没做任务规模爬坡找断点；输出格式工整/推理链流畅就默认结论可靠
+    severity:
+      S: 6
+      O: 6
+      D: 8
+    evidence:
+      source: >-
+        The Illusion of Thinking（arXiv:2506.06941, Apple, NeurIPS 2025；2026-10-17 直达验真：collapse/effort 先升后降/fail
+        to use explicit algorithms 原句在摘要）+ Knowing When to Quit（ACL 2026 Findings, arXiv:2607.29211，未直达旁证：能力外任务产出表面有效的
+        specious reasoning）
+      level: empirical
+    fix: "多步任务动手前做任务规模爬坡预检（同一任务族逐步加大子问题数），找出该模型断点；实际任务落在断点 70% 以上区域的一律换方法（分解/工具化）并强制人审"
+    verifier: "把任务按子问题数拆 3 档各测一次——高档准确率相对中档跳水即命中，按断点以下流程处理该任务族"
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 多步推理
+      - 一步步推
+      - 复杂逻辑推演
+      - 推理链
+      - 高难度题
+      - 让它推理一下
+      - chain of thought
+      - step by step reasoning
+      - hard puzzle
+      - 多步推
+    hazard_type: 常见错误
+    source_ref: AMiner定量报告一.3节-2026-10-17
+  - id: MATH-015
+    title: 混合记法/单位换算的数量级错位（内部知道、说出来就错）
+    description: "SOTA 模型在混合记法比较上系统性出错（5.7×10 的 2 次方与 580 谁大；EACL 2026, arXiv:2602.07812 直达验真）——且隐藏层线性探针能恢复正确 log-magnitude（探针排序 90%+ vs 模型显式排序仅 50–70%）：内部知道、表达出来就错，所以输出毫无犹豫信号。基础数字处理基准上「9.11 大于 9.9」类错误系统性出现（NUPA, ICLR 2025 直达验真）；仪器读数上「读对数、挂错单位」是独立失败通道（MeasureBench 旁证）；实测医疗剂量建议在无患者变量时过半不正确（van Nuland, EJCP 2024，PubMed 38592470 验真）。换算系数错一位在最终数字上无任何语法异常，下游只会怀疑「算错」不会怀疑「记法读错」。"
+    symptom: 混合记法（科学计数法/万进制/百分比）直接交给模型比较或换算；换算系数没人单独核对；下游只查「数字像不像」不查量纲
+    severity:
+      S: 7
+      O: 7
+      D: 7
+    evidence:
+      source: >-
+        LLMs Know More About Numbers than They Can Say（EACL 2026, arXiv:2602.07812，直达验真：混合记法错误与线性探针恢复
+        log-magnitude 在摘要）+ NUPA/Number Cookbook（ICLR 2025, arXiv:2411.03766，直达验真：9.11 vs 9.9 在摘要；记法崩塌为正文级）+
+        van Nuland et al. EJCP 2024（PubMed 38592470 实名验真，53.4% 为转述）+ MeasureBench（arXiv:2510.26865，未直达旁证：数值/单位双通道独立计分）
+      level: empirical
+    fix: "管线内强制统一记法（全部规范化为十进制或 SI）再入模型；换算写显式两步（原值+单位→乘系数→结果），系数单独抽查；剂量/金额类结果做独立量纲分析核对"
+    verifier: "10 题记法/单位 mini-test（科学计数法比较、单位换算、9.11 vs 9.9）——任一错即该管线记法处理不可信，命中；关键结果做量纲分析，量纲对不上即命中"
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 单位换算
+      - 换算成
+      - 科学计数法
+      - 数量级
+      - 万亿
+      - 万进制
+      - convert units
+      - scientific notation
+      - order of magnitude
+    hazard_type: 常见错误
+    source_ref: AMiner定量报告三节-2026-10-17
+  - id: MATH-016
+    title: 题面数字一改结论就变（数字扰动脆弱：错在变量绑定不在表述层）
+    description: "仅改题面数字即产生显著性能方差；加一条看似相关但无关的子句，性能下降最高 65%（GSM-Symbolic, arXiv:2410.05229, Apple ICLR 2025——直达验真，up to 65% 原句在摘要）。错误藏在变量绑定而非表述层——错题的推理链语言上完全通顺。M5 口径注记：2026 年 GLMM 重估（Długosz et al.，未直达）发现原结论仅一半开源模型在原 prompt 格式下显著——65% 是上限不是均值，方向经复检仍立。"
+    symptom: 让模型做带数字的应用计算（预算/报价/排期）只跑一次就采信；同任务换数字结果大幅变化无人察觉；无人做过改数字重采样
+    severity:
+      S: 5
+      O: 6
+      D: 7
+    evidence:
+      source: >-
+        GSM-Symbolic（arXiv:2410.05229, ICLR 2025，直达验真：同题实例方差+无关子句 up to 65% 在摘要）+ The Importance
+        of Being Statistically Earnest（Długosz et al. 2026，AMiner 条目未直达，作 M5 口径注记不承重）
+      level: empirical
+    fix: "同题模板改数字重采样 10 次以上测方差；方差超 5 个百分点即该题型标记为不可靠区，数值计算全部外化到代码"
+    verifier: "把任务数字做 3 组无害替换各跑一次——结论（不止数值）发生变化即命中；方差超阈即该任务类型不可采信单次输出"
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 改个数字
+      - 应用题
+      - 算一下这笔账
+      - 预算算一下
+      - 报价算一下
+      - 数字代进去
+      - word problem
+      - plug in the numbers
+      - budget calculation
+    hazard_type: 常见错误
+    source_ref: AMiner定量报告一.2节-2026-10-17
+  - id: MATH-017
+    title: 该外化到代码的计算没外化（模型自决是否用工具不可靠）
+    description: "工具收益巨大（代码解释器显著提升数学与数据分析任务），但模型缺省状态下自主决定何时调用代码是被研究明确针对的弱项——需专门 RL 训练元认知后才获得 11%（MATH500）/9.4%（AIME）提升（To Code or not to Code, ACL 2025 Findings, arXiv:2502.00691 直达验真）。混合模式下「该用代码处用了心算」的错误与普通笔误无法区分。〔注：报告另引「自主选择准确率约 50%」的出处编号经查为另一篇论文（When Tools Hurt LLM Reasoning），该数字按 M4 弃用。〕"
+    symptom: 模型口头「我算了一下」而未实际调用工具；数值结论无计算过程可查；把「是否用工具」留给模型自己决定
+    severity:
+      S: 6
+      O: 6
+      D: 6
+    evidence:
+      source: >-
+        To Code or not to Code? Adaptive Tool Integration（ACL 2025 Findings, arXiv:2502.00691，2026-10-17 直达验真：RL
+        训练自主整合后 11%/9.4% 提升在摘要——即缺省自主决策不可靠）；「自主选择约 50%」原始出处编号错配，弃用
+      level: empirical
+    fix: "规定所有数值计算一律走解释器/代码（禁 flexible 模式）；要求输出携带可复核的计算过程（代码或显式竖式），无过程的心算结论一律降级"
+    verifier: "检查数值结论的计算痕迹——存在「口头心算」（无工具调用记录）即命中；抽 3 个数值结论用代码复算，任一不符即全批降级"
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 不用代码直接算
+      - 口算就行
+      - 直接告诉我结果
+      - 别用计算器
+      - 心算就好
+      - without code
+      - just calculate
+      - no need to run code
+    hazard_type: 常见错误
+    source_ref: AMiner定量报告一.5节-2026-10-17

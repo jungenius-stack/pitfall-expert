@@ -1,6 +1,6 @@
 # 坑卡库 · 代码域（v0.4 融合批次（+ZCode 案例卡 CI-001~005））
 # 2026-10-16：回写 CODE-040~042（dsh-zcode-ui 1.13.0 实战：断言锁字面量 / 静态色阶反向 / 单规则探针假阳性）
-# 2026-10-17：AMiner 报告第 3/4 章批次（CODE-043 表面验证 / CODE-044 执行前体检[needs_verification]）
+# 2026-10-17：AMiner 报告第 3/4 章批次（CODE-043 表面验证 / CODE-044 执行前体检[needs_verification]）；同日定量批次 CODE-003 补数值噪声成因（arXiv:2506.09501 旁证）
 # 字段规范见 docs/踩坑专家方法论_v0.3.md 第 9.1 条：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
@@ -88,7 +88,7 @@ cards:
       O: 4
       D: 4
     evidence:
-      source: τ-bench, Yao et al., ICLR 2025 (arXiv:2406.12045)
+      source: τ-bench, Yao et al., ICLR 2025 (arXiv:2406.12045)；推理数值非确定性（arXiv:2506.09501，2026-10-17 旁证未直达：batch/GPU 数量/版本即可引入分数差异——复跑不一致的成因之一，±1–2pp 的模型对比结论可能纯属数值噪声）
       level: empirical
     fix: 关键任务设计复跑比对（≥3 次），报告一致性与方差而非单次结果；不可复跑任务显式声明为不可验证项
     verifier: 同输入连跑 N 次，对输出做结构化 diff 比对，统计一致率

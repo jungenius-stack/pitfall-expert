@@ -3,7 +3,7 @@ name: pitfall-expert
 description: 踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/will this break/what could go wrong/premortem", or the task involves payments, irreversible deletion, publishing, data migration, or sending external communications. NOT for casual chat, single-fact lookups, or when the user explicitly says to skip the check and just do it. 完成等于披露完整，而非结果完美。
 user-invocable: true
 metadata:
-  version: 0.7.1
+  version: 0.7.2
   updated: "2026-10-17"
 ---
 
@@ -116,7 +116,7 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 
 ## 领域能力（诚实声明）
 
-已激活：code / math / research-decision / agent-security / science / creative（卡数以 `cards/` 目录实数为准，勿信任何写死的数字；「能防/不能防」逐格边界表见 `references/capability.md`）。未建卡领域（决策战略等）：只跑通用机制 M1–M13，不发布领域承诺。
+已激活：code / math / research-decision / agent-security / science / creative / strategy（卡数以 `cards/` 目录实数为准，勿信任何写死的数字；「能防/不能防」逐格边界表见 `references/capability.md`）。未建卡领域：只跑通用机制 M1–M13，不发布领域承诺。
 
 ## 迷你样例（T0 快扫，示意数据非真实任务）
 

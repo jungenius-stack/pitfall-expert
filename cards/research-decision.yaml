@@ -1,9 +1,10 @@
 # 坑卡库 · 调研/决策域（v0.4 融合批次，源自真实翻车案例 D1–D8，10 案例回放验证）
+# 2026-10-17：AMiner 顾问偏差批次——无新增卡，4 处证据更新（RD-018 源论文定位清欠账 / RD-020 并入同质化证据 / RD-017 升 empirical / RD-011 补 CHI 佐证）
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.1
+version: 0.7.2
 domain: research-decision
 updated: '2026-10-17'
 card_count: 21
@@ -312,7 +313,8 @@ cards:
         Science 2026 系统研究（DOI:10.1126/science.aec8352，11 模型：日常建议认可率比人类高 49%、判错帖 51% 说「你没做错」、2405
         人预注册实验——谄媚回复获更高满意度与信任但降低担责意愿）+ SycEval（arXiv:2502.08177：58.19% 场景谄媚，用户反驳后 14.66%
         正确答案倒戈为错误，态度越强硬倒戈越快）+ BrokenMath（arXiv:2510.04721：含错题求证明，谄媚率 GPT-5 最低 29%、DeepSeek-V3.1 达
-        70.2%——换强模型压不掉）+ GPT-4o 2025-04 四天回滚生产事故（OpenAI 官方复盘：点赞信号压过反谄媚约束，A/B 定量为正盖过专家定性警告）
+        70.2%——换强模型压不掉）+ GPT-4o 2025-04 四天回滚生产事故（OpenAI 官方复盘：点赞信号压过反谄媚约束，A/B 定量为正盖过专家定性警告）+
+        Personal Validation Effect in LLMs（CHI '26，ACM DOI 10.1145/3772318.3791851，2026-10-17 直达验真：正向回应系统性夸大用户对虚构内容的效度感知——「越夸越信」的机制补强）
       level: empirical
     fix: >-
       禁止裸问「行不行/好不好」：改用对立结构（「列出此方案会失败的三个具体原因」）或中性提问（先不给你的倾向）；关键决策双问法——立场 A 问一次、立场 B 问一次，答案不该随立场翻转；把
@@ -492,10 +494,13 @@ cards:
       O: 7
       D: 7
     evidence:
-      source: "AMiner DeepDive 报告第 2.3 节（综合决策科学与实践多源，判据可操作化自检）"
-      level: consensus
+      source: >-
+        Lopez-Lira & Tang, Journal of Financial Economics 184, 2026（arXiv:2304.07619：训练截止后新闻标题样本上预测能力真实存在——证明失效不在「能力」而在「信息不在场」，且模型不会自动声明）+
+        Takayanagi et al., SIGIR 2025（arXiv:2504.05862 + ACM DOI 10.1145/3726302.3729897，2026-10-17 定位验真：偏好 elicitation
+        不准时 LLM 顾问失效、甚至引导用户至不适配资产）+ 原 AMiner 报告 2.3 节判据（三场景框架沿用）
+      level: empirical
     fix: 三前置检查：背景能被外行复述出三个核心假设+最大顾虑才开问；关键事实晚于训练截止的先检索喂入再问；连续 3 轮对抗无新增实质问题即停止，转拍板或换人
-    verifier: 判定表——请不知情同事（或新会话）复述背景，复述不出三个假设即命中①；核对关键事实日期 vs 模型知识截止即命中②；比对最近两轮对抗的问题清单，无新增即命中③
+    verifier: 判定表——请不知情同事（或新会话）复述背景，复述不出三个假设即命中①；核对关键事实日期 vs 模型知识截止即命中②；比对最近两轮对抗的问题清单，无新增即命中③；私有信息探针——对关键私有信息（报价/条款/内部数据）做「不给 vs 给」对照，结论不变即模型在编，命中②
     confidence: backed_by_context
     pass_k_relevant: false
     triggers:
@@ -521,7 +526,7 @@ cards:
       O: 6
       D: 8
     evidence:
-      source: "ACL 2026 思维链与谄媚研究（六模型对照，AMiner 报告第 2.2.4 节转述，arXiv 待定位）"
+      source: "Good Arguments Against the People Pleasers: How Reasoning Mitigates (Yet Masks) LLM Sycophancy（ACL 2026 Long Papers, aclanthology.org/2026.acl-long.1126，pp.24536–24570；2026-10-17 直达验真——源论文欠账清偿。摘要确认：CoT 总体降谄媚但推理可成掩护（欺骗性论证）、主观任务与权威偏置下谄媚更严重、谄媚倾向在推理过程中动态形成；「权威>用户偏置」直接比较与「表层指标检不出」为正文级表述）"
       level: empirical
     fix: 高风险判断不因「有推理过程」而加分；检查推理链与结论的一致性（结论是否真从推理导出）；提示词里刻意不给权威背书信息（中立提问），或显式要求「忽略来源权威性，只看论据」
     verifier: 判定表——同一问题带权威背书 vs 不带各问一次，结论翻转即权威偏置命中；检查输出中推理最后一步与最终结论是否逻辑衔接，断裂即命中
@@ -570,17 +575,17 @@ cards:
     source_ref: AMiner报告第3.2.1节-2026-10-17
   - id: RD-020
     title: 同源 Agent/模型组的「全票一致」不是独立证据（低方差从众）
-    description: "相同模型+相似上下文的 Agent 行为高度相似（低方差）：单个 Agent 错，全组同错。Anthropic 红队实验中 18/30 个 Agent 创建了同名 git 分支 mvp-game-loop；囚徒困境全体同时背叛致奖励骤降；资源实验 240 万请求仅 117 被接受。把「多个 Agent 都同意/都通过」当独立交叉验证，是从众性失败的管理学版本——一致只证明它们同源，不证明它们对。"
+    description: "相同模型+相似上下文的 Agent 行为高度相似（低方差）：单个 Agent 错，全组同错。Anthropic 红队实验中 18/30 个 Agent 创建了同名 git 分支 mvp-game-loop；囚徒困境全体同时背叛致奖励骤降；资源实验 240 万请求仅 117 被接受。把「多个 Agent 都同意/都通过」当独立交叉验证，是从众性失败的管理学版本——一致只证明它们同源，不证明它们对。多轮/多模型「独立咨询」同理：先量化独立性（embedding 相似度/关键词重叠），高相似的「多来源共识」按单一来源处理。"
     symptom: 用同模型多实例投票/评审当独立证据；结果高度一致被解读为高置信；无人检查实例间的模型家族、温度、上下文是否全同
     severity:
       S: 6
       O: 6
       D: 7
     evidence:
-      source: "Anthropic Frontier Red Team《Patterns and problems in emerging multiagent systems》（2026-08-13，2026-10-17 已直达验真，四个实验均在页）；AMiner 报告 4.1.2"
+      source: "Anthropic Frontier Red Team《Patterns and problems in emerging multiagent systems》（2026-08-13，2026-10-17 已直达验真，四个实验均在页）+ Dell'Acqua et al., Organization Science 37(2) 2026（SSRN 4573321，超时未直达 B 级：758 名 BCG 顾问田野实验，AI 组方案与 AI 原文相似度 0.87，100 个无人类参与的独立 ChatGPT 会话为全部条件中最同质）+ Artificial Hivemind（arXiv:2510.22954, NeurIPS 2025 D&B：26K 开放式真实问题上模型内重复与跨模型同质化严重）——多轮/多模型「独立咨询」同理"
       level: empirical
     fix: 需要独立性时必须差异化：异源模型、不同上下文子集、不同角色指令，三者至少其一；同源组的「全票通过」按 1 票计
-    verifier: 列出各实例的模型家族/温度/上下文来源三项——全同即命中，该组任何一致结论不得标 ✅ 独立证据，降 ❓
+    verifier: 列出各实例的模型家族/温度/上下文来源三项——全同即命中，该组任何一致结论不得标 ✅ 独立证据，降 ❓；多模型咨询场景另测回答间 embedding 相似度——高相似组按 1 票计
     confidence: backed_by_context
     pass_k_relevant: false
     triggers:
