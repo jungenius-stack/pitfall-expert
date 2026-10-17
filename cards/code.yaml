@@ -1,12 +1,14 @@
 # 坑卡库 · 代码域（v0.4 融合批次（+ZCode 案例卡 CI-001~005））
+# 2026-10-16：回写 CODE-040~042（dsh-zcode-ui 1.13.0 实战：断言锁字面量 / 静态色阶反向 / 单规则探针假阳性）
+# 2026-10-17：AMiner 报告第 3/4 章批次（CODE-043 表面验证 / CODE-044 执行前体检[needs_verification]）
 # 字段规范见 docs/踩坑专家方法论_v0.3.md 第 9.1 条：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.6.1
+version: 0.7.1
 domain: code
-updated: '2026-10-16'
-card_count: 44
+updated: '2026-10-17'
+card_count: 49
 cards:
   - id: CODE-001
     title: 虚假不可能性
@@ -1384,3 +1386,126 @@ cards:
       - 帮我审一下代码
     hazard_type: 常见错误
     source_ref: 用户DeepDive-判断可靠性-2026-10-15
+  - id: CODE-040
+    title: 把当时的实现值写成断言契约（错误固化为规范）
+    description: 测试/门禁断言直接锁住「当前代码里的字面量」，而不是锁住设计意图。当那个字面量本身是 bug 或违规值时，断言会把错误固化——后来人修正产品反而被判红，于是一路将错就错。
+    symptom: 断言里出现具体字面量（'12px' / '18px' / 魔法数），且注释写「X 必须等于该值」却找不到设计依据；改产品去修 bug 时测试先红
+    severity:
+      S: 4
+      O: 4
+      D: 4
+    evidence:
+      source: dsh-zcode-ui 实战（2026-10-14）：verify-composer-tools.mjs 断言 radius !== '12px' 就报错、注释写「命令菜单 = rounded-xl」；核对 ZCode DESIGN.md §Menus 与 dropdown-menu.tsx 后确认壳应为 rounded-lg(8px)，且建议菜单明文「不继承主输入例外」。同一仓库 conversation-visuals / session-tree / settings-integration 另有 8 处把圆角锁成字面量写法，与圆角令牌棘轮互相打架
+      level: case
+    fix: 断言锁「设计意图 + 允许的等价写法」（如 /(?:8px|var\(--dsw-radius-lg\))/），而不是锁字面量；每条断言必须能回答「这个值的依据在哪」，找不到依据的断言要么补依据、要么改成意图式
+    verifier: 对每条锁字面量的断言，反向测试：把产品改成符合设计依据的值，断言应变红（说明它锁的是旧写法而非意图）；再把注释里的依据追到源文档，找不到即命中
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 写断言
+      - 门禁
+      - 测试基线
+      - 设计规范落地
+      - 字体圆角间距
+      - 反向测试
+    hazard_type: 常见错误
+    source_ref: dsh-zcode-ui 1.13.0 设计语言对齐（2026-10-14）
+  - id: CODE-041
+    title: 静态色阶档位号跨明暗主题不守恒
+    description: 设计系统的静态色阶（如 neutral-bluish-100…1000）在亮色与暗色主题下是**反向**映射的：同一个档位号在亮色是浅色、暗色是深色。按「亮色命中某档」推断暗色用同一档，会拿到亮度相反的颜色，且不报错。
+    symptom: 令牌化/换肤后某一主题的对比度骤降或颜色明显跳变；代码里出现「两边共用一个档位令牌」的写法；同一变量在明暗下差出 3 个以上亮度层级
+    severity:
+      S: 3
+      O: 4
+      D: 5
+    evidence:
+      source: dsh-zcode-ui 实战（2026-10-14）：收归设置页 --sp-* 时，--sp-muted 暗色需 #8f8f8f，而 --dsw-static-neutral-bluish-500 亮色是 #8f8f8f、暗色却是 #5c5c5c；按档位号引用会得到相反的值，必须逐主题分别核对
+      level: case
+    fix: 任何「两边用同一档」的推断都必须**分别在两套主题下取计算值核对**；无法用一个令牌覆盖两套时，逐主题显式取值并注明原因（不要为了统一而改变视觉）
+    verifier: 用真实渲染取两套主题下的 computed value 做逐项 diff（不是读源码推断）；任一项与改前不符即命中
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 令牌化
+      - 换肤
+      - 明暗主题
+      - 设计令牌
+      - 对比度
+      - color token
+    hazard_type: 常见错误
+    source_ref: dsh-zcode-ui 1.13.0 设置页令牌收归（2026-10-14）
+  - id: CODE-042
+    title: 单规则探针验证依赖整表级联的性质（假阳性）
+    description: 用「只注入目标规则」的最小 HTML 探针去验证依赖样式表级联/媒体查询/令牌继承的性质（如 reduced-motion 归零、主题切换），会因缺少上下文而得出错误结论——常常是假阳性，让人去修一个不存在的问题。
+    symptom: 探针结论与门禁结论相反；改完发现「没变化」或「本来就对」；只在合成最小页里复现的问题在真实页面不存在
+    severity:
+      S: 3
+      O: 3
+      D: 4
+    evidence:
+      source: dsh-zcode-ui 实战（2026-10-14）：曾判定 padding-right 过渡在 reduced-motion 下未归零并准备改动；复测发现探针只注入了单条规则、未加载完整样式表。加载完整样式表后该过渡正确归零，系统性复扫 9 个动效元素在 reduce 下 0 残留，产品无缺陷、未改任何代码
+      level: case
+    fix: 验证依赖级联/媒体查询/继承的性质时，必须加载**完整样式表与真实令牌作用域**；结论与合成夹具不一致时，以更接近真实的那个为准，并先怀疑探针
+    verifier: 同一性质用「完整样式表探针」与「单规则探针」各测一次，两者结论不一致即命中；不一致时以完整样式表为准
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 探针
+      - 最小复现
+      - reduced-motion
+      - 媒体查询
+      - 样式级联
+      - 合成夹具
+    hazard_type: 常见错误
+    source_ref: dsh-zcode-ui 1.13.0 reduced-motion 复核（2026-10-14）
+  - id: CODE-043
+    title: 验证器只做表面检查（编译/单测绿 ≠ 任务达成）
+    description: "MAST 对 7 个主流框架 1642 条轨迹的标注：任务验证失败占 21–24%，其中「错误验证」9.1% 指验证器只做表面检查（代码是否编译）而不对照任务原始目标；同一模型仅添加高层目标验证步骤，MAS 成功率最高提升 15.6%。验证器层级缺失是多 Agent 系统三大失败类之一，与 CODE-039（LLM 评代码误判）分属两层：那张是评审者能力，这张是验证器设计。"
+    symptom: 验收=编译绿/lint 绿/单测绿，但没人把产出对照任务原文；agent 自称完成即放行；下游基于「已验证」标签消费错误产物
+    severity:
+      S: 6
+      O: 7
+      D: 6
+    evidence:
+      source: "Why Do Multi-Agent LLM Systems Fail?（MAST，NeurIPS 2025，arXiv:2503.13657，已验真）；AMiner 报告 4.1.1/4.1.3"
+      level: empirical
+    fix: 验证器分两层——低级正确性（编译/单测）+ 高层目标对照（产出逐条比对任务原文，由非执行者角色独立完成）
+    verifier: 抽 N 条「已通过验证」的产出逐条对照任务原文目标——任一条目标无对应验证动作即命中
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 写验证器
+      - 验收标准
+      - 编译通过
+      - 测试全绿
+      - lint通过
+      - done criteria
+      - 任务完成判定
+      - 怎么算完成
+    hazard_type: 常见错误
+    source_ref: AMiner报告第4.1节-2026-10-17
+  - id: CODE-044
+    title: Agent 失败种子近半在启动前埋下（提示模糊/上下文缺/权限错配/数据差）
+    description: "对三家 SaaS 公司 AI 工作流的审计称，平均 40% 的 Agent 失败案例不是模型能力不足，而是任务启动前埋下的种子：提示词模糊、上下文缺失、工具权限错配、输入数据质量差；意图清晰度<0.5 的任务失败率是>0.7 者的 4.3 倍。三个故障现场：上游 API 分页参数变更致静默截断（只拉首页 100 条）、权限已回收但 Agent 信任缓存、中间步骤无量化约束致 7 种口径答案。（40%/4.3 倍为单一 C 级源数字，未找到独立出处；定性方向有 MAST A 级锚：系统设计类失败占 44–45%）"
+    symptom: 一句话任务直接扔给 agent 执行；执行前没核对工具权限与输入数据质量；失败后归因「模型不行」但问题在输入侧
+    severity:
+      S: 6
+      O: 8
+      D: 5
+    evidence:
+      source: "三层可解释性架构/事前体检报告（CSDN 工程博客转述，单一 C 级源；2026-10-17 补查无独立出处，网传 40% 系 Gartner 口径，降 🟡）；AMiner 报告 3.1.3"
+      level: case
+    fix: 多步任务执行前过四项体检——意图动词与约束是否具体、上下文是否齐全、工具权限是否匹配当前任务、输入数据质量；任一项不过先补再跑
+    verifier: 把任务描述读给不了解内情的同事，对方复述不出 3 个核心约束即意图清晰度不足命中
+    confidence: needs_verification
+    pass_k_relevant: true
+    triggers:
+      - 交给agent跑
+      - 让agent处理
+      - agent执行
+      - 直接跑起来
+      - 执行前检查
+      - 事前体检
+      - 交给自动化跑
+    hazard_type: 常见错误
+    source_ref: AMiner报告第3.1.3节-2026-10-17

@@ -3,10 +3,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.0
+version: 0.7.1
 domain: research-decision
-updated: '2026-10-16'
-card_count: 18
+updated: '2026-10-17'
+card_count: 21
 cards:
   - id: RD-001
     title: 把「搜不到」当「不存在」（负面定性证据不足）
@@ -540,3 +540,81 @@ cards:
       - source credible
     hazard_type: 隐含前提
     source_ref: AMiner报告第2.2.4节-2026-10-15
+  - id: RD-019
+    title: 失败场景在计划之后枚举＝装饰（pre-mortem 时间点铁律）
+    description: "让 AI 先出方案再「补充风险提示」，产出的风险清单是给方案站台的装饰。风险枚举必须在计划生成之前完成，且失败场景必须任务特定——把任务名换掉仍然成立的风险（「注意数据安全」类）不算数。Capafy Pre-Mortem Planner 将其定为硬规则「计划生成后添加失败场景不是 Pre-mortem 而是装饰」，并固定 F1=信息未经验证、F2–F5 必须只有在读过当前任务描述后才写得出来。"
+    symptom: 提示词是「帮我做个方案，再列一下风险」；AI 给的风险清单换任何项目复读都成立；五个失败场景没有一个引用当前任务的具体信息；缓解措施是「小心注意」级别的空话
+    severity:
+      S: 6
+      O: 7
+      D: 7
+    evidence:
+      source: "Capafy Pre-Mortem Planner 硬规则（AMiner 报告 3.2.1，capafy.ai 原页 2026-10-17 已直达验真）+ parcadei premortem 强制验证清单（±20 行上下文/fallback/scope/dev-only 四问，报告 3.1.2）+ Nemeth 2001 表演性反驳实验（形式化反对反而强化原立场，报告 2.1.3 转述）"
+      level: consensus
+    fix: 先逼 AI 枚举≥5 个失败场景（F1 固定「信息未经验证」，其余至少 1 个任务特定）并选出最可能者附可操作缓解，之后才允许生成计划；缓解不可操作（无具体约束或调整）视为未缓解
+    verifier: 把风险清单里的任务名换成任意其他项目复读一遍——仍成立的条目即装饰条目；装饰条目占比 >0 即命中
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 先出方案
+      - 出个计划
+      - 再列一下风险
+      - 补充风险
+      - 有什么风险
+      - 帮我规划
+      - 制定方案
+      - 事前验尸
+      - pre-mortem
+      - premortem
+    hazard_type: 常见错误
+    source_ref: AMiner报告第3.2.1节-2026-10-17
+  - id: RD-020
+    title: 同源 Agent/模型组的「全票一致」不是独立证据（低方差从众）
+    description: "相同模型+相似上下文的 Agent 行为高度相似（低方差）：单个 Agent 错，全组同错。Anthropic 红队实验中 18/30 个 Agent 创建了同名 git 分支 mvp-game-loop；囚徒困境全体同时背叛致奖励骤降；资源实验 240 万请求仅 117 被接受。把「多个 Agent 都同意/都通过」当独立交叉验证，是从众性失败的管理学版本——一致只证明它们同源，不证明它们对。"
+    symptom: 用同模型多实例投票/评审当独立证据；结果高度一致被解读为高置信；无人检查实例间的模型家族、温度、上下文是否全同
+    severity:
+      S: 6
+      O: 6
+      D: 7
+    evidence:
+      source: "Anthropic Frontier Red Team《Patterns and problems in emerging multiagent systems》（2026-08-13，2026-10-17 已直达验真，四个实验均在页）；AMiner 报告 4.1.2"
+      level: empirical
+    fix: 需要独立性时必须差异化：异源模型、不同上下文子集、不同角色指令，三者至少其一；同源组的「全票通过」按 1 票计
+    verifier: 列出各实例的模型家族/温度/上下文来源三项——全同即命中，该组任何一致结论不得标 ✅ 独立证据，降 ❓
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 多数投票
+      - 多模型投票
+      - agent投票
+      - 多实例一致
+      - 全票通过
+      - ensemble 表决
+      - 换个模型再问一次
+    hazard_type: 常见错误
+    source_ref: AMiner报告第4.1.2节-2026-10-17
+  - id: RD-021
+    title: 未验证单 Agent 不行就上多 Agent（过早多 Agent 化）
+    description: "多 Agent 协调成本随 Agent 数指数级增长（单 Agent $0.10 的任务多 Agent 花费 $1.50），80% 情况下精心设计的单 Agent 优于多 Agent（Splunk 生产故障盘点）；等思考 token 预算下单个 LLM 在多跳推理上匹配或优于多 Agent 系统（arXiv:2604.02460：MAS 的报告优势多来自未计入的算力增加与上下文效应）；「过早多 Agent 化」位列九大架构反模式之首。多 Agent 仅在子任务真正独立（零执行期通信）、读多写少、确定性编排时占优。"
+    symptom: 开局即「设计一个多 agent 系统」；没有单 Agent 基线对照；子任务之间实际需要频繁传递上下文/中间产物
+    severity:
+      S: 5
+      O: 7
+      D: 4
+    evidence:
+      source: "Single-Agent LLMs Outperform Multi-Agent Systems on Multi-Hop Reasoning Under Equal Thinking Token Budgets（arXiv:2604.02460，2026-04，已验真）+ Splunk 七故障模式（80% 规则，已直达验真）+ MLM 九大反模式（过早多 Agent 化列首）——A 级论文锚 + B 级双源交叉"
+      level: empirical
+    fix: 先跑单 Agent 原型并留基线指标，不达标再拆；拆分时逐对检查子任务的执行期通信需求，非零即重新评估边界或引入确定性编排
+    verifier: 列各子任务的执行期读写依赖矩阵——任一「独立」子任务需要另一子任务的中间产出即命中，先改边界再动工
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 多agent系统
+      - 拆成多个agent
+      - 子agent
+      - agent编排
+      - 编排框架
+      - multi-agent system
+      - swarm
+    hazard_type: 架构反模式
+    source_ref: AMiner报告第4.2节-2026-10-17

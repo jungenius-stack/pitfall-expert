@@ -90,11 +90,16 @@ function tokenize(text) {
 }
 
 /**
- * 单词触发词的词形变体（v0.7.0）：复数触发词 vs 单数任务文本的子串兜底；
+ * 单词触发词的词形变体（v0.7.0；v0.7.1 补对称方向）：只兜子串匹配覆盖不了的单复数——
+ * 复数触发词 vs 单数文本（tests→test），以及辅音+y 结尾单数触发词 vs -ies 复数文本
+ * （dependency→dependencies；y↔ies 互不为子串，v0.7.0 只做了 ies→y 一向，
+ * 卡库 20 个 y 结尾触发词全部漏配复数文本）。其余单复数（test/tests、match/matches）
+ * 单数本就是复数的子串，无需变体。
  * 多词短语保持原子串匹配（变体只作用于最后一个词会改错对象，不做）。
  * 注意：词形归一曾试入 tokenize（字段 token 精确匹配层），实测通用词（agent）
  * 字段命中扩散导致跨域噪音上升，判定表不通过，当日回滚——见元坑⑰。
- * 触发词层保留：触发词是人工筛过的具体短语，误命中面远小于字段 token。
+ * 触发词层保留：触发词是人工筛过的具体短语，误命中面远小于字段 token；
+ * 本层任何变体扩展仍须过判定表「跨域误命中不增」前置门。
  */
 function triggerVariants(tl) {
   const vs = [tl];
@@ -102,6 +107,7 @@ function triggerVariants(tl) {
   if (/ies$/.test(tl) && tl.length >= 5) vs.push(tl.slice(0, -3) + 'y');
   else if (/(ses|xes|zes|ches|shes)$/.test(tl) && tl.length >= 5) vs.push(tl.slice(0, -2));
   else if (/s$/.test(tl) && !/(ss|us|is)$/.test(tl) && tl.length >= 4) vs.push(tl.slice(0, -1));
+  else if (/[^aeiou]y$/.test(tl) && tl.length >= 4) vs.push(tl.slice(0, -1) + 'ies');
   return vs;
 }
 
@@ -254,4 +260,4 @@ function scan(task, opts = {}) {
   };
 }
 
-module.exports = { scan, loadCards, tokenize, scoreCard, detectDomain, DOMAINS, TIERS, DEFAULT_CARDS_DIR };
+module.exports = { scan, loadCards, tokenize, scoreCard, detectDomain, triggerVariants, DOMAINS, TIERS, DEFAULT_CARDS_DIR };
