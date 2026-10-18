@@ -4,10 +4,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.2
+version: 0.7.3
 domain: research-decision
 updated: '2026-10-17'
-card_count: 21
+card_count: 22
 cards:
   - id: RD-001
     title: 把「搜不到」当「不存在」（负面定性证据不足）
@@ -377,14 +377,14 @@ cards:
     source_ref: 用户DeepDive-判断可靠性-2026-10-15
   - id: RD-013
     title: AI 裁判抓不出坏答案（正面偏差：TNR<25%，多数投票无效）
-    description: "LLM 裁判识别有效输出的 TPR>96%，但识别无效输出的 TNR<25%——几乎抓不出坏答案。简单多数投票不足以纠正（集体偏向「通过」），需少数否决式规则加回归校准。"
+    description: "LLM 裁判识别有效输出的 TPR>96%，但识别无效输出的 TNR<25%——几乎抓不出坏答案。简单多数投票不足以纠正（集体偏向「通过」），需少数否决式规则加回归校准。两层补充界：①**难度天花板**——JudgeBench 用知识/推理/数学/代码四类难例响应对（标签反映客观正确性）测强 judge（GPT-4o 等）仅**略高于随机**，即「抓不出坏答案」在难题上恶化成「基本判不出」；②**去偏的理论上限**——去偏方法不比被评模型更强时，最多只能省掉一半真值标注（Limits to Scalable Evaluation，ICLR 2025），所以「用 judge 替代人工」在任何配置下都不成立，只能减半。"
     symptom: 用 AI 评审/打分/把关，几乎全部「通过」；多轮投票复核结论仍全绿，被当作质量证据
     severity:
       S: 7
       O: 8
       D: 7
     evidence:
-      source: "Beyond Consensus: Mitigating the Agreeableness Bias（arXiv:2510.11822，2025，NUS AI-CET，aminer.cn/pub/68eeef5e163c01c850f75191）"
+      source: "Beyond Consensus: Mitigating the Agreeableness Bias（arXiv:2510.11822，2025，NUS AI-CET，aminer.cn/pub/68eeef5e163c01c850f75191）；JudgeBench（ICLR 2025，GitHub ScalerLab/JudgeBench，AMiner 2026-10-18 检索）；Limits to Scalable Evaluation at the Frontier（ICLR 2025，judge 不比被评模型强时去偏最多省一半标注）"
       level: empirical
     fix: 「通过」类结论的复核从多数投票改为否决式——任一渠道（人或独立裁判）否决即挂起；对「AI 说没问题」的条目默认进 ❓ 而非 ✅
     verifier: 在送审材料中故意混入一份已知有错样本——AI 评审未抓出即本坑命中（预期：多数情况抓不出）
@@ -623,3 +623,31 @@ cards:
       - swarm
     hazard_type: 架构反模式
     source_ref: AMiner报告第4.2节-2026-10-17
+  - id: RD-022
+    title: 预检/清单类干预规模化后效应可归零（执行保真度才是中介，不是流程本身）
+    description: "同一种清单式干预在不同落地质量下结论相反。阳性侧：WHO 手术安全清单全球 8 家医院前后对照，死亡率 1.5%→0.8%（P=0.003，RR≈0.53）、并发症 11.0%→7.0%（RR≈0.64）；Pronovost 2006 ICU 103 个中心 375,757 导管日，感染率 IRR 0.62→0.34；Bergs 2014 meta（7 研究）并发症 RR=0.59、死亡 RR=0.77。阴性侧：Urbach 2014 安大略 101 家医院自然实验 n≈21.5 万，强制推行后死亡 OR=0.91（95%CI 0.80–1.03，P=0.13）、并发症 OR=0.97（P=0.29）——**零效应**。分歧的中介变量不是工具，是执行保真度：Haugen 2019 挪威阶梯楔形群随机试验（n=3,702）显示「三部分全做」的高质量执行才产生效应（SSI 7.4%→3.6%，OR=0.52）；Bergs meta 中效应强度与依从性显著相关（P=0.042）。含义：任何「加了个检查流程所以更安全」的推断都不成立，必须先测执行保真度。"
+    symptom: 说「我们上了 checklist/预检流程，所以质量提升了」但没有任何依从性数据；把流程存在当成效果存在；规模化后无声失效而没人复查；用论文里的效应量给自家流程背书
+    severity:
+      S: 7
+      O: 8
+      D: 9
+    evidence:
+      source: "Haynes et al., NEJM 2009（8 国 8 院，n=3,733/3,955）；Pronovost et al., NEJM 2006（103 ICU，375,757 导管日）；de Vries SURPASS, NEJM 2010；Bergs et al., BJS 2014 meta（7 研究）；Haugen et al., Ann Surg 2019（挪威阶梯楔形 RCT 二次分析，n=3,702）；**Urbach et al., NEJM 2014 阴性证据（101 院，n≈21.5 万，OR=0.91 P=0.13）**；AMiner DeepDive 报告 2026-10-18 第一节"
+      level: empirical
+    fix: 上流程时必须同时定义并采集「执行保真度」指标（做全了没，不是做了没）；把效果声明绑在保真度数据上，保真度不达标就不许声称改善；按 Ontario 先例预设「效应可能为 0」的退出条件与复查时点
+    verifier: 抽样 10 次实际执行，逐条核对流程步骤完成度——完成率<80% 则任何「效果提升」结论作废；再查是否存在依从性台账，无台账即本坑命中
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 上了流程
+      - 检查清单
+      - checklist
+      - 质量提升
+      - 流程有效
+      - 依从性
+      - compliance
+      - fidelity
+      - 效果评估
+      - intervention effect
+    hazard_type: 逻辑漏洞
+    source_ref: AMiner报告2026-10-18-第一节清单效应量

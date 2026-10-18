@@ -12,7 +12,7 @@
 [![License: MIT](https://img.shields.io/badge/code-MIT-f4c430?style=flat-square)](LICENSE)
 [![Content: CC BY 4.0](https://img.shields.io/badge/cards_&_docs-CC_BY_4.0-3f9f7f?style=flat-square)](LICENSE-CONTENT.md)
 [![Skill](https://img.shields.io/badge/form-skill_+MCP_engine_+hooks-5c4ee5?style=flat-square)](#architecture)
-[![Cards](https://img.shields.io/badge/pitfall_cards-118-cb3837?style=flat-square)](cards/)
+[![Cards](https://img.shields.io/badge/pitfall_cards-120-cb3837?style=flat-square)](cards/)
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
 
@@ -32,13 +32,15 @@ The failure modes come with receipts, because they've been measured: agents decl
 
 Everything runs locally: a keyword scan over YAML cards, no network calls, no task text leaving your machine.
 
+> **Effect ceiling (honest disclosure, added 2026-10-18)**: the evidence for comparable checklist interventions is **split**. WHO surgical checklist cut mortality with RR≈0.53 across 8 hospitals (Haynes, NEJM 2009) — but Ontario's mandatory rollout across 101 hospitals with n≈215,000 operations showed **zero effect** (death OR=0.91, P=0.13; Urbach, NEJM 2014). The mediating variable is **implementation fidelity** (a Norwegian stepped-wedge RCT found the effect only where all three parts were actually done). So this tool's benefit depends on whether you actually execute the blocking todos in the report; under checkbox compliance the effect can collapse to zero. We do not promise "installing this makes you safer" — we promise you can tell checked from guessed.
+
 <details>
 <summary><strong>What your agent hands back</strong> — real output, abbreviated (report skeleton is Chinese-native; fields translated here)</summary>
 
 ```text
 # 踩坑报告 · ⚡ 快扫
 - 任务：aggregate users.csv by province, mind nulls and duplicate rows
-- 领域判定：code (medium) · 118 cards checked one by one, 100% coverage
+- 领域判定：code (medium) · 120 cards checked one by one, 100% coverage
 
 ## ✅ 已查证区（4 项）
 ### [CODE-014] CSV/数据解析

@@ -70,5 +70,20 @@ else
   fail "找不到 python3（可用 PYTHON_BIN 指定路径）"
 fi
 
+# 8. ⑰号门回归（跨域误命中不增；元坑⑰）
+# 仅在仓库根运行时做（技能目录副本里没有 eval/，跳过是正确行为，不是失败）
+REPO_ROOT="$(cd "$SKILL_DIR/../.." && pwd)"
+if [ -f "$REPO_ROOT/eval/gate.js" ] && [ -f "$REPO_ROOT/eval/battery.json" ]; then
+  GATE_OUT=$("$NODE_BIN" "$REPO_ROOT/eval/gate.js" 2>&1)
+  GATE_RC=$?
+  if [ $GATE_RC -eq 0 ]; then
+    pass "⑰号门：跨域误命中增量 0"
+  else
+    fail "⑰号门失败（exit=${GATE_RC}）：$(echo "$GATE_OUT" | tail -3)"
+  fi
+else
+  pass "⑰号门：无 eval/ 目录（技能副本），已跳过"
+fi
+
 echo "== 结果：$([ $FAIL -eq 0 ] && echo 全部通过 || echo 存在失败项) =="
 exit $FAIL
