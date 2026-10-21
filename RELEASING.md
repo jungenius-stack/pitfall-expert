@@ -1,15 +1,44 @@
 # Releasing / 发布指南
 
-面向维护者。**发布到 npm 是唯一需要你亲手做的一步**——它必须用你的 npm 账号，任何人（包括 AI）都不能代劳。
+面向维护者。**发布到 npm 是可选的**：不注册账号也能通过 GitHub 安装使用（见下节）。
+但如果你希望用短命令 `npx pitfall-expert`、或希望被 npm 搜索到，就必须发布——这一步需要你的 npm 账号，任何人（包括 AI）都不能代劳。
 
-## 为什么必须发布
+## 先看这条：不注册 npm 也能用
+
+**发布到 npm 不是必需的**。以下两条路径已实测可用，零注册：
+
+```bash
+# A. 直接跑（最简，无需装任何东西）
+npx --yes github:jungenius-stack/pitfall-expert "重构支付模块" --tier quick
+
+# B. 装成依赖，之后三个 bin 都在 PATH 上
+npm install github:jungenius-stack/pitfall-expert
+```
+
+代价与 npm 发布的差别：
+
+| | GitHub 直跑 | npm 发布 |
+|---|---|---|
+| 需要 npm 账号 | ❌ 不需要 | ✅ 需要 |
+| 首次安装速度 | 慢些（拉整个仓库） | 快（拉精简 tarball） |
+| 命令长度 | `npx --yes github:...` 较长 | `npx pitfall-expert` |
+| 被发现/被搜索 | ❌ 搜不到 | ✅ npm 搜索可见 |
+| M8ven 能否识别 | ❓ 未验证 | 可能填上 `npm_name` |
+
+**结论**：只想让人能用 → GitHub 直跑够了；想被陌生人发现 → 才需要发 npm。
+
+## 发布到 npm（可选）
+
+发布前，全世界只能通过 GitHub 方式安装——`npx pitfall-expert` 会 404。
+
+
 
 在发布之前，全世界没有任何人能安装本工具：
 
 - `npx pitfall-expert` → `404 Not Found`（registry 上没有这个包）
 - 唯一可行的方式只剩 `git clone` + `sh install.sh`，门槛极高
 
-`registry.npmjs.org/pitfall-expert` 目前返回 **404**，即包名**可用**（没被抢注）。
+`registry.npmjs.org/pitfall-expert` 目前返回 **404**，即包名**可用**（没被抢注），等你注册后即可占用。
 
 ## 一次性准备（只做一次）
 

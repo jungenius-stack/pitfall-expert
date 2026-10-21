@@ -17,19 +17,42 @@
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
 
-**Run the scan right now** (no install, no clone):
+**Run the scan right now** (no install, no clone — runs straight from this repo):
 
 ```bash
-npx pitfall-expert "refactor the payment module" --tier quick
-npx pitfall-expert "refactor the payment module" --tier quick --lang=en
+npx --yes github:jungenius-stack/pitfall-expert "refactor the payment module" --tier quick
+npx --yes github:jungenius-stack/pitfall-expert "refactor the payment module" --tier quick --lang=en
 ```
 
-**Wire it into an MCP client** (Claude Desktop / Codex / DeepSeek Harness, stdio):
+> Not yet on the npm registry, so run it via the GitHub spec above. Once published you
+> will also be able to use the shorter `npx pitfall-expert`. See `RELEASING.md`.
+
+**Or install it as a dependency** (gives you `pitfall-expert` / `pitfall-expert-scan` / `pitfall-expert-mcp` on your PATH):
+
+```bash
+npm install github:jungenius-stack/pitfall-expert
+```
+
+**Wire it into an MCP client** (Claude Desktop / Codex / DeepSeek Harness, stdio) — after the
+install above, point the client at the installed binary:
 
 ```json
 {
   "mcpServers": {
-    "pitfall-expert": { "command": "npx", "args": ["-y", "pitfall-expert-mcp"] }
+    "pitfall-expert": {
+      "command": "node",
+      "args": ["/absolute/path/to/node_modules/pitfall-expert/engine/src/index.js"]
+    }
+  }
+}
+```
+
+Or, if `node_modules/.bin` is on your PATH, simply:
+
+```json
+{
+  "mcpServers": {
+    "pitfall-expert": { "command": "pitfall-expert-mcp" }
   }
 }
 ```

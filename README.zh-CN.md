@@ -12,18 +12,39 @@
 
 [Quick start](#快速开始) · [工作原理](#工作原理) · [能防什么](#能防什么) · [战绩](#战绩) · [FAQ](#faq)
 
-**立刻跑一次**（免安装、免克隆）：
+**立刻跑一次**（免安装、免克隆，直接从仓库跑）：
 
 ```bash
-npx pitfall-expert "重构支付模块" --tier quick
+npx --yes github:jungenius-stack/pitfall-expert "重构支付模块" --tier quick
 ```
 
-**接进 MCP 客户端**（Claude Desktop / Codex / DeepSeek Harness，stdio）：
+> 尚未发布到 npm registry，所以用上面的 GitHub 写法。发布后即可用更短的 `npx pitfall-expert`，详见 `RELEASING.md`。
+
+**装成依赖**（装完 `pitfall-expert` / `pitfall-expert-scan` / `pitfall-expert-mcp` 三个命令都可用）：
+
+```bash
+npm install github:jungenius-stack/pitfall-expert
+```
+
+**接进 MCP 客户端**（Claude Desktop / Codex / DeepSeek Harness，stdio）——装完上面那条后，指向装好的入口：
 
 ```json
 {
   "mcpServers": {
-    "pitfall-expert": { "command": "npx", "args": ["-y", "pitfall-expert-mcp"] }
+    "pitfall-expert": {
+      "command": "node",
+      "args": ["/你的项目路径/node_modules/pitfall-expert/engine/src/index.js"]
+    }
+  }
+}
+```
+
+若 `node_modules/.bin` 已在 PATH 上，直接写命令名即可：
+
+```json
+{
+  "mcpServers": {
+    "pitfall-expert": { "command": "pitfall-expert-mcp" }
   }
 }
 ```
