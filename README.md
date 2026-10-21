@@ -13,7 +13,7 @@
 [![Content: CC BY 4.0](https://img.shields.io/badge/cards_&_docs-CC_BY_4.0-3f9f7f?style=flat-square)](LICENSE-CONTENT.md)
 [![Skill](https://img.shields.io/badge/form-skill_+MCP_engine_+hooks-5c4ee5?style=flat-square)](#architecture)
 [![Cards](https://img.shields.io/badge/pitfall_cards-120-cb3837?style=flat-square)](cards/)
-[![M8ven](https://m8ven.ai/badge/mcp/jungenius-stack-pitfall-expert-25pguy)](https://m8ven.ai/mcp/jungenius-stack-pitfall-expert-25pguy?s=readme)
+[![M8ven Score](https://m8ven.ai/badge/mcp/jungenius-stack-pitfall-expert-25pguy?v=4166e02af23fc5a86ed33a78fa10e700)](https://m8ven.ai/mcp/jungenius-stack-pitfall-expert-25pguy?s=readme)
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
 

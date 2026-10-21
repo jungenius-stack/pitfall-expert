@@ -8,7 +8,7 @@
 
 **看到一件想让它干的活，先知道它会在哪翻车。**
 
-[![M8ven](https://m8ven.ai/badge/mcp/jungenius-stack-pitfall-expert-25pguy)](https://m8ven.ai/mcp/jungenius-stack-pitfall-expert-25pguy?s=readme)
+[![M8ven Score](https://m8ven.ai/badge/mcp/jungenius-stack-pitfall-expert-25pguy?v=4166e02af23fc5a86ed33a78fa10e700)](https://m8ven.ai/mcp/jungenius-stack-pitfall-expert-25pguy?s=readme)
 
 [Quick start](#快速开始) · [工作原理](#工作原理) · [能防什么](#能防什么) · [战绩](#战绩) · [FAQ](#faq)
 
