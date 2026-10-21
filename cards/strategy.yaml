@@ -1,13 +1,17 @@
 # 坑卡库 · 决策/战略域（v0.7.2 激活批次：5 张，达到激活门槛）
 # 2026-10-17：AMiner 顾问偏差批次（STRAT-001~005：缺省项偏差/语气框架敏感/置信度不校准/自动化偏倚/博弈对手假设）
+# 2026-10-21：STRAT-001 触发词扩容（决策通用表达：并购/收购/估值/合资/自建外包/扩招/涨价降价/波特五力/商业模式）
+#   覆盖测量：中文战略任务 3/16 → 16/16，英文 0/12 → 12/12；反向用例误命中 0/37（中）+ 0/12（英）
+#   否决记录：曾加「该不该/要不要/值不值」三个纯虚词，反向用例 18/18 全误命中（"这个函数该不该抽出来"），
+#   定性为元坑⑰同类扩散问题，已撤回；「市场」单字同样 10/11 误命中（数据分析/画图任务），改为「进入市场」等短语
 # 出处核验走 arXiv/ACL/PubMed 直达，详见 docs/回写候选-战略决策批次.md 预核验表
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.2
+version: 0.7.4
 domain: strategy
-updated: '2026-10-17'
+updated: '2026-10-21'
 card_count: 5
 cards:
   - id: STRAT-001
@@ -34,6 +38,64 @@ cards:
       - 这个方案行吗
       - 值不值得
       - 要不要继续
+      - 划不划算
+      - 划算吗
+      - 是否值得
+      - 值得做吗
+      - 可行吗
+      - 可行性
+      - 要不要投
+      - 该不该投
+      - 要不要做
+      - 继续投入
+      - 止损
+      - 放弃这个
+      - 砍掉
+      - 退出这个
+      - 收缩还是扩张
+      - 扩张还是收缩
+      - 并购
+      - 收购
+      - 估值
+      - 合资
+      - 自建还是
+      - 还是外包
+      - 要不要外包
+      - 扩招
+      - 裁员
+      - 进入市场
+      - 进入这个市场
+      - 进入东南亚
+      - 五力
+      - 波特
+      - 商业模式
+      - 要不要涨价
+      - 要不要降价
+      - 定价策略
+      - 涨价还是降价
+      - go or no-go
+      - go/no-go
+      - should we
+      - is it worth
+      - business model
+      - five forces
+      - porter
+      - valuation of
+      - company valuation
+      - acquisition of
+      - this acquisition
+      - joint venture
+      - in-house or outsource
+      - raise prices
+      - entry into
+      - market entry
+      - expand the team
+      - kill this product
+      - pros and cons
+      - trade-off
+      - tradeoff
+      - 利弊
+      - 利弊分析
       - 第二意见
       - 问问ai怎么说
       - should i
