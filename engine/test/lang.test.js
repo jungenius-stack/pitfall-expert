@@ -55,3 +55,12 @@ test('lang=en：不改变正文结论（卡 ID 与三区仍在）', () => {
     .trimEnd();
   assert.strictEqual(stripEn(en), stripEn(zh), 'en 模式除附加说明外不得改动报告内容');
 });
+
+test('CLI --help：给用法，不把 --help 当任务扫描', () => {
+  const { execFileSync } = require('child_process');
+  const cli = path.join(__dirname, '../src/cli.js');
+  const out = execFileSync('node', [cli, '--help'], { encoding: 'utf8' });
+  assert.ok(out.includes('USAGE'), '应输出用法说明');
+  assert.ok(out.includes('--lang'), '应列出 --lang 选项');
+  assert.ok(!out.includes('踩坑报告'), '--help 不得触发扫描');
+});

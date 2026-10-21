@@ -31,6 +31,36 @@ function parseArgs(argv) {
   return out;
 }
 
+// --help / -h：国际用户第一反应，必须给用法而不是把 --help 当成任务去扫描
+if (process.argv.slice(2).some((a) => a === '--help' || a === '-h')) {
+  process.stdout.write([
+    'pitfall-expert — task-time risk scan before your agent starts',
+    '',
+    'USAGE',
+    '  pitfall-expert "<task description>" [options]',
+    '',
+    'OPTIONS',
+    '  --tier quick|standard|deep   Scan depth (default: standard)',
+    '  --domain auto|code|math|science|creative|research-decision|strategy|agent-security',
+    '                               Force a domain (default: auto-detect)',
+    '  --lang zh|en                 Report language hint (default: zh). "en" prepends an',
+    '                               English field glossary; card bodies remain Chinese.',
+    '  --cards-dir <path>           Card library directory (default: bundled cards/)',
+    '  --feedback [--with-task]     Print a de-identified report skeleton to paste into a',
+    '                               GitHub issue. Nothing is sent automatically.',
+    '  -h, --help                   Show this help',
+    '',
+    'EXAMPLES',
+    '  pitfall-expert "refactor the payment module" --tier quick',
+    '  pitfall-expert "重构支付模块" --tier standard --lang=en',
+    '',
+    'EXIT CODES  0 = report produced · 1 = scan failed (disclosed, not "no pitfalls")',
+    '            2 = task missing or too short (grill-me handback)',
+    ''
+  ].join('\n'));
+  process.exit(0);
+}
+
 const args = parseArgs(process.argv.slice(2));
 
 if (!args.task || args.task.length < 4) {
