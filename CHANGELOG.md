@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.7.4（2026-10-21）
+
+**三件修复：两件是引擎真的坏了，一件是审计合规。**
+
+- **引擎 DOMAINS 登记表补齐 3 个已建卡域（真 bug）**：`strategy` / `research-decision` / `agent-security` 三域共 37 张卡（120 张的 31%）**无法被 `domain` 参数路由到**——传 `domain: 'strategy'` 会掉进自动判定分支、被判成 `code` 后只召回 code 卡。连带两个后果：①盲区声明误报「decision/strategy 未建卡」（strategy 明明有 5 张）；②工具描述仍写「只建了代码/数学」，这句话会原样喂给调用方模型，等于主动劝退。
+  实测：显式指定领域时本域召回 17 → 30（research-decision 两例 0→6、0→4；agent-security 5→8）。
+- **STRAT-001 触发词扩容（战略域叫不出来）**：该域 5 张卡触发词全是「AI 顾问偏差」视角（帮我参谋/有多大把握/让ai把关），不含任何战略决策本体词，16 个真实战略任务只有 3 个能命中。补 58 词后中文 3/16 → 16/16、英文 0/12 → 12/12，反向用例误命中 0/37（中）+ 0/12（英）。
+  **否决记录**：曾用「该不该/要不要/值不值」三个纯虚词，反向用例 18/18 全误命中（「这个函数该不该抽出来」也判战略），元坑⑰同类扩散，当场撤回；「市场」单字 10/11 误命中，改「进入市场」短语；`valuation`/`acquisition` 裸词误命中「valuation function」，收窄为 `valuation of`/`company valuation`。
+- **`scan_task` 补全 4 个 MCP tool annotations**：M8ven 审计报 1 fail + 1 warn，根因同一件事——缺 `readOnlyHint`/`destructiveHint`/`idempotentHint`/`openWorldHint`，OpenAI 目录会拒绝收录此类工具。四个值逐条实测为真（只读卡库不写文件、无删除、同输入逐字节相同、无网络调用），并补回归断言：SDK 的 `ToolAnnotationsSchema` 带 `z.core.$strip`，未声明字段静默丢弃——只写 JS 对象不验 wire 层等于没加；删注解后测试实测失败（19/20）。
+- **⑰号门域名标签改为从引擎 DOMAINS 派生**：原 `gate.js` 把报告显示文案硬编码进正则，补上 `agent-security` 中文名后报告由打印英文键变为中文标签，正则失配导致全部任务「未判定」、CI 在 selfcheck 步失败。改后域改名不再打断门控。
+- **README 挂 M8ven Trust Index 徽章**：注意邮件给的 URL 把内部 slug 拼成了斜杠路径（实测 404 + 徽章返回 not scored 占位图），真实 slug 为单段 `jungenius-stack-pitfall-expert-25pguy`；`?v=` 参数是所有权证明 token，非图片校验参数（删掉后 verify-badge 报 `token_missing`）。
+
 ## v0.7.3（2026-10-18）
 
 **两发 AMiner DeepDive 收口：把「效果」从口号变成可测量，并把不利于自己的证据写进产品。** 卡库 118→120，评测协议 v0.1→v0.2 且第一次有了可执行骨架，⑰号门从人工比对变成 CI 强制。
