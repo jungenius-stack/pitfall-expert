@@ -21,14 +21,19 @@ const ROOT = path.resolve(__dirname, '..');
 const ENGINE = path.join(ROOT, 'engine', 'src', 'cli.js');
 const spec = JSON.parse(fs.readFileSync(path.join(__dirname, 'battery.json'), 'utf8'));
 
+// 标签一律从引擎 DOMAINS 派生，不在本脚本里硬编码报告文案。
+// 历史坑：曾按「域无中文名时报告打印原始英文键」把 'agent-security' 写死进正则，
+// 引擎补上中文名后正则失配，⑰号门整门退化为「未判定」。
+const { DOMAINS } = require(path.join(ROOT, 'engine', 'src', 'scanner.js'));
+
 const DOMAIN_KEYS = {
-  '代码': 'code',
+  code: 'code',
   'agent-security': 'security',
-  '创意/写作': 'creative',
-  '数学': 'math',
+  creative: 'creative',
+  math: 'math',
   'research-decision': 'rd',
-  '科学/ML': 'science',
-  'strategy': 'strategy',
+  science: 'science',
+  strategy: 'strategy',
 };
 
 function scanOnce(text) {
@@ -40,9 +45,10 @@ function scanOnce(text) {
   const line = out.split('\n').find((l) => l.includes('扫描范围'));
   if (!line) throw new Error('未找到「扫描范围」行，引擎输出格式可能变了');
   const counts = {};
-  for (const [zh, key] of Object.entries(DOMAIN_KEYS)) {
-    const m = line.match(new RegExp(`${zh.replace(/[/\\]/g, '\\$&')} (\\d+)/\\d+`));
-    if (!m) throw new Error(`扫描范围行里缺 ${zh} 域，无法判定`);
+  for (const [domain, key] of Object.entries(DOMAIN_KEYS)) {
+    const label = DOMAINS[domain] || domain; // 与 report.js 的 coverageLine 同源
+    const m = line.match(new RegExp(`${label.replace(/[/\\]/g, '\\$&')} (\\d+)/\\d+`));
+    if (!m) throw new Error(`扫描范围行里缺 ${label} 域（${domain}），无法判定`);
     counts[key] = Number(m[1]);
   }
   return counts;
