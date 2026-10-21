@@ -24,7 +24,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     name: 'scan_task',
     description: '踩坑专家扫描引擎：在 AI 执行任务之前，对该任务做系统性风险预判。' +
       '按领域坑卡库逐条对照，输出三区诚实报告（✅已查证 / ❓未验证 / 🚫盲区声明）+ 验证器清单。' +
-      '当前已建卡领域：代码、数学；科学/创意/决策域尚未建卡（会在盲区显式声明）。' +
+      '卡库覆盖七域：代码、数学、调研/决策、Agent 安全、科学/ML、创意写作、战略；' +
+      '未建卡领域（decision/meta）会在盲区显式声明。' +
       '当用户要求“踩坑/避坑/预判风险/动手前先查坑/premortem”，或任何任务执行前的风险审查场景时使用。',
     inputSchema: {
       type: 'object',
@@ -37,7 +38,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           type: 'string',
           enum: ['auto', ...Object.keys(DOMAINS)],
           default: 'auto',
-          description: '任务领域；auto = 自动判定。未建卡领域（science/creative/decision/meta）也可指定，' +
+          description: '任务领域；auto = 自动判定。已建卡七域：code/math/research-decision/agent-security/' +
+            'science/creative/strategy。未建卡领域（decision/meta）也可指定，' +
             '此时本域无卡可对照，盲区将显式声明'
         },
         tier: {

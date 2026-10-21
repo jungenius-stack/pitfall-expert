@@ -26,6 +26,9 @@ const DOMAINS = {
   math: '数学',
   science: '科学/ML',
   creative: '创意/写作',
+  'research-decision': '调研/决策',
+  strategy: '战略',
+  'agent-security': 'Agent 安全',
   decision: '决策/战略',
   meta: '元任务'
 };

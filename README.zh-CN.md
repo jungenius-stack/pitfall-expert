@@ -8,6 +8,8 @@
 
 **看到一件想让它干的活，先知道它会在哪翻车。**
 
+[![M8ven](https://m8ven.ai/badge/mcp/jungenius-stack/pitfall-expert)](https://m8ven.ai/mcp/jungenius-stack/pitfall-expert)
+
 [Quick start](#快速开始) · [工作原理](#工作原理) · [能防什么](#能防什么) · [战绩](#战绩) · [FAQ](#faq)
 
 ```bash
