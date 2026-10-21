@@ -1,13 +1,14 @@
 # 坑卡库 · 调研/决策域（v0.4 融合批次，源自真实翻车案例 D1–D8，10 案例回放验证）
 # 2026-10-17：AMiner 顾问偏差批次——无新增卡，4 处证据更新（RD-018 源论文定位清欠账 / RD-020 并入同质化证据 / RD-017 升 empirical / RD-011 补 CHI 佐证）
+# 2026-10-21：AMiner DeepDive 意图推断批次——新增 RD-023（重复询问制造重要性错觉）；SKILL.md 同步四处硬化（定级否证条件/扫描计数降级/判狼反证搜索/预验尸产出定位）
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
 version: 0.7.3
 domain: research-decision
-updated: '2026-10-17'
-card_count: 22
+updated: '2026-10-21'
+card_count: 23
 cards:
   - id: RD-001
     title: 把「搜不到」当「不存在」（负面定性证据不足）
@@ -651,3 +652,32 @@ cards:
       - intervention effect
     hazard_type: 逻辑漏洞
     source_ref: AMiner报告2026-10-18-第一节清单效应量
+  - id: RD-023
+    title: 反复强调/反复询问制造重要性错觉（重复≠重视，因果是反的）
+    description: "把「用户/自己反复提到的东西」当成「真正重要的东西」，是把结果当原因。被试内实验：一组目标态度被问卷询问 5 次、另一组完全不问，仅因被反复询问，前者对该态度的重要性评分显著上升；控制反应潜伏期后效应消失——因果链是「重复→提取通达性升高→重要性错觉」，不是「重要→重复」（Roese & Olson 1994, JESP）。同类方向证据：态度反复表达提升通达性并可预测后续行为（Powell & Fazio 1984, PSPP；Glasman & Albarracín 2006 元分析），但「可提取」不等于「重要」；策略性沟通理论下，言语信息量随双方利益冲突单调下降，冲突足够大时退化为无信息的空谈（Crawford & Sobel 1982, Econometrica），反复强调可能是试探或议价；隐私悖论综述（Barth & de Jong 2017，32 篇/35 理论）显示被反复声称高度重视的领域恰恰是行为投入最少的领域。实务含义：从「用户反复提/我反复查」反推重要性，方向性错误；重要性必须由独立行为投入或用户明示确认。"
+    symptom: 用「用户多次提到 X」当 X 是核心需求的证据；用「反复检查了 N 遍」当覆盖充分的证据；把高频出现的关键词当成高优先级约束；把扫描计数、检查次数当成质量提升的替代指标
+    severity:
+      S: 6
+      O: 7
+      D: 8
+    evidence:
+      source: "Roese & Olson 1994, Journal of Experimental Social Psychology（被试内实验：询问 5 次 vs 0 次→重要性评分上升，控制反应潜伏期后消失；AMiner 2026-10-21 检索，DOI 未直达，标题+摘要级）+ Powell & Fazio 1984, PSPP（DOI:10.1177/0146167284101016，Crossref 已验真）；Glasman & Albarracín 2006, Psychological Bulletin（元分析）；Crawford & Sobel 1982, Econometrica（策略性信息传递）；Barth & de Jong 2017, Telematics and Informatics（隐私悖论系统综述，32 篇/35 理论）；Herzog/Hattula/Dahl 2021, JMR 58(3):456-475（DOI:10.1177/0022243721998378，Crossref 已验真：压制自身偏好于低确定性时反弹）"
+      level: empirical
+    fix: 重要性判断必须来自与「提及频次」无关的独立信号：实际投入（时间/金钱/改动量，且需扣掉沉没成本效应）、用户明示确认、或对外行为而非口头声明；「反复检查」只能作为过程记录写入报告，不得升级为覆盖质量证据
+    verifier: 命中检测三选一——①报告/方案中存在「因为反复提到 X，所以 X 是重点」或等价推理；②把「检查了 N 次/N 张卡」当作覆盖质量论据；③重要性排序的唯一输入是出现频次。任一命中即本坑成立：要求补一条独立信号（投入证据或用户明示），补不出则该项重要性降 ❓
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 反复强调
+      - 多次提到
+      - 用户一直说
+      - 高频需求
+      - 反复检查
+      - 扫描计数
+      - 检查了 N 遍
+      - 重要性排序
+      - repeated mention
+      - frequency as importance
+      - salience
+    hazard_type: 常见错误
+    source_ref: AMiner DeepDive 2026-10-21-意图推断测量与线索效度
