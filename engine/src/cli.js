@@ -11,7 +11,7 @@ const { scan } = require('./scanner');
 const { buildReport, buildFeedback } = require('./report');
 
 function parseArgs(argv) {
-  const out = { task: '', tier: 'standard', domain: 'auto', cardsDir: null, feedback: false, withTask: false };
+  const out = { task: '', tier: 'standard', domain: 'auto', cardsDir: null, feedback: false, withTask: false, lang: 'zh' };
   const rest = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -20,6 +20,8 @@ function parseArgs(argv) {
     else if (a === '--tier' && argv[i + 1]) { out.tier = argv[++i]; }
     else if (a === '--domain' && argv[i + 1]) { out.domain = argv[++i]; }
     else if (a === '--cards-dir' && argv[i + 1]) { out.cardsDir = argv[++i]; }
+    else if (a === '--lang' && argv[i + 1]) { out.lang = argv[++i]; }
+    else if (a.startsWith('--lang=')) { out.lang = a.slice(7); }
     else if (a.startsWith('--tier=')) { out.tier = a.slice(7); }
     else if (a.startsWith('--domain=')) { out.domain = a.slice(9); }
     else if (a.startsWith('--cards-dir=')) { out.cardsDir = a.slice(12); }
@@ -41,6 +43,7 @@ try {
   if (args.feedback) {
     process.stdout.write(buildFeedback(result, { withTask: args.withTask }) + '\n');
   } else {
+    result.lang = args.lang === 'en' ? 'en' : 'zh';
     process.stdout.write(buildReport(result) + '\n');
   }
 } catch (e) {

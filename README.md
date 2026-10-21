@@ -17,8 +17,27 @@
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
 
+**Run the scan right now** (no install, no clone):
+
 ```bash
-sh install.sh
+npx pitfall-expert "refactor the payment module" --tier quick
+npx pitfall-expert "refactor the payment module" --tier quick --lang=en
+```
+
+**Wire it into an MCP client** (Claude Desktop / Codex / DeepSeek Harness, stdio):
+
+```json
+{
+  "mcpServers": {
+    "pitfall-expert": { "command": "npx", "args": ["-y", "pitfall-expert-mcp"] }
+  }
+}
+```
+
+**Install the skill + hooks into every detected agent shell**:
+
+```bash
+git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-expert && sh install.sh
 ```
 
 </div>
@@ -27,7 +46,7 @@ sh install.sh
 
 Your agent said **"done"** — and the migration isn't. It agreed with the doomed plan, called single-run luck "reliable", and you found out when the bill arrived.
 
-**pitfall-expert** scans the task **before work starts**: it matches the task against a six-domain library of 100+ pitfall cards in `cards/` — each distilled from real incidents and peer-reviewed research — binds every blocking pit to an **executable verifier** (pre-declared decision table + executed-result write-back), and outputs a **three-zone honest report**: ✅ verified (evidence chains, quotable sources) / ❓ unverified (5-minute follow-up actions) / 🚫 declared blind spots.
+**pitfall-expert** scans the task **before work starts**: it matches the task against a seven-domain library of 120 pitfall cards in `cards/` — each distilled from real incidents and peer-reviewed research — binds every blocking pit to an **executable verifier** (pre-declared decision table + executed-result write-back), and outputs a **three-zone honest report**: ✅ verified (evidence chains, quotable sources) / ❓ unverified (5-minute follow-up actions) / 🚫 declared blind spots. Card bodies are written in Chinese; pass `--lang=en` (or `lang: "en"` over MCP) to prepend an English field glossary that maps every report section and field label.
 
 The failure modes come with receipts, because they've been measured: agents declare solvable tasks impossible (54.9% of WebArena failures), claim completion while the environment is unchanged (MAST), pass weak test suites (7.8% of "passing" SWE-bench patches are wrong), mistake single-run luck for reliability (pass^8 < 25%), and side with a wrong user over half the time (*Science*, 2026: 51%). Those exact findings are seed cards in this library — card counts live in `cards/`; trust the directory over any number in prose.
 

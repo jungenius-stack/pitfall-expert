@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict';
 /**
  * pitfall-expert-engine — MCP server 入口（stdio）
@@ -66,6 +67,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         cards_dir: {
           type: 'string',
           description: '坑卡目录路径，默认为仓库 cards/ 目录'
+        },
+        lang: {
+          type: 'string',
+          enum: ['zh', 'en'],
+          default: 'zh',
+          description: 'Report language hint. zh (default) = header as-is. en = prepend an ' +
+            'English field-glossary so non-Chinese speakers can locate the verified / ' +
+            'unverified / blind-spot sections. Card bodies stay Chinese because the ' +
+            '120-card library is written in Chinese.'
         }
       },
       required: ['task']
@@ -75,7 +85,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 server.setRequestHandler(CallToolRequestSchema, async (req) => {
   const args = (req.params && req.params.arguments) || {};
-  const { task, domain = 'auto', tier = 'standard', cards_dir } = args;
+  const { task, domain = 'auto', tier = 'standard', cards_dir, lang = 'zh' } = args;
 
   // grill-me：需求是糊的 → 立刻退回（方法论 SOP 第 1 步）
   if (!task || typeof task !== 'string' || task.trim().length < 4) {
@@ -87,6 +97,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 
   try {
     const result = scan(task.trim(), { domain, tier, cardsDir: cards_dir });
+    result.lang = lang === 'en' ? 'en' : 'zh';
     return { content: [{ type: 'text', text: buildReport(result) }] };
   } catch (e) {
     // 诚实架构：引擎故障本身必须显式披露，不得静默放行

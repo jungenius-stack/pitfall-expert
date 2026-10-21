@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.7.5（2026-10-21）
+
+**面向「给全世界用」的发布就绪改造。此前任何人都装不上——仓库没有根 `package.json`，npm 上也没有包（`registry.npmjs.org/pitfall-expert` 返回 404），全世界只能 `git clone` 后手跑 install.sh。**
+
+- **新增根 `package.json`**：`npx pitfall-expert` / `pitfall-expert-scan`（CLI）与 `pitfall-expert-mcp`（stdio MCP server）三个 bin；`files` 白名单确保 `cards/` 与 `engine/` 相对位置不变（`DEFAULT_CARDS_DIR = __dirname/../../cards` 依赖此结构，打包位置错了会静默加载 0 张卡）。
+- **`engine/src/index.js` 补 shebang**：bin 入口没有 `#!/usr/bin/env node` 时 `npx` 直接失败（`cli.js` 原本已有）。
+- **补 `repository`/`homepage`/`bugs`/`keywords`**：M8ven 的「Domain consistency」检查需要 npm scope 或 homepage 才能与 GitHub 交叉核验。
+- **新增 `PRIVACY.md`**（中英双语）：Claude 与 OpenAI 目录的硬门槛。内容写实——本地运行、零收集、零网络、扫描零写入，并给出两条可自行执行的核验命令（grep 网络调用 / grep 写文件）。
+- **新增 `lang` 参数（CLI `--lang=en` / MCP `lang:"en"`）**：卡库 120 张均为中文，不假装整份报告已英化；`en` 只前置一段英文字段对照表（三区含义 + 每个字段标签），使非中文用户能定位结论。默认 `zh` 输出与历史**逐字节一致**（测试锁死）。
+- **README 双语补三条安装路径**：npx 直跑 / MCP 客户端 config JSON / git clone 装技能；并修正正文「六域 100+」→「七域 120」（与 `cards/` 实数一致）。
+
+验证：`npm pack` 50 文件 165.7 kB 含全部 7 个卡库；在干净目录真实 `npm install` 后 CLI 与 MCP 均跑通（120 卡加载、注解在位、`--lang=en` 生效）；引擎 24/24（新增 4 条 lang 测试）；卡库 120 零错误；selfcheck 全过；⑰号门零增。
+
 ## v0.7.4（2026-10-21）
 
 **三件修复：两件是引擎真的坏了，一件是审计合规。**

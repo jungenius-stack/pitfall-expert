@@ -12,8 +12,26 @@
 
 [Quick start](#快速开始) · [工作原理](#工作原理) · [能防什么](#能防什么) · [战绩](#战绩) · [FAQ](#faq)
 
+**立刻跑一次**（免安装、免克隆）：
+
 ```bash
-sh install.sh
+npx pitfall-expert "重构支付模块" --tier quick
+```
+
+**接进 MCP 客户端**（Claude Desktop / Codex / DeepSeek Harness，stdio）：
+
+```json
+{
+  "mcpServers": {
+    "pitfall-expert": { "command": "npx", "args": ["-y", "pitfall-expert-mcp"] }
+  }
+}
+```
+
+**装技能 + hooks 到所有已检测的 Agent 外壳**：
+
+```bash
+git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-expert && sh install.sh
 ```
 
 </div>

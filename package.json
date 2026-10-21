@@ -1,0 +1,71 @@
+{
+  "name": "pitfall-expert",
+  "version": "0.7.5",
+  "description": "Catch the known pitfalls before your agent starts — 120 evidence-backed pitfall cards across seven domains, three-zone honest reports (verified / unverified / declared blind spots) plus executable verifiers. Skill + MCP engine + hooks.",
+  "license": "MIT",
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jungenius-stack/pitfall-expert.git"
+  },
+  "homepage": "https://github.com/jungenius-stack/pitfall-expert#readme",
+  "bugs": {
+    "url": "https://github.com/jungenius-stack/pitfall-expert/issues"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "modelcontextprotocol",
+    "ai-agents",
+    "agentic-ai",
+    "llm",
+    "prompt-engineering",
+    "risk-management",
+    "pre-mortem",
+    "premortem",
+    "pitfalls",
+    "verification",
+    "sycophancy",
+    "claude-code",
+    "codex",
+    "deepseek-harness"
+  ],
+  "bin": {
+    "pitfall-expert": "engine/src/cli.js",
+    "pitfall-expert-scan": "engine/src/cli.js",
+    "pitfall-expert-mcp": "engine/src/index.js"
+  },
+  "files": [
+    "engine/src/",
+    "engine/package.json",
+    "cards/",
+    "skills/",
+    "hooks/",
+    "dsh-plugin/",
+    "eval/battery.json",
+    "eval/gate.js",
+    "install.sh",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "PRIVACY.md",
+    "LICENSE",
+    "LICENSE-CONTENT.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node engine/src/index.js",
+    "scan": "node engine/src/cli.js",
+    "test": "npm --prefix engine test",
+    "selfcheck": "sh skills/pitfall-expert/scripts/selfcheck.sh",
+    "gate": "node eval/gate.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "js-yaml": "^5.4.3"
+  }
+}
