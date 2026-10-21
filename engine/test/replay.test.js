@@ -137,6 +137,20 @@ test('场景7 MCP stdio 冒烟：initialize / tools/list / tools/call 全链路'
     const list = await send({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
     assert.strictEqual(list.result.tools[0].name, 'scan_task', 'tools/list 应暴露 scan_task');
 
+    // 能力注解回归（2026-10-21 补）：SDK 的 ToolAnnotationsSchema 带 z.core.$strip，
+    // 未声明字段会被静默丢弃——只在 JS 对象里写注解、不检查 wire 层，等于没加。
+    // 缺此断言时，删掉 annotations 20 个测试仍全绿，回归无保护。
+    const ann = list.result.tools[0].annotations;
+    assert.ok(ann, 'tools/list 必须返回 annotations（缺则 M8ven / OpenAI 目录拒绝收录）');
+    for (const hint of ['readOnlyHint', 'destructiveHint', 'idempotentHint', 'openWorldHint']) {
+      assert.strictEqual(typeof ann[hint], 'boolean', `${hint} 必须是显式布尔值（非布尔会被 OpenAI 拒绝）`);
+    }
+    // 值与实现一致：只读（不写文件）、非破坏性、幂等、不联网
+    assert.strictEqual(ann.readOnlyHint, true, 'scan_task 只读 cards/，应为 readOnlyHint: true');
+    assert.strictEqual(ann.destructiveHint, false, 'scan_task 无删除/覆盖，应为 destructiveHint: false');
+    assert.strictEqual(ann.idempotentHint, true, 'scan_task 同输入逐字节相同，应为 idempotentHint: true');
+    assert.strictEqual(ann.openWorldHint, false, 'scan_task 无网络调用，应为 openWorldHint: false');
+
     const call = await send({
       jsonrpc: '2.0', id: 3, method: 'tools/call',
       params: { name: 'scan_task', arguments: { task: '帮我把 users.csv 按省份汇总人数，注意空值', tier: 'standard' } }

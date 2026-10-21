@@ -22,6 +22,21 @@ const server = new Server(
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [{
     name: 'scan_task',
+    // 能力注解（MCP 2025-06 规范）：客户端据此决定调用前是否需确认。
+    // 逐条与实现对齐（2026-10-21 实测，非推定）：
+    //   readOnlyHint    —— true：工具路径只 readdirSync/readFileSync 读 cards/*.yaml，
+    //                      grep writeFile|appendFile|mkdir|unlink|rename 零命中
+    //   destructiveHint —— false：无删除/覆盖/不可逆副作用
+    //   idempotentHint  —— true：同输入连调两次 buildReport 输出逐字节相同（实测 ===）
+    //   openWorldHint   —— false：依赖只有 fs/path/js-yaml，无 fetch/http/net/dns
+    // 注意：这些是机器读的安全契约，不是注释。值写错 = 让下游客户端按错误前提自动放行。
+    annotations: {
+      title: '任务前风险扫描（踩坑预检）',
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    },
     description: '踩坑专家扫描引擎：在 AI 执行任务之前，对该任务做系统性风险预判。' +
       '按领域坑卡库逐条对照，输出三区诚实报告（✅已查证 / ❓未验证 / 🚫盲区声明）+ 验证器清单。' +
       '卡库覆盖七域：代码、数学、调研/决策、Agent 安全、科学/ML、创意写作、战略；' +
