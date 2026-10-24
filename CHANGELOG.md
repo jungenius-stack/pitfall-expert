@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.7.8（2026-10-24）
+
+**写入侧拦截上线：拦截规则从硬编码正则搬进坑卡（`intercept` 字段），门控分级（硬拦/软警告/放行），选开拦截日志——「加一张带规则的卡，门自动多认一种危险」。** 默认档位（report）与安装方式不变，改默认/自动注册留待一周真机数据后（v0.8.0）。
+
+- **坑卡 `intercept` 字段**（可选，loadCards 严格校验结构）：`[{tier: hard|soft, tools: [Bash|Write], patterns: [JS 正则]}]`。规则与知识同源演化，格式见 card-format.md；坏结构卡进 errors 不入库。
+- **规则上卡**：CODE-006 挂 15 条 hard（Bash：rm/force push/reset --hard/clean -f/find -delete/shred/kubectl delete ns/aws s3 rb|rm/DROP|TRUNCATE/无 WHERE 的 UPDATE|DELETE/mkfs/dd/写块设备/chmod 777）+ 2 条 soft（curl|sh、覆盖 .env）；CODE-027 挂 5 条 hard（**作用于 Write/Edit 写入内容**：sk-/AKIA/PRIVATE KEY/gh?_/xox?-——密钥落盘那一刻拦下）。安全变体显式放行并测试锁死：`--force-with-lease`/`--force-if-includes`/`git clean -n`/带 WHERE 的 UPDATE。
+- **gate-core 重构**：DESTRUCTIVE_PATTERNS 常量退役，`buildInterceptRules(cards)` 从卡库构建规则表；`decideRules(call, rules)` 确定性判定（Bash 命令文本 + Write 写入内容双通道）；CODE-018 顺序纪律保留（规则判定先于跳过启发式，`git push --force` 首词是 git 不再被琐碎表吞掉——实测复验）。
+- **分级语义（元坑⑳落地）**：硬阻断（exit 2）只给确定性规则命中；**扫描型高危卡（S≥4 且 O≥3 词面匹配）从阻断降为提示**——实测一份普通文档写入可命中 9 张词面高危卡，照拦就是在训练用户拆门；词面高危只在 block 模式报告头部一行提示，stderr 警告通道只留给可解释的规则命中。dsh 插件同步同语义（deny=hard；软规则/词面高危=放行+warn）。
+- **gate.js 修复与增强**：block 路径不再扫两遍（复用同一次扫描结果）；软规则警告在「琐碎命令跳过」前浮出（`echo x > .env` 首词是 echo——警告不能被跳过启发式吞掉）；选开日志 `PITFALL_HOOK_LOG=1`（默认关，兑现 PRIVACY.md 零写入承诺）写本地 JSONL（ts/decision/tool/rules/cards/输入摘要≤200 字符）。
+- **`hooks/log-summary.js`**：决策分布/规则频次 Top/软警告暴露序号（同一信号 ≥2 次的时间线）——评测协议 §八.2 习惯化测量的数据出口。
+- **测试**：gate-core 12 项（每条硬规则正例必拦 + 安全变体反例放行 + **良性语料回归 39 条全放行** + 密钥正反例 + 规则表零坏正则）；新增 hooks/test/gate.test.js 9 项（spawn 级：exit 0/2、软警告 stderr、日志开关、kill switch、日志默认关）；dsh 10 项（高危卡 deny→放行+提示 的语义迁移 + 密钥写入 deny + 软规则放行）；CI hook 冒烟扩到四模式（block/只读/密钥/软警告，沿用元坑⑧ set +e 收 rc）。开发中顺手抓到两个规则正则 bug（`git push -f` 紧跟 push 漏拦、`echo "drop table"` 误拦）——正反例测试即准入门槛的直接兑现。
+- **真机自用启动**：本机 Claude Code 已注册 `PITFALL_HOOK_MODE=block PITFALL_HOOK_LOG=1`，一周后凭 log-summary 数据决定 v0.8.0 是否改默认档位与 install.sh 自动注册。
+
+验证：引擎测试 **29/29**；selfcheck **全过**（版本一致性门 0.7.8）；⑰号门 **零增**（10/10）；hooks 9/9；dsh 10/10；良性语料回归 39/39 零误拦；真机端到端（settings.json 注册命令 → rm -rf → exit 2 → 日志落盘 hard_block/CODE-006）。
+
+
 ## v0.7.7（2026-10-24）
 
 **AMiner GLM5.3 学术搜索两发入库（评测干预 + 创作失败模式）：卡库 121→125。出处核验 26 项直达，又抓 2 处编号错配（2108.03303→纯数学论文、2506.14688→量子计算论文）+ 1 处 DOI 404 + 2 处会议名误标——三批累计 4 错配 + 1 失效 + 2 误标，元坑候选⑨第三次实锤。** 报告归档 `docs/reference/AMiner-学术搜索-*_2026-10-24.md`，裁决过程见 `docs/回写候选-评测干预批次.md` / `docs/回写候选-创作批次.md`。

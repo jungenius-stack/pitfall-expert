@@ -98,6 +98,8 @@ grep -nE "writeFile|appendFile|mkdir|unlink|rmSync|rename" engine/src/*.js
 
 可选的 `install.sh` 仅在你显式执行时才写 `$HOME` 下的技能目录（`.agents/`、`.claude/`、`.workbuddy/`），`sh install.sh --uninstall` 可移除。
 
+**hooks 拦截日志（v0.7.8，默认关）**：仅当你显式设 `PITFALL_HOOK_LOG=1` 注册 hooks 时，`hooks/lib/gate.js` 会向 `~/.pitfall-expert/hook-log.jsonl` 追加门控决策记录（时间戳/决策/规则卡 ID/输入摘要 ≤200 字符）。默认不设即零写入；日志只落本机 home 目录、永不入库、无任何上报。`node hooks/log-summary.js` 本地聚合查看。
+
 ### 遥测与第三方
 
 无。无统计 SDK、无崩溃上报、无广告标识、不向第三方共享。本项目**没有服务器**，没有地方接收你的数据。

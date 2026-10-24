@@ -27,6 +27,15 @@ cards:
     hazard_type: 事实性陷阱      # 常见错误/隐含前提/易错环节/工具链环境/事实性陷阱/逻辑漏洞/隐性条款坑
     latent_condition: …          # 长期隐患（潜伏条件）
     source_ref: cases/D1         # 案例溯源（ZCode 案例库）
+    # —— 可选拦截规则（引擎校验结构；门控 gate-core 直接消费，v0.7.8+）——
+    # 仅给判定可机器化的坑挂：hard=block 模式下硬阻断（exit 2）；soft=放行但显著警告+日志。
+    # patterns 为 JS 正则字符串；缺省 tools=['Bash']（作用于命令文本）；作用于 Write/Edit 写入内容的规则必须显式 tools: [Write]。
+    # 每条 pattern 必须有正反例测试（engine/test/gate-core.test.js 良性语料回归是准入门槛）——误拦一条，用户拆一次门。
+    intercept:
+      - tier: hard              # hard | soft
+        tools: [Bash]           # Bash（命令文本）| Write（Write/Edit/MultiEdit/NotebookEdit 的写入内容）
+        patterns:
+          - '\brm\s+…'          # 正则字符串，YAML 单引号风格（反斜杠字面保留）
 ```
 
 ## 四件套 = 入库硬标准

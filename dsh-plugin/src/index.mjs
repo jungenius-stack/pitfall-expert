@@ -47,6 +47,9 @@ export async function apply(ctx) {
       if (d.action === 'deny') {
         return { kind: 'deny', reason: `${d.reason}\n\n${d.report || ''}` };
       }
+      if (d.warn) {
+        logger.warn(`[pitfall-expert] ${d.warn}`);
+      }
       if (d.report) {
         logger.info(`[pitfall-expert] 预报告（mode=${mode}）：\n${d.report}`);
       }

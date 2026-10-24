@@ -4,6 +4,10 @@
  *   - ctx.on('tools/pre-execute', async (exec, next) => PreToolDecision)
  *   - 拒绝返回 { kind: 'deny', reason }；放行返回 next()
  *   - ToolExecution 携带 name / arguments / signal 等不可变字段
+ *
+ * v0.7.8 分级语义（与 hooks/lib/gate.js 对齐，元坑⑳少而重）：
+ *   hard —— 坑卡 intercept 确定性规则命中 → block 模式 deny；report 模式放行+🔴警告
+ *   soft —— 软规则 或 扫描型高危卡（S≥4 且 O≥3 词面匹配）→ 一律放行 + 警告（不 deny）
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -38,14 +42,14 @@ async function loadEngine(engineDir) {
   const scanner = pick(await import(pathToFileURL(path.join(engineDir, 'src', 'scanner.js')).href));
   const reporter = pick(await import(pathToFileURL(path.join(engineDir, 'src', 'report.js')).href));
   const gate = pick(await import(pathToFileURL(path.join(engineDir, 'src', 'gate-core.cjs')).href));
-  return { scan: scanner.scan, buildReport: reporter.buildReport, gate };
+  return { scan: scanner.scan, loadCards: scanner.loadCards, buildReport: reporter.buildReport, gate };
 }
 
 /**
  * 对一次工具执行做决策。
  * @param exec ToolExecution（或兼容形状 { name, arguments }）
  * @param opts { mode: 'report'|'block', tier: 'quick'|'standard'|'deep' }
- * @returns { action: 'allow'|'deny', report?, reason?, skipped?, degraded? }
+ * @returns { action: 'allow'|'deny', report?, reason?, warn?, skipped?, degraded? }
  */
 export async function decide(exec, opts = {}) {
   const mode = opts.mode || process.env.PITFALL_HOOK_MODE || 'report';
@@ -68,29 +72,49 @@ export async function decide(exec, opts = {}) {
     name: exec?.name ?? exec?.tool ?? exec?.toolName ?? '',
     arguments: exec?.arguments ?? exec?.args ?? exec?.input ?? {}
   };
+
+  // 确定性规则判定先于跳过启发式（CODE-018 顺序纪律，规则只此一处）
+  let rules = [];
+  try { rules = engine.gate.buildInterceptRules(engine.loadCards().cards).rules; } catch (_) { rules = []; }
+  const d = engine.gate.decideRules(call, rules);
+  const hardCards = [...new Set(d.hits.filter(h => h.tier === 'hard').map(h => h.cardId))];
+  const softRuleCards = [...new Set(d.hits.filter(h => h.tier === 'soft').map(h => h.cardId))];
+
+  if (d.decision === 'block' && mode === 'block') {
+    return {
+      action: 'deny',
+      reason: `踩坑专家·阻断：命中硬拦截规则（${hardCards.join(', ')}）——不可逆/泄密类操作，必须人工确认。规则来自坑卡 intercept 字段，可解释可审计；确认无误请人工执行，或设 PITFALL_HOOK_MODE=report 改为只报告。`
+    };
+  }
+
   const ext = engine.gate.extractTask(call);
-  if (ext.skip) return { action: 'allow', skipped: true };
-
-  const result = engine.scan(ext.task, { tier, domain: 'auto' });
-  const report = engine.buildReport(result);
-
-  if (mode === 'block') {
-    if (ext.destructive) {
-      return {
-        action: 'deny',
-        report,
-        reason: '踩坑专家·阻断：检测到破坏性命令（不可逆操作，方法论 5.3：不可回滚的操作自动升 🔴）。请人工确认后重试，或设 PITFALL_HOOK_MODE=report 改为只报告。'
-      };
+  if (ext.skip) {
+    if (hardCards.length > 0) {
+      return { action: 'allow', warn: `踩坑专家·🔴 高危：硬规则命中（${hardCards.join(', ')}）——report 模式未拦截，请人工确认后再执行。` };
     }
-    const high = engine.gate.highRiskCards(result);
-    if (high.length > 0) {
-      return {
-        action: 'deny',
-        report,
-        reason: `踩坑专家·阻断：命中 ${high.length} 项高危坑（S≥4 且 O≥3）：${high.map(s => s.card.id).join(', ')}。请人工确认后重试，或设 PITFALL_HOOK_MODE=report 改为只报告。`
-      };
+    if (softRuleCards.length > 0) {
+      return { action: 'allow', warn: `踩坑专家·警告：软规则（${softRuleCards.join(', ')}）——已放行，请复核本次调用。` };
     }
-    return { action: 'allow', report };
+    return { action: 'allow', skipped: true };
+  }
+
+  let report;
+  let result;
+  try {
+    result = engine.scan(ext.task, { tier, domain: 'auto' });
+    report = engine.buildReport(result);
+  } catch (e) {
+    return { action: 'allow', degraded: true, reason: '踩坑专家：扫描失败（fail-open 放行）——不得理解为没有坑' };
+  }
+
+  const high = engine.gate.highRiskCards(result);
+  const warnParts = [];
+  if (hardCards.length) warnParts.push(`硬规则命中（${hardCards.join(', ')}）——report 模式未拦截，请人工确认`);
+  if (softRuleCards.length) warnParts.push(`软规则（${softRuleCards.join(', ')}）`);
+  // 元坑⑳实测教训：词面高危卡在普通任务上可命中 9 张——只提示不进警告主渠道，且仅 block 模式提示
+  if (mode === 'block' && high.length) warnParts.push(`词面高危 ${high.length} 项（${high.map(s => s.card.id).join(', ')}）未阻断（阻断仅限硬规则）`);
+  if (warnParts.length) {
+    return { action: 'allow', report, warn: `踩坑专家·警告：${warnParts.join(' + ')}——已放行，请复核。` };
   }
 
   // report 模式（默认）：先报告后放行

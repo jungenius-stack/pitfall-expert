@@ -223,6 +223,35 @@ cards:
       - 不用确认了
       - 跑迁移脚本
       - flush it
+    # 拦截规则（v0.7.8 起门控直接消费，gate-core buildInterceptRules 读取；patterns 为 JS 正则字符串）
+    # hard=block 模式下硬阻断（exit 2）；soft=放行但显著警告。缺省 tools=['Bash']；Write/Edit 写入内容规则须显式 tools。
+    # 每条 pattern 必须有正反例测试（engine/test/gate-core.test.js 良性语料回归是准入门槛）
+    intercept:
+      - tier: hard
+        tools:
+          - Bash
+        patterns:
+          - '\brm\s+(-[a-zA-Z]*\s+)*-[a-zA-Z]*r[a-zA-Z]*\s'
+          - '\brm\s+-[a-zA-Z]*f[a-zA-Z]*\s+/'
+          - 'git\s+push\s+[^;|&]*(?:--force(?![a-z-])|(?<![\w-])-f\b)'
+          - 'git\s+reset\s+--hard'
+          - 'git\s+clean\s+(-[a-zA-Z]+\s+)*-[a-zA-Z]*f'
+          - '^(?:sudo\s+)?find\s[^\n]*\s-delete\b'
+          - '^(?:sudo\s+)?shred\b'
+          - '^(?:sudo\s+)?kubectl\s+delete\s+(?:ns|namespace)\b'
+          - '\baws\s+s3\s+(?:rb|rm)\b'
+          - '(?:^|(?:psql|mysql|mariadb|sqlite3)\b[\s\S]*?)\b(?:[Dd][Rr][Oo][Pp]|[Tt][Rr][Uu][Nn][Cc][Aa][Tt][Ee])\s+[Tt][Aa][Bb][Ll][Ee]'
+          - '^(?:sudo\s+)?(?:psql|mysql|mariadb|sqlite3)\b[\s\S]*\b(?:[Uu][Pp][Dd][Aa][Tt][Ee]|[Dd][Ee][Ll][Ee][Tt][Ee])\b(?![^;]*\b[Ww][Hh][Ee][Rr][Ee]\b)'
+          - '\bmkfs\b'
+          - '\bdd\s+if='
+          - '>\s*/dev/(?:sd|disk|nvme)'
+          - '\bchmod\s+-R\s+777\s+/'
+      - tier: soft
+        tools:
+          - Bash
+        patterns:
+          - '(?:^|[;&|]\s*)(?:curl|wget)[^|]*\|\s*(?:sudo\s+)?(?:ba|z|da)?sh\b'
+          - '>{1,2}\s*(?:\./)?\.env(?!\.\w)'
   - id: CODE-007
     title: 死代码/遗留配置重新激活
     description: >-
@@ -989,6 +1018,17 @@ cards:
       - gitleaks
     hazard_type: 常见错误
     source_ref: CSDN-8坑
+    # 写入侧拦截（v0.7.8）：作用于 Write/Edit/MultiEdit 的写入内容——真实密钥落盘那一刻拦下，不等 gitleaks 事后扫
+    intercept:
+      - tier: hard
+        tools:
+          - Write
+        patterns:
+          - 'sk-[A-Za-z0-9_-]{24,}'
+          - 'AKIA[0-9A-Z]{16}'
+          - '-----BEGIN (?:RSA |EC |DSA |OPENSSH |ED25519 )?PRIVATE KEY-----'
+          - 'gh[a-z]_[A-Za-z0-9]{36}'
+          - 'xox[baprs]-[A-Za-z0-9-]{10,}'
   - id: CODE-028
     title: API 中转站风险（跑路、留底、无保留策略）
     description: 把公司 Key 交给不知名聚合中转：对方跑路或泄露；中转层日志记录含业务数据的完整 prompt，无保留策略与访问控制。你不知道 prompt 存不存、存多久、谁能看。

@@ -69,6 +69,20 @@ function loadCards(cardsDir) {
           throw new Error(`${c.id} severity 须含数字 S/O/D`);
         }
         if (!Array.isArray(c.triggers) || c.triggers.length < 1) throw new Error(`${c.id} triggers 须为非空数组`);
+        // 拦截规则（v0.7.8+）：可选项，但一旦存在必须结构合法——坏规则进卡库 = 门禁行为不可预期
+        if (c.intercept !== undefined) {
+          if (!Array.isArray(c.intercept) || c.intercept.length < 1) throw new Error(`${c.id} intercept 须为非空数组`);
+          for (const g of c.intercept) {
+            if (!g || typeof g !== 'object') throw new Error(`${c.id} intercept 组须为对象`);
+            if (!['hard', 'soft'].includes(g.tier)) throw new Error(`${c.id} intercept.tier 须为 hard|soft`);
+            if (!Array.isArray(g.patterns) || g.patterns.length < 1 || !g.patterns.every(p => typeof p === 'string' && p.length > 0)) {
+              throw new Error(`${c.id} intercept.patterns 须为非空字符串数组（JS 正则）`);
+            }
+            if (g.tools !== undefined && (!Array.isArray(g.tools) || !g.tools.every(t => typeof t === 'string'))) {
+              throw new Error(`${c.id} intercept.tools 须为字符串数组（Bash|Write）`);
+            }
+          }
+        }
         cards.push(Object.assign({}, c, { _file: f }));
       }
     } catch (e) {
