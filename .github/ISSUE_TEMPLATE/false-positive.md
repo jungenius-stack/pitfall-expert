@@ -11,3 +11,8 @@ labels: false-positive
 **--feedback 输出**（`node engine/src/cli.js "同一任务" --feedback`；默认不含任务原文）：
 
 **卡库/引擎版本**（反馈包头部有）：
+
+**若是门控拦截（hooks / dsh 插件，v0.7.8+）**：
+- [ ] 我确认该操作确实安全可执行（拦截理由请见 stderr 的「踩坑专家·阻断」）
+- 被拦的命令/写入内容（可脱敏，保留结构）：
+- （可选）`node hooks/log-summary.js` 输出中该规则的暴露次数：
