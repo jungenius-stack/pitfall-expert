@@ -11,9 +11,24 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/** 选开日志（与 hooks/lib/gate.js 同一账本）：默认关；opts.log 或 PITFALL_HOOK_LOG=1 开 */
+function appendLog(entry) {
+  try {
+    const file = process.env.PITFALL_HOOK_LOG_FILE || path.join(os.homedir(), '.pitfall-expert', 'hook-log.jsonl');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.appendFileSync(file, JSON.stringify(entry) + '\n');
+  } catch (_) { /* 日志失败绝不影响决策 */ }
+}
+
+function logDecision(enabled, entry) {
+  if (enabled !== true && process.env.PITFALL_HOOK_LOG !== '1') return;
+  appendLog(entry);
+}
 
 /** 引擎定位：PITFALL_ENGINE_DIR 显式设置时权威且独占（无效则降解，不静默回退）；未设置时按相对路径候选 */
 export function resolveEngineDir() {
@@ -54,6 +69,9 @@ async function loadEngine(engineDir) {
 export async function decide(exec, opts = {}) {
   const mode = opts.mode || process.env.PITFALL_HOOK_MODE || 'report';
   const tier = opts.tier || process.env.PITFALL_HOOK_TIER || 'quick';
+  const logOn = opts.log === true || process.env.PITFALL_HOOK_LOG === '1';
+  const digestOf = t => String(t || '').slice(0, 200);
+  const toolOf = e => (e && (e.name ?? e.tool ?? e.toolName)) || '';
 
   const engineDir = resolveEngineDir();
   if (!engineDir) {
@@ -79,20 +97,23 @@ export async function decide(exec, opts = {}) {
   const d = engine.gate.decideRules(call, rules);
   const hardCards = [...new Set(d.hits.filter(h => h.tier === 'hard').map(h => h.cardId))];
   const softRuleCards = [...new Set(d.hits.filter(h => h.tier === 'soft').map(h => h.cardId))];
+  const ext = engine.gate.extractTask(call);
 
   if (d.decision === 'block' && mode === 'block') {
+    logDecision(logOn, { ts: new Date().toISOString(), event: 'pre-execute', mode, decision: 'hard_block', tool: toolOf(exec), rules: hardCards, input: digestOf(ext.task) });
     return {
       action: 'deny',
       reason: `踩坑专家·阻断：命中硬拦截规则（${hardCards.join(', ')}）——不可逆/泄密类操作，必须人工确认。规则来自坑卡 intercept 字段，可解释可审计；确认无误请人工执行，或设 PITFALL_HOOK_MODE=report 改为只报告。`
     };
   }
 
-  const ext = engine.gate.extractTask(call);
   if (ext.skip) {
     if (hardCards.length > 0) {
+      logDecision(logOn, { ts: new Date().toISOString(), event: 'pre-execute', mode, decision: 'hard_warn', tool: toolOf(exec), rules: hardCards, input: digestOf(ext.task) });
       return { action: 'allow', warn: `踩坑专家·🔴 高危：硬规则命中（${hardCards.join(', ')}）——report 模式未拦截，请人工确认后再执行。` };
     }
     if (softRuleCards.length > 0) {
+      logDecision(logOn, { ts: new Date().toISOString(), event: 'pre-execute', mode, decision: 'soft_warn', tool: toolOf(exec), rules: softRuleCards, cards: [], input: digestOf(ext.task) });
       return { action: 'allow', warn: `踩坑专家·警告：软规则（${softRuleCards.join(', ')}）——已放行，请复核本次调用。` };
     }
     return { action: 'allow', skipped: true };
@@ -104,6 +125,7 @@ export async function decide(exec, opts = {}) {
     result = engine.scan(ext.task, { tier, domain: 'auto' });
     report = engine.buildReport(result);
   } catch (e) {
+    logDecision(logOn, { ts: new Date().toISOString(), event: 'pre-execute', mode, decision: 'error', tool: toolOf(exec), input: digestOf(ext.task) });
     return { action: 'allow', degraded: true, reason: '踩坑专家：扫描失败（fail-open 放行）——不得理解为没有坑' };
   }
 
@@ -114,9 +136,11 @@ export async function decide(exec, opts = {}) {
   // 元坑⑳实测教训：词面高危卡在普通任务上可命中 9 张——只提示不进警告主渠道，且仅 block 模式提示
   if (mode === 'block' && high.length) warnParts.push(`词面高危 ${high.length} 项（${high.map(s => s.card.id).join(', ')}）未阻断（阻断仅限硬规则）`);
   if (warnParts.length) {
+    logDecision(logOn, { ts: new Date().toISOString(), event: 'pre-execute', mode, decision: 'soft_warn', tool: toolOf(exec), rules: [...hardCards, ...softRuleCards], cards: high.map(s => s.card.id), input: digestOf(ext.task) });
     return { action: 'allow', report, warn: `踩坑专家·警告：${warnParts.join(' + ')}——已放行，请复核。` };
   }
 
+  logDecision(logOn, { ts: new Date().toISOString(), event: 'pre-execute', mode, decision: 'pass', tool: toolOf(exec), cards: high.map(s => s.card.id), input: digestOf(ext.task) });
   // report 模式（默认）：先报告后放行
   return { action: 'allow', report, advisory: true };
 }

@@ -19,12 +19,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const name = 'pitfall-expert';
 
-export async function apply(ctx) {
-  const mode = process.env.PITFALL_HOOK_MODE || 'report';
-  const tier = process.env.PITFALL_HOOK_TIER || 'quick';
+export async function apply(ctx, config) {
+  // 配置优先级：cordis config（常驻注册用，见 cordis.patch.yml）> 环境变量 > 默认
+  const cfg = (config && typeof config === 'object') ? config : {};
+  const mode = cfg.mode || process.env.PITFALL_HOOK_MODE || 'report';
+  const tier = cfg.tier || process.env.PITFALL_HOOK_TIER || 'quick';
+  const log = cfg.log === true;
   const logger = (ctx.logger && typeof ctx.logger.info === 'function') ? ctx.logger : console;
 
-  logger.info(`[pitfall-expert] dsh 插件加载（mode=${mode}, tier=${tier}）`);
+  logger.info(`[pitfall-expert] dsh 插件加载（mode=${mode}, tier=${tier}${log ? ', log=on' : ''}）`);
 
   const engineDir = resolveEngineDir();
   if (!engineDir) {
@@ -38,7 +41,7 @@ export async function apply(ctx) {
     ctx.on('tools/pre-execute', async (exec, next) => {
       let d;
       try {
-        d = await decide(exec, { mode, tier });
+        d = await decide(exec, { mode, tier, log });
       } catch (e) {
         // fail-open：门控自身故障不阻塞工作流，但显式披露（方法论 5.5）
         logger.warn(`[pitfall-expert] 扫描异常，fail-open 放行：${e && e.message}`);

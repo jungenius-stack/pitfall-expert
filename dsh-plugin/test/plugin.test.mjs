@@ -202,3 +202,35 @@ test('decide 单元：destructive / skip / degraded', async () => {
   assert.strictEqual(d3.action, 'allow');
   if (prev === undefined) delete process.env.PITFALL_ENGINE_DIR; else process.env.PITFALL_ENGINE_DIR = prev;
 });
+
+test('decide 选开日志：opts.log 写同一账本（hard_block 落盘）', async () => {
+  const os = await import('node:os');
+  const fs = await import('node:fs');
+  const { decide } = await import(path.resolve(__dirname, '../src/decide.mjs'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pitfall-dsh-test-'));
+  const logFile = path.join(tmp, 'hook-log.jsonl');
+  const prevFile = process.env.PITFALL_HOOK_LOG_FILE;
+  process.env.PITFALL_HOOK_LOG_FILE = logFile;
+  try {
+    const d = await decide(
+      { name: 'Bash', arguments: { command: 'git push origin main --force' } },
+      { mode: 'block', log: true }
+    );
+    assert.strictEqual(d.action, 'deny');
+    const lines = fs.readFileSync(logFile, 'utf8').trim().split('\n').map(l => JSON.parse(l));
+    const entry = lines[lines.length - 1];
+    assert.strictEqual(entry.decision, 'hard_block');
+    assert.deepStrictEqual(entry.rules, ['CODE-006']);
+    assert.strictEqual(entry.event, 'pre-execute');
+  } finally {
+    if (prevFile === undefined) delete process.env.PITFALL_HOOK_LOG_FILE; else process.env.PITFALL_HOOK_LOG_FILE = prevFile;
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('apply 接受 cordis config 传参（mode 覆盖环境变量缺省）', async () => {
+  const plugin = await loadPlugin();
+  const ctx = mockCtx();
+  await plugin.apply(ctx, { mode: 'block' });
+  assert.ok(ctx.logs.info.some(m => m.includes('mode=block')), 'config.mode 应进加载日志');
+});
