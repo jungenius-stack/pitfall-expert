@@ -28,14 +28,27 @@ NAME_FIELD=$(grep -m1 '^name:' "$SKILL_DIR/SKILL.md" | sed 's/^name:[[:space:]]*
 grep -q '^description:' "$SKILL_DIR/SKILL.md" && grep -q 'Pitfall Expert' "$SKILL_DIR/SKILL.md" && pass "description 双语（中英混合命中）" || fail "description 缺失或无英文段"
 grep -q '^user-invocable: true' "$SKILL_DIR/SKILL.md" && pass "user-invocable: true" || fail "缺 user-invocable: true"
 
+# 2b. 版本一致性（元坑⑲：frontmatter version 必须 == CHANGELOG 最新版号；技能副本无 CHANGELOG 时跳过）
+SKILL_VERSION=$(grep -m1 '^  version:' "$SKILL_DIR/SKILL.md" | sed 's/^  version:[[:space:]]*//')
+if [ -f "$REPO_ROOT/CHANGELOG.md" ]; then
+  CHANGELOG_VERSION=$(grep -m1 '^## v' "$REPO_ROOT/CHANGELOG.md" | sed 's/^## v\([0-9.]*\).*/\1/')
+  [ "${SKILL_VERSION}" = "${CHANGELOG_VERSION}" ] && pass "版本一致：SKILL ${SKILL_VERSION} = CHANGELOG 最新 ${CHANGELOG_VERSION}" || fail "版本漂移：SKILL ${SKILL_VERSION} ≠ CHANGELOG 最新 ${CHANGELOG_VERSION}（元坑⑲：漏 bump）"
+else
+  pass "版本一致性：无 CHANGELOG（技能副本），已跳过（本副本 version ${SKILL_VERSION}）"
+fi
+
 # 3. 机制与硬约束锚点（M13 验证器铸造 + 元坑登记簿为融合版独有）
 for anchor in "M13 | 验证器铸造" "元坑登记簿" "纸老虎"; do
   grep -q "$anchor" "$SKILL_DIR/SKILL.md" && pass "SKILL.md 含关键锚点：$anchor" || fail "SKILL.md 缺锚点：$anchor"
 done
 
-# 4. node 可用 + 引擎存在
+# 4. node 可用 + 引擎存在（技能副本不随附引擎——副本环境跳过引擎项；常红的门会教人无视红灯，同 ⑰号门副本跳过先例）
 command -v "$NODE_BIN" >/dev/null 2>&1 && pass "node 可用（${NODE_BIN}）" || fail "找不到 node（可用 NODE_BIN 指定路径）"
-[ -f "$ENGINE_DIR/src/cli.js" ] && pass "引擎 CLI 存在" || fail "引擎缺失：$ENGINE_DIR/src/cli.js（可用 PITFALL_ENGINE_DIR 指定）"
+if [ -f "$REPO_ROOT/CHANGELOG.md" ]; then
+  [ -f "$ENGINE_DIR/src/cli.js" ] && pass "引擎 CLI 存在" || fail "引擎缺失：$ENGINE_DIR/src/cli.js（可用 PITFALL_ENGINE_DIR 指定）"
+else
+  [ -f "$ENGINE_DIR/src/cli.js" ] && pass "引擎 CLI 存在（副本环境外挂引擎）" || pass "引擎检查：技能副本不随附引擎（模型读卡模式不受影响），已跳过"
+fi
 
 # 5. 坑卡库加载（引擎严格校验：12 必填字段 + 枚举值 + S/O/D）
 if command -v "$NODE_BIN" >/dev/null 2>&1 && [ -f "$ENGINE_DIR/src/scanner.js" ]; then

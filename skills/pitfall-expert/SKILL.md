@@ -3,8 +3,8 @@ name: pitfall-expert
 description: 踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/will this break/what could go wrong/premortem", or the task involves payments, irreversible deletion, publishing, data migration, or sending external communications. NOT for casual chat, single-fact lookups, or when the user explicitly says to skip the check and just do it. 完成等于披露完整，而非结果完美。
 user-invocable: true
 metadata:
-  version: 0.7.2
-  updated: "2026-10-17"
+  version: 0.7.6
+  updated: "2026-10-21"
 ---
 
 # 踩坑专家（Pitfall Expert）
