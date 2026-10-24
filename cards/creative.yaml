@@ -1,11 +1,12 @@
 # 坑卡库 · 创意/写作域（v0.7.0 激活批次：5 张，文献驱动）
 # 来源：ConStory-Bench / EQ-Bench / Lost-in-the-Middle / MDPI 创作评估 / 长篇叙事生成研究，均带出处
+# 2026-10-24：AMiner 学术搜索（GLM5.3）创作批次——新增 CRT-006 集体脑暴同质化；CRT-003 升 empirical（四项实证+RLHF 机制）；CRT-004 补 TTCW/CoBBLEr，全部直达验真
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 
-version: 0.7.0
+version: 0.7.7
 domain: creative
-updated: '2026-10-16'
-card_count: 5
+updated: '2026-10-24'
+card_count: 6
 cards:
   - id: CRT-001
     title: 长篇一致性漂移（角色/设定/事实前后矛盾）
@@ -77,8 +78,8 @@ cards:
       O: 8
       D: 5
     evidence:
-      source: "EQ-Bench Creative Writing 长篇榜（风格与质量维持评测）；社区 slop 词表/检测共识（2025–2026，consensus 级）"
-      level: consensus
+      source: "Doshi & Hauser, Science Advances 2024（DOI:10.1126/sciadv.adn5290，AI 组作品彼此相似度显著更高）；Anderson et al., C&C 2024（DOI:10.1145/3635636.3656204，组间语义区分度下降）；Padmakumar & He, ICLR 2024（arXiv:2309.05196，机制：与对齐模型共写才同质化、基座 GPT-3 无此效应）；Mohammadi 2024（arXiv:2406.05587，上游机制：RLHF 降低句法/语义多样性）；EQ-Bench 长篇榜 + 社区 slop 词表（呈现层佐证）——前四项 2026-10-24 直达验真"
+      level: empirical
     fix: 提供目标文风的实文样本（few-shot 锚定，远胜形容词描述）；生成后跑 slop 词表抽检并要求重写命中段落；接受「AI 味无法归零只能压低」的现实，关键作品人工润色
     verifier: 对成品跑高频 AI 套路句式清单（≥20 条）grep 计数——命中密度高于阈值（如每千字 ≥3 处）即命中
     confidence: backed_by_context
@@ -107,7 +108,7 @@ cards:
       O: 7
       D: 7
     evidence:
-      source: "Kim et al., Can LLMs Be Good Evaluators in Creative Writing Tasks?（MDPI Applied Sciences 2025）；GraderAssist（Informatics 2025，主观维度一致性弱）；结合 RD-013/RD-014 通用裁判偏差"
+      source: "Chakrabarty et al., Art or Artifice?（CHI 2024，arXiv:2309.14556，直达验真：专业作家 TTCW 测试下 LLM 故事仅通过人类故事的 1/3–1/10 测试项，且没有任何 LLM 评估器与专家评分正相关）；CoBBLEr（ACL 2024，arXiv:2309.17012，直达验真：15 个 LLM 评估器平均 40% 两两比较带认知偏差、人机偏好重合 RBO 仅 49.6%）；Kim et al., Can LLMs Be Good Evaluators in Creative Writing Tasks?（MDPI Applied Sciences 2025）；GraderAssist（Informatics 2025，主观维度一致性弱）；结合 RD-013/RD-014 通用裁判偏差"
       level: empirical
     fix: 创作质量判定以目标读者样本/人工盲评为准；AI 评审仅用于可核对维度（一致性/字数/设定符合度——CRT-001 类客观检查）；多版本选优用位置平衡+异源双评，分歧即弃判
     verifier: 同批作品交换呈现顺序让 AI 重选一次——选择翻转即本坑命中（与 RD-015 验证器同构）
@@ -154,3 +155,32 @@ cards:
       - 写一个系列
     hazard_type: 常见错误
     source_ref: ReasonLongForm2025/NarrativeState2026
+  - id: CRT-006
+    title: 集体脑暴同质化（每人想法更多，但全员想法趋同；责任感同步下降）
+    description: "「一枚硬币的两面」：接触 GenAI 故事想法使个体作品更有创意（增益集中于低创造力者），但 AI 组作品彼此相似度显著更高（Science Advances 2024）；ChatGPT 用户每人产出更多更详细的想法（自我感觉更有创造力），但不同用户之间想法语义区分度显著下降、对想法的责任感降低（C&C 2024，36 人对照）。机制：与对齐后模型共写才同质化，基座 GPT-3 无此效应——效应来自模型贡献文本的单一化（ICLR 2024）；规模化证据：3 项预注册研究 2200 篇大学文书，每篇新增人类文书贡献的新想法多于 AI 文书，且 prompt/参数修改无法弥补（CHB:AI Humans 2025）。落到使用侧：团队全员 AI 脑暴 = 每人更快、集体更笨——「想法数量变多」掩盖「组间多样性坍缩」。"
+    symptom: 团队用 AI 脑暴后方案明显趋同；「每人想法变多了」被当成果汇报；没人做过组间重叠度检查；AI 辅助产出的想法责任感/所有权讨论变少
+    severity:
+      S: 4
+      O: 7
+      D: 7
+    evidence:
+      source: "Doshi & Hauser, Science Advances 2024（DOI:10.1126/sciadv.adn5290）；Anderson et al., C&C 2024（DOI:10.1145/3635636.3656204）；Padmakumar & He, ICLR 2024（arXiv:2309.05196）；Moon et al., CHB: Artificial Humans 2025（DOI:10.1016/j.chbah.2025.100207，3 项预注册/2200 篇）——全部 2026-10-24 直达验真"
+      level: empirical
+    fix: 关键脑暴分两轨——AI 轨 + 独立人轨（禁 AI），汇总先做组间重叠度对比再合并；AI 产出的想法显式标注来源，去重后再计数；重要创意决策不只用「想法数量」做 KPI
+    verifier: 对 AI 辅助组与独立组的产出做词面/语义重叠分析——AI 组组间相似度显著高于独立组基线即命中
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 头脑风暴
+      - brainstorm
+      - 想点子
+      - ideation
+      - 集思广益
+      - 起名
+      - 创意方案
+      - 团队脑暴
+      - brainstorm ideas
+      - come up with ideas
+      - naming
+    hazard_type: 隐含前提
+    source_ref: DoshiHauser-SciAdv24/Anderson-CnC24/Padmakumar-ICLR24/Moon-CHBAH25

@@ -2,13 +2,14 @@
 # 2026-10-16：回写 CODE-040~042（dsh-zcode-ui 1.13.0 实战：断言锁字面量 / 静态色阶反向 / 单规则探针假阳性）
 # 2026-10-17：AMiner 报告第 3/4 章批次（CODE-043 表面验证 / CODE-044 执行前体检[needs_verification]）；同日定量批次 CODE-003 补数值噪声成因（arXiv:2506.09501 旁证）
 # 2026-10-18：AMiner 两发 DeepDive 收口批次（CODE-045 规则式判定低估 agent 成功率，出处 AgentRewardBench/CUAVerifierBench）
+# 2026-10-24：AMiner 学术搜索（GLM5.3）批次——CODE-039 补反向误判证据（ASE 2026 过度矫正，直达验真），无新增卡
 # 字段规范见 docs/踩坑专家方法论_v0.3.md 第 9.1 条：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.3
+version: 0.7.7
 domain: code
-updated: '2026-10-17'
+updated: '2026-10-24'
 card_count: 50
 cards:
   - id: CODE-001
@@ -1370,9 +1371,9 @@ cards:
       O: 7
       D: 6
     evidence:
-      source: "On the Effectiveness of LLM-as-a-judge for Code（IEEE TSE 2025，aminer.cn/pub/6868631f163c01c850ac4f2c）"
+      source: "On the Effectiveness of LLM-as-a-judge for Code（IEEE TSE 2025，aminer.cn/pub/6868631f163c01c850ac4f2c）；Jin et al., Are LLMs Reliable Code Reviewers?（Automated Software Engineering 2026，arXiv:2603.00539，DOI:10.1007/s10515-026-00638-5，2026-10-24 直达验真：LLM 代码审查存在系统性过度矫正——正确实现被错判为不合规，且要求解释与修正的详细提示反而导致更高误判率）"
       level: empirical
-    fix: 代码正确性判断下沉为规则层——跑测试/编译/最小执行先于 AI 评审；AI 评审结论只作参考维度，不进 ✅ 区
+    fix: 代码正确性判断下沉为规则层——跑测试/编译/最小执行先于 AI 评审；AI 评审结论只作参考维度，不进 ✅ 区；要求 AI「解释理由+给修正」不会更可靠反而更糟（ASE 2026）——闸门只能下沉规则层，不能靠加码提示词
     verifier: 判定表——存在可运行的测试/编译命令且已执行即闸门有效；仅 AI 评审意见即本坑命中，补跑真实测试
     confidence: backed_by_context
     pass_k_relevant: true

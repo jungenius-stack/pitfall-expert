@@ -1,14 +1,15 @@
 # 坑卡库 · 调研/决策域（v0.4 融合批次，源自真实翻车案例 D1–D8，10 案例回放验证）
 # 2026-10-17：AMiner 顾问偏差批次——无新增卡，4 处证据更新（RD-018 源论文定位清欠账 / RD-020 并入同质化证据 / RD-017 升 empirical / RD-011 补 CHI 佐证）
 # 2026-10-21：AMiner DeepDive 意图推断批次——新增 RD-023（重复询问制造重要性错觉）；SKILL.md 同步四处硬化（定级否证条件/扫描计数降级/判狼反证搜索/预验尸产出定位）
+# 2026-10-24：AMiner 学术搜索（GLM5.3）创作批次——新增 RD-024 幻觉引用（元坑候选⑨从流程教训升级为通用卡），出处直达验真
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.3
+version: 0.7.7
 domain: research-decision
-updated: '2026-10-21'
-card_count: 23
+updated: '2026-10-24'
+card_count: 24
 cards:
   - id: RD-001
     title: 把「搜不到」当「不存在」（负面定性证据不足）
@@ -633,7 +634,7 @@ cards:
       O: 8
       D: 9
     evidence:
-      source: "Haynes et al., NEJM 2009（8 国 8 院，n=3,733/3,955）；Pronovost et al., NEJM 2006（103 ICU，375,757 导管日）；de Vries SURPASS, NEJM 2010；Bergs et al., BJS 2014 meta（7 研究）；Haugen et al., Ann Surg 2019（挪威阶梯楔形 RCT 二次分析，n=3,702）；**Urbach et al., NEJM 2014 阴性证据（101 院，n≈21.5 万，OR=0.91 P=0.13）**；AMiner DeepDive 报告 2026-10-18 第一节"
+      source: "Haynes et al., NEJM 2009（8 国 8 院，n=3,733/3,955）；Pronovost et al., NEJM 2006（103 ICU，375,757 导管日）；de Vries SURPASS, NEJM 2010；Bergs et al., BJS 2014 meta（7 研究）；Haugen et al., Ann Surg 2019（挪威阶梯楔形 RCT 二次分析，n=3,702）；**Urbach et al., NEJM 2014 阴性证据（101 院，n≈21.5 万，OR=0.91 P=0.13）**；Haugen et al., Ann Surg 2015（原始 stepped-wedge RCT，DOI:10.1097/SLA.0000000000000716，2026-10-24 直达验真）；跨研究梯度：效应上限随方法学严格度单调收缩（随机 < 准实验 < 前后对照，2026-10-24 检索归纳）；AMiner DeepDive 报告 2026-10-18 第一节"
       level: empirical
     fix: 上流程时必须同时定义并采集「执行保真度」指标（做全了没，不是做了没）；把效果声明绑在保真度数据上，保真度不达标就不许声称改善；按 Ontario 先例预设「效应可能为 0」的退出条件与复查时点
     verifier: 抽样 10 次实际执行，逐条核对流程步骤完成度——完成率<80% 则任何「效果提升」结论作废；再查是否存在依从性台账，无台账即本坑命中
@@ -681,3 +682,32 @@ cards:
       - salience
     hazard_type: 常见错误
     source_ref: AMiner DeepDive 2026-10-21-意图推断测量与线索效度
+  - id: RD-024
+    title: 幻觉引用——AI 文献引用默认不可信（过半有问题；给了 DOI/编号也不等于真）
+    description: "多领域独立审计收敛：GPT-3.5 引用 55% 虚构、GPT-4 18% 虚构，真实引用中另有 24–43% 含实质性错误（636 条引用/42 主题，Sci Rep 2023）；医学内容更糟——47% 虚构、46% 真实但不准确，仅 7% 真实且准确，93% 论文含错误 PMID（115 条审计，Cureus 2023）。编号/字段格式全对也不代表论文存在或结论相符。本库自身核验三批 AMiner 报告累计抓到 4 处编号错配（含把纯数学论文配给安全研究、把量子计算论文配给认知调查）——「带编号」恰恰是最危险的伪装。"
+    symptom: 文献综述/引用列表直接采信 AI 输出；「它给了 DOI/arXiv 号应该是真的」；没逐条点开解析；引用标题与被引论点对不上没人发现
+    severity:
+      S: 6
+      O: 8
+      D: 7
+    evidence:
+      source: "Walters & Wilder, Scientific Reports 2023（DOI:10.1038/s41598-023-41032-5，直达验真）；Bhattacharyya, Cureus 2023（DOI:10.7759/cureus.39238，直达验真）；本库三批报告核验实录（docs/出处核验记录-*.md + 回写候选-*_2026-10-24.md，4 处编号错配）"
+      level: empirical
+    fix: 引用逐条直达验证才算 ✅：DOI 解析 + 标题比对（或 arXiv abs 页直达）；验证「标题-论点」相符而不止「论文存在」；RAG/带检索产品的引用同样逐条验——检索增强不保证引用真实
+    verifier: 逐条 doi.org 解析（或 arXiv/abs 直达）并比对标题——任一条解析失败、标题不符、或论文存在但论点对不上即命中（预期：GPT-4 代际仍约 1/5 起步有问题）
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 参考文献
+      - citations
+      - 文献综述
+      - literature review
+      - 找论文
+      - bibliography
+      - 引用格式
+      - references
+      - 相关研究
+      - sources
+      - 论文列表
+    hazard_type: 常见错误
+    source_ref: Walters-SciRep23/Bhattacharyya-Cureus23
