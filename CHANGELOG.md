@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.7.10（2026-10-24）
+
+**安全加固：清零 OSSF Scorecard 检出的 5 个依赖漏洞 + CI 最小权限 + Dependabot 周更。** 起因：Scorecard 首跑 3.3 分，其中 Vulnerabilities 5/10（5 个 GHSA 全在 MCP SDK 传递依赖：body-parser 2.3.0×1 + fast-uri 3.1.8×4；本引擎仅用 stdio 通道，HTTP/URI 解析路径实际不可达，属低危但公开包不该挂红）。修法：npm `overrides` 强制 body-parser ^2.4.0 / fast-uri ^3.1.9（OSV 修复版本，同主版本内补丁），SDK ^1.32.1→^1.32.2；`npm audit` 5→**0**。
+
+- **CI 加固**：ci.yml 顶层 `permissions: read-all`（Token-Permissions 项）；checkout/setup-node 按 SHA 固定（Pinned-Dependencies 8→预期 10）。
+- **新增 `.github/dependabot.yml`**：npm 双根（/ 与 /engine）+ github-actions 周更（Dependency-Update-Tool 项归零成本拿满）。
+- **已知边界**：overrides 只作用于本仓库安装与 CI；npm 消费者侧的传递依赖树由 SDK 上游决定（我们已把 SDK 下限抬到 1.32.2）。Scorecard 的 Maintained/Code-Review/CI-Tests/Contributors 低分项属「新仓库税」（<90 天/无 PR/单人），只能靠时间与采用度。
+- 顺手记录：scorecard-action v2.3.1 的 gcr.io 镜像因上游 billing 故障不可拉取，v2.5.0 起镜像迁至 ghcr.io（本仓库直接用 v2.5.0，SHA 固定）。
+
+验证：引擎测试 **29/29**；selfcheck **全过**（版本一致性门 0.7.10）；MCP initialize 握手冒烟 ✓（SDK 升级无 schema 漂移）；`npm audit` **0 漏洞**。npm 发布 0.7.10 待用户终端执行（2FA）。
+
 ## v0.7.9（2026-10-24）
 
 **selfcheck 新增卡数一致性门（元坑⑲同类第二案）：README/package.json/引擎/⑰号门电池里写死的坑卡数字必须 == `loadCards` 实数，红绿负例复现。** 起因：v0.7.7 卡库 121→125 时发布文案同步改了，其余**8 个文件 11 处写死 120 静默漂移**，用户翻徽章才发现——与⑮⑲同构：对齐靠手工必漏，不分对象。化石清单：两份 README（徽章/正文/示例报告，4 处）、package.json description（1 处）、**引擎英文报告 glossary**（`--lang=en` 每份都打印「(120 cards)」，2 处）、**MCP 工具描述**（「120-card library」喂给调用方模型，1 处）、**eval/battery.json 电池元数据**（`_cardCount: 120`——gate.js 从不读它，纯装饰性基线，漂了零信号；2 处）、测试注释（1 处）。当日全部补齐 125；比对基准只取 loadCards 实数，不引入第二个手工常量；无引擎的技能副本环境跳过（同 ⑰号门先例）。

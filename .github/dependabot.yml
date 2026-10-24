@@ -1,0 +1,22 @@
+# Dependabot：依赖与 GitHub Actions 周更（OSSF Scorecard Dependency-Update-Tool 项）
+# npm 生态两个安装根：仓库根 + engine/（各自有 package.json）
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(deps)"
+  - package-ecosystem: npm
+    directory: /engine
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(engine-deps)"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore(ci)"

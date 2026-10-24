@@ -5,12 +5,15 @@ on:
     branches: [main]
   pull_request:
 
+# 最小权限原则（OSSF Scorecard Token-Permissions）：顶层 read-all，任务级按需放开
+permissions: read-all
+
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
         with:
           node-version: 20
           cache: npm

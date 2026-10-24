@@ -1,6 +1,6 @@
 {
   "name": "pitfall-expert",
-  "version": "0.7.9",
+  "version": "0.7.10",
   "description": "Catch the known pitfalls before your agent starts — 125 evidence-backed pitfall cards across seven domains, three-zone honest reports (verified / unverified / declared blind spots) plus executable verifiers. Skill + MCP engine + hooks.",
   "license": "MIT",
   "type": "commonjs",
@@ -66,7 +66,11 @@
     "gate": "node eval/gate.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "js-yaml": "^5.4.3"
+  },
+  "overrides": {
+    "body-parser": "^2.4.0",
+    "fast-uri": "^3.1.9"
   }
 }
