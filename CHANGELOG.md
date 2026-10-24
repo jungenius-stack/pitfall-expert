@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.7.9（2026-10-24）
+
+**selfcheck 新增卡数一致性门（元坑⑲同类第二案）：README/package.json/引擎/⑰号门电池里写死的坑卡数字必须 == `loadCards` 实数，红绿负例复现。** 起因：v0.7.7 卡库 121→125 时发布文案同步改了，其余**8 个文件 11 处写死 120 静默漂移**，用户翻徽章才发现——与⑮⑲同构：对齐靠手工必漏，不分对象。化石清单：两份 README（徽章/正文/示例报告，4 处）、package.json description（1 处）、**引擎英文报告 glossary**（`--lang=en` 每份都打印「(120 cards)」，2 处）、**MCP 工具描述**（「120-card library」喂给调用方模型，1 处）、**eval/battery.json 电池元数据**（`_cardCount: 120`——gate.js 从不读它，纯装饰性基线，漂了零信号；2 处）、测试注释（1 处）。当日全部补齐 125；比对基准只取 loadCards 实数，不引入第二个手工常量；无引擎的技能副本环境跳过（同 ⑰号门先例）。
+
+- **selfcheck v0.4→v0.5**：第 5 步 loadCards 实数存 `CARD_COUNT`；新增 5b 卡数一致性门——README.md / README.zh-CN.md / package.json / engine/src/report.js / engine/src/index.js / eval/battery.json 逐文件抽取写死数字，≠实数即 `[FAIL]`（报错带文件名+写死值+实数）。形态清单：`pitfall_cards-N`／`N 张坑卡`／`N pitfall cards`／`N cards checked`／`N evidence-backed pitfall cards`／`N-card `／`卡库 N 张`／`library (N cards)`／`"_cardCount": N`。
+- **元坑⑲ 登记簿补第二案**（症状/对策双补），对策落为此门。
+- **已知边界**：门只认现有写死形态，文案改用新措辞写死数字需同步扩门（「100+ 张」这类非精确表述刻意不管）；`_cardCount` 仍无人消费，属于「元数据自称」类，先由本门对齐，是否让 gate.js 真读它留待需要时再说。
+
+验证：selfcheck **全过**（版本一致性门 0.7.9 + 卡数一致性门 125）；负例三发均真红（README 徽章→120、package.json description→120、battery.json `_cardCount`→120，均 rc=1 报 `[FAIL] 卡数漂移`，还原复绿 rc=0）；⑰号门零增；引擎测试 **29/29**（含 lang.test.js：zh 模式零回归 + en glossary 更新后通过）。
+
 ## v0.7.8（2026-10-24）
 
 **写入侧拦截上线：拦截规则从硬编码正则搬进坑卡（`intercept` 字段），门控分级（硬拦/软警告/放行），选开拦截日志——「加一张带规则的卡，门自动多认一种危险」。** 默认档位（report）与安装方式不变，改默认/自动注册留待一周真机数据后（v0.8.0）。

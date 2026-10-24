@@ -1,6 +1,6 @@
 #!/bin/sh
-# pitfall-expert skill 自检入口（融合版 v0.4，零外部依赖，需 node + sh + python3）
-# 检查链：目录完整性 → frontmatter → 坑卡库加载（引擎严格校验）→ 冒烟扫描 → 三区齐备断言 → 报告机检自测
+# pitfall-expert skill 自检入口（融合版 v0.5，零外部依赖，需 node + sh + python3）
+# 检查链：目录完整性 → frontmatter → 版本一致性 → 坑卡库加载（引擎严格校验）→ 卡数一致性 → 冒烟扫描 → 三区齐备断言 → 报告机检自测
 # 退出码：0=全部通过；1=有失败项（逐项打印 [FAIL]）
 set -u
 
@@ -15,7 +15,7 @@ FAIL=0
 fail() { echo "[FAIL] $1"; FAIL=1; }
 pass() { echo "[PASS] $1"; }
 
-echo "== pitfall-expert selfcheck（融合版 v0.4）=="
+echo "== pitfall-expert selfcheck（融合版 v0.5）=="
 
 # 1. 目录完整性（融合版结构：references 五件 + scripts + tests + 仓库根 cards）
 for f in "SKILL.md" "references/mechanisms.md" "references/card-format.md" "references/report-template.md" "references/dod.md" "references/meta-pitfalls.md" "scripts/dod_check.py" "scripts/selfcheck.sh" "tests/sample-pass.md" "tests/sample-fail.md"; do
@@ -54,8 +54,39 @@ fi
 if command -v "$NODE_BIN" >/dev/null 2>&1 && [ -f "$ENGINE_DIR/src/scanner.js" ]; then
   OUT=$("$NODE_BIN" -e "const{loadCards}=require('$ENGINE_DIR/src/scanner.js');const r=loadCards('$CARDS_DIR');console.log(r.cards.length);if(r.errors.length){console.error(JSON.stringify(r.errors));process.exit(1)}" 2>&1)
   RC=$?
-  [ $RC -eq 0 ] && pass "坑卡库加载：${OUT} 张全部通过严格校验" || fail "坑卡校验失败：${OUT}"
+  if [ $RC -eq 0 ]; then
+    CARD_COUNT="$OUT"
+    pass "坑卡库加载：${OUT} 张全部通过严格校验"
+  else
+    fail "坑卡校验失败：${OUT}"
+  fi
   [ "${OUT:-0}" -ge 40 ] && pass "坑卡规模 ≥40（当前 ${OUT}）" || fail "坑卡规模异常：${OUT}（预期 ≥40）"
+fi
+
+# 5b. 卡数一致性（元坑⑲同类第二案：v0.7.7 卡库 121→125，8 个文件 11 处写死 120 静默漂移——README、package.json、
+# 引擎英文报告 glossary、MCP 工具描述、⑰号门电池元数据全在列。基准是上面 loadCards 实数，不引入第二个手工数字；无引擎的副本环境跳过（同 ⑰号门先例））
+if [ -n "${CARD_COUNT:-}" ]; then
+  README_COUNT_BAD=0
+  for rf in "$REPO_ROOT/README.md" "$REPO_ROOT/README.zh-CN.md" "$REPO_ROOT/package.json" \
+            "$REPO_ROOT/engine/src/report.js" "$REPO_ROOT/engine/src/index.js" "$REPO_ROOT/eval/battery.json"; do
+    [ -f "$rf" ] || continue
+    # 已知写死形态：徽章 pitfall_cards-N｜N 张坑卡｜N pitfall cards｜N cards checked｜N evidence-backed pitfall cards｜
+    # N-card library｜卡库 N 张｜library (N cards)｜_cardCount: N（「100+ 张」非精确表述不匹配、不管）
+    for num in $(sed -n \
+      -e 's/.*pitfall_cards-\([0-9][0-9]*\).*/\1/p' \
+      -e 's/.*[^0-9]\([0-9][0-9]*\)[[:space:]]*张坑卡.*/\1/p' \
+      -e 's/.*[^0-9]\([0-9][0-9]*\) pitfall cards.*/\1/p' \
+      -e 's/.*[^0-9]\([0-9][0-9]*\) cards checked.*/\1/p' \
+      -e 's/.*[^0-9]\([0-9][0-9]*\) evidence-backed pitfall cards.*/\1/p' \
+      -e 's/.*[^0-9]\([0-9][0-9]*\)-card .*/\1/p' \
+      -e 's/.*卡库[[:space:]]*\([0-9][0-9]*\)[[:space:]]*张.*/\1/p' \
+      -e 's/.*library (\([0-9][0-9]*\) cards).*/\1/p' \
+      -e 's/.*_cardCount": \([0-9][0-9]*\).*/\1/p' \
+      "$rf" | sort -u); do
+      [ "$num" = "$CARD_COUNT" ] || { fail "卡数漂移：$(basename "$rf") 写死 ${num} ≠ loadCards 实数 ${CARD_COUNT}（元坑⑲）"; README_COUNT_BAD=1; }
+    done
+  done
+  [ $README_COUNT_BAD -eq 0 ] && pass "卡数一致：README*/package.json/引擎/电池 写死数字全部 = ${CARD_COUNT}"
 fi
 
 # 6. 冒烟扫描（英文任务 + 中文任务各一次，验证双语 triggers）+ 三区齐备断言
