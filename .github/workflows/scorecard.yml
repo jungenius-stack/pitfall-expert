@@ -1,0 +1,33 @@
+# OSSF Scorecard：开源供应链安全自动评分（每周六 + main 推送时跑）
+# 结果发布到 api.securityscorecards.dev（公开仓库标准做法）；徽章是否挂到 README 等首跑看分后决定（<5 不挂）
+# action 全部按 SHA 固定——Scorecard 自身对未固定版本的动作扣分
+name: Scorecard supply-chain security
+
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: "30 1 * * 6"
+  push:
+    branches: ["main"]
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      id-token: write
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          persist-credentials: false
+
+      - name: "Run analysis"
+        uses: ossf/scorecard-action@0864cf19026789058feabb7e87baa5f140aac736 # v2.3.1
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
