@@ -63,6 +63,7 @@ node engine/src/cli.js "任意任务" --tier standard  # 手动扫一个看效�
 6. 战略/决策域占位；「AI 战略建议正面偏差」待一手研究源；RD-018 源论文未定位（已声明）；SEC-007 待 OWASP 一手核实；
 7. 元坑登记簿现 **17 条**（`references/meta-pitfalls.md`）——方法论自身的翻车记录，新会话继续写。
 8. **外部认证路线第四步（2026-10-25 已完成，当日闭环）——CodeQL SAST 接入**：起手 Scorecard 5.5/10、SAST=0；终态 **6.1/10、SAST=10**（"SAST tool detected: CodeQL"），CodeQL 首跑绿。经过：本地起草 codeql.yml（codeql-action v4.39.1 SHA 固定）→ 推送被令牌 scope 墙拒（钥匙串 OAuth 令牌无 workflow 权限，实测报文入卡候选 CODE-041）→ 用户网页直建（f8c5c7f，与本地逐字节一致）→ 本地重组纯文档提交对齐（be851f5）。**量纲教训**：实测 +6 分（百分制）而非预估 +9~+11——SAST 有效权重低于 Critical 档假设，单点反推的权重模型误差要给宽区间。遗留：dependabot 3 个 PR 待合并（合并时验证 CODE-042 注释漂移）；分支保护 2 分钟可选项未做；CI-Tests=-1 待首个 PR 合并自然恢复。
+9. **分数冲刺可行集与远期路线（2026-10-25 扫描，报告 docs/踩坑报告-分数冲刺-2026-10-25.md）**：基线 6.1/10。今日集（用户网页操作卡已给，预期 6.6~7.3 区间、复扫为准）：分支保护三勾（不勾 Require PR，保单人直推）+ 合并 3 个 dependabot PR（CI 已验全绿；每单先 Approve 再 Squash merge，攒 Code-Review 首个 approved changeset）。**明确不做**（裁决+理由）：License 换 OSI 文本（法律决策换 ~0.03 分）、Fuzzing/OSS-Fuzz（投入产出不成比例）、SECURITY.md 深挖（Low 权重上限 +0.2，缺项不明）；**自愈项**：Maintained 2027-01 前后过 90 天线。**远期三项**：① npm 发布进 CI + OIDC 受信发布（Packaging -1→10，RELEASING.md 五步流程是底子）；② GitHub Release + 签名产物（Signed-Releases）；③ CII badge 自证申请（30-60 分钟表格）。
 
 ## 七轮采集方法论（已验证有效，可复用）
 
