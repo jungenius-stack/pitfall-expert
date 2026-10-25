@@ -1,0 +1,34 @@
+# CodeQL：GitHub 官方静态安全扫描（OSSF Scorecard SAST 项——外部认证路线第四步）
+# 纯 JS 仓库免 autobuild（init → analyze 即可）；action 按 SHA 固定，与 ci.yml/scorecard.yml 同规矩
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "45 2 * * 6" # 每周六，错开 Scorecard 的 01:30
+
+permissions: read-all
+
+jobs:
+  analyze:
+    name: Analyze (javascript-typescript)
+    runs-on: ubuntu-latest
+    permissions:
+      # 与 scorecard.yml 同款最小放开：仅需上传 SARIF 到代码扫描
+      security-events: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          persist-credentials: false
+      - name: Init CodeQL
+        uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: javascript-typescript
+      - name: Analyze
+        uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: "/language:javascript-typescript"
