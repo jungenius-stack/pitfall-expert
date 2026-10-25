@@ -88,7 +88,8 @@ fi
 if [ -n "${CARD_COUNT:-}" ]; then
   README_COUNT_BAD=0
   for rf in "$REPO_ROOT/README.md" "$REPO_ROOT/README.zh-CN.md" "$REPO_ROOT/package.json" \
-            "$REPO_ROOT/engine/src/report.js" "$REPO_ROOT/engine/src/index.js" "$REPO_ROOT/eval/battery.json"; do
+            "$REPO_ROOT/engine/src/report.js" "$REPO_ROOT/engine/src/index.js" "$REPO_ROOT/eval/battery.json" \
+            "$REPO_ROOT/docs/入门版-贴即用.md"; do
     [ -f "$rf" ] || continue
     # 已知写死形态：徽章 pitfall_cards-N｜N 张坑卡｜N pitfall cards｜N cards checked｜N evidence-backed pitfall cards｜
     # N-card library｜卡库 N 张｜library (N cards)｜_cardCount: N（「100+ 张」非精确表述不匹配、不管）
@@ -106,7 +107,7 @@ if [ -n "${CARD_COUNT:-}" ]; then
       [ "$num" = "$CARD_COUNT" ] || { fail "卡数漂移：$(basename "$rf") 写死 ${num} ≠ loadCards 实数 ${CARD_COUNT}（元坑⑲）"; README_COUNT_BAD=1; }
     done
   done
-  [ $README_COUNT_BAD -eq 0 ] && pass "卡数一致：README*/package.json/引擎/电池 写死数字全部 = ${CARD_COUNT}"
+  [ $README_COUNT_BAD -eq 0 ] && pass "卡数一致：README*/package.json/引擎/电池/入门版 写死数字全部 = ${CARD_COUNT}"
 fi
 
 # 6. 冒烟扫描（英文任务 + 中文任务各一次，验证双语 triggers）+ 三区齐备断言
