@@ -12,7 +12,7 @@
   "description": "踩坑专家扫描引擎：AI 任务执行前的系统性风险预判（MCP server，坑卡库 + 三区诚实报告 + 验证器清单）",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
-    "js-yaml": "^5.4.3"
+    "js-yaml": "^5.5.0"
   },
   "overrides": {
     "body-parser": "^2.4.0",
