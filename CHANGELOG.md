@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.11（2026-10-25）
+
+**selfcheck 新增 2c 本机副本一致性门（元坑⑲副本滞后两次发作的机制化封堵）：已装副本（~/.agents、~/.claude、~/.workbuddy）的 SKILL 版本必须 == 仓库版本，漂移即红并提示重跑 install.sh；CI/无副本环境自动跳过。** 起因：本机三副本静默停在 0.7.8 落后两版（0.7.6 时代同症状第一次），两次都靠自举体检偶然发现而非机制报警——与⑲同构：对齐靠手工必漏。负例已验（临时改副本版本 → 门红 → 还原复绿）。
+
+验证：selfcheck 全过（版本门 0.7.11 + 副本门 3 副本一致 + 卡数门 125）；负例真红复验。
+
 ## v0.7.10（2026-10-24）
 
 **安全加固：清零 OSSF Scorecard 检出的 5 个依赖漏洞 + CI 最小权限 + Dependabot 周更。** 起因：Scorecard 首跑 3.3 分，其中 Vulnerabilities 5/10（5 个 GHSA 全在 MCP SDK 传递依赖：body-parser 2.3.0×1 + fast-uri 3.1.8×4；本引擎仅用 stdio 通道，HTTP/URI 解析路径实际不可达，属低危但公开包不该挂红）。修法：npm `overrides` 强制 body-parser ^2.4.0 / fast-uri ^3.1.9（OSV 修复版本，同主版本内补丁），SDK ^1.32.1→^1.32.2；`npm audit` 5→**0**。

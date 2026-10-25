@@ -37,6 +37,26 @@ else
   pass "版本一致性：无 CHANGELOG（技能副本），已跳过（本副本 version ${SKILL_VERSION}）"
 fi
 
+# 2c. 本机副本一致性（元坑⑲副本滞后两次发作均靠体检发现：已装副本版本必须 == 仓库版本；CI/无副本环境自动跳过）
+if [ -f "$REPO_ROOT/CHANGELOG.md" ] && [ -n "${SKILL_VERSION:-}" ]; then
+  COPY_FOUND=0; COPY_BAD=0
+  for cdir in "$HOME/.agents/skills/pitfall-expert" "$HOME/.claude/skills/pitfall-expert" "$HOME/.workbuddy/skills/pitfall-expert"; do
+    if [ -d "$cdir" ] && [ -f "$cdir/SKILL.md" ]; then
+      COPY_FOUND=$((COPY_FOUND + 1))
+      CV=$(grep -m1 '^  version:' "$cdir/SKILL.md" 2>/dev/null | sed 's/^  version:[[:space:]]*//')
+      if [ -n "${CV:-}" ] && [ "$CV" != "$SKILL_VERSION" ]; then
+        fail "副本版本漂移：${cdir} 停在 ${CV} ≠ 仓库 ${SKILL_VERSION}——重跑 install.sh 刷新（元坑⑲：副本滞后静默发作）"
+        COPY_BAD=1
+      fi
+    fi
+  done
+  if [ $COPY_FOUND -eq 0 ]; then
+    pass "副本一致性：本机无已装副本（CI 环境），跳过"
+  elif [ $COPY_BAD -eq 0 ]; then
+    pass "副本一致性：${COPY_FOUND} 个本机副本全部 = ${SKILL_VERSION}"
+  fi
+fi
+
 # 3. 机制与硬约束锚点（M13 验证器铸造 + 元坑登记簿为融合版独有）
 for anchor in "M13 | 验证器铸造" "元坑登记簿" "纸老虎"; do
   grep -q "$anchor" "$SKILL_DIR/SKILL.md" && pass "SKILL.md 含关键锚点：$anchor" || fail "SKILL.md 缺锚点：$anchor"
