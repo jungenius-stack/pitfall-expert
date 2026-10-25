@@ -17,20 +17,19 @@
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
 
-**Run the scan right now** (no install, no clone — runs straight from this repo):
+**Run the scan right now** (no install, no clone):
 
 ```bash
-npx --yes github:jungenius-stack/pitfall-expert "refactor the payment module" --tier quick
-npx --yes github:jungenius-stack/pitfall-expert "refactor the payment module" --tier quick --lang=en
+npx pitfall-expert "refactor the payment module" --tier quick
+npx pitfall-expert "refactor the payment module" --tier quick --lang=en
 ```
 
-> Not yet on the npm registry, so run it via the GitHub spec above. Once published you
-> will also be able to use the shorter `npx pitfall-expert`. See `RELEASING.md`.
+> Published on npm as [`pitfall-expert`](https://www.npmjs.com/package/pitfall-expert). If the registry is unreachable, the GitHub fallback works too: `npx --yes github:jungenius-stack/pitfall-expert "..." --tier quick`.
 
 **Or install it as a dependency** (gives you `pitfall-expert` / `pitfall-expert-scan` / `pitfall-expert-mcp` on your PATH):
 
 ```bash
-npm install github:jungenius-stack/pitfall-expert
+npm install pitfall-expert
 ```
 
 **Wire it into an MCP client** (Claude Desktop / Codex / DeepSeek Harness, stdio) — after the

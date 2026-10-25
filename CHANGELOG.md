@@ -9,7 +9,7 @@
 - **已知边界**：overrides 只作用于本仓库安装与 CI；npm 消费者侧的传递依赖树由 SDK 上游决定（我们已把 SDK 下限抬到 1.32.2）。Scorecard 的 Maintained/Code-Review/CI-Tests/Contributors 低分项属「新仓库税」（<90 天/无 PR/单人），只能靠时间与采用度。
 - 顺手记录：scorecard-action v2.3.1 的 gcr.io 镜像因上游 billing 故障不可拉取，v2.5.0 起镜像迁至 ghcr.io（本仓库直接用 v2.5.0，SHA 固定）。
 
-验证：引擎测试 **29/29**；selfcheck **全过**（版本一致性门 0.7.10）；MCP initialize 握手冒烟 ✓（SDK 升级无 schema 漂移）；`npm audit` **0 漏洞**。npm 发布 0.7.10 待用户终端执行（2FA）。
+验证：引擎测试 **29/29**；selfcheck **全过**（版本一致性门 0.7.10）；MCP initialize 握手冒烟 ✓（SDK 升级无 schema 漂移）；`npm audit` **0 漏洞**。npm 0.7.10 已上线（stage publish + 网页批准流程，干净目录真机复验 0 漏洞）。
 
 ## v0.7.9（2026-10-24）
 

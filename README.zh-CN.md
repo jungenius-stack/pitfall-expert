@@ -12,18 +12,18 @@
 
 [Quick start](#快速开始) · [工作原理](#工作原理) · [能防什么](#能防什么) · [战绩](#战绩) · [FAQ](#faq)
 
-**立刻跑一次**（免安装、免克隆，直接从仓库跑）：
+**立刻跑一次**（免安装、免克隆）：
 
 ```bash
-npx --yes github:jungenius-stack/pitfall-expert "重构支付模块" --tier quick
+npx pitfall-expert "重构支付模块" --tier quick
 ```
 
-> 尚未发布到 npm registry，所以用上面的 GitHub 写法。发布后即可用更短的 `npx pitfall-expert`，详见 `RELEASING.md`。
+> 已发布到 npm（[pitfall-expert](https://www.npmjs.com/package/pitfall-expert)）。registry 不可达时的 GitHub 兜底：`npx --yes github:jungenius-stack/pitfall-expert "重构支付模块" --tier quick`。
 
 **装成依赖**（装完 `pitfall-expert` / `pitfall-expert-scan` / `pitfall-expert-mcp` 三个命令都可用）：
 
 ```bash
-npm install github:jungenius-stack/pitfall-expert
+npm install pitfall-expert
 ```
 
 **接进 MCP 客户端**（Claude Desktop / Codex / DeepSeek Harness，stdio）——装完上面那条后，指向装好的入口：
