@@ -62,7 +62,7 @@ node engine/src/cli.js "任意任务" --tier standard  # 手动扫一个看效�
 5. **真实用户零**：所有验证都是自举/外部考题/文献——最缺真实任务回写；hooks 写入侧拦截（弱点二完全解）未做；
 6. 战略/决策域占位；「AI 战略建议正面偏差」待一手研究源；RD-018 源论文未定位（已声明）；SEC-007 待 OWASP 一手核实；
 7. 元坑登记簿现 **17 条**（`references/meta-pitfalls.md`）——方法论自身的翻车记录，新会话继续写。
-8. **外部认证路线第四步（2026-10-25 用户点名：下次说「继续」即执行）——装 SAST 自动代码检查工具，Scorecard 拿回约 11 分**：当前 **5.5/10**（2026-10-25 扫描实测，api.securityscorecards.dev），**SAST=0（"no SAST tool detected"）**是挂零项里唯一「~1 小时可修」的大项。总分=按风险加权平均（Critical=10/High≈7.5/Medium≈5/Low≈2.5，官方 README；用当日 18 项检查分值可反推复现 5.5）——SAST 0→10 按权重档 **+9～+11**（百分制 55→64~66；用户口径 11 对应 Critical 档）。做法：**GitHub CodeQL default setup**（纯 JS 仓库零配置，Settings→Code security→Code scanning→Default setup，不新增 workflow 文件）。**坑：普通 linter（ESLint 类）不被 Scorecard SAST 检查认可（只认 CodeQL/SonarCloud 类安全扫描）——装错工具=白干一小时；装前对照该检查认可清单复核一遍**。验证判定表：装后手动触发 scorecard-action（别等周六自动扫）→ SAST=10 ⇒ 收工；仍=0 ⇒ 工具未被识别，换 SonarCloud 路线。剩余低分项属「抠细节/靠时间」：Branch-Protection 0（一次 gh api PUT，需 admin）、Security-Policy 4、License 9、CI-Tests -1（"no pull request found"，改走 PR 流程自然解）、Code-Review 0（0/30 approved changesets，随 PR 评审逐步攒）、Maintained/Contributors（<90 天+单人，新仓库税只能靠时间）、Fuzzing/CII-Best-Practices/Signed-Releases/Packaging（长期投入项）。
+8. **外部认证路线第四步（2026-10-25 已完成，当日闭环）——CodeQL SAST 接入**：起手 Scorecard 5.5/10、SAST=0；终态 **6.1/10、SAST=10**（"SAST tool detected: CodeQL"），CodeQL 首跑绿。经过：本地起草 codeql.yml（codeql-action v4.39.1 SHA 固定）→ 推送被令牌 scope 墙拒（钥匙串 OAuth 令牌无 workflow 权限，实测报文入卡候选 CODE-041）→ 用户网页直建（f8c5c7f，与本地逐字节一致）→ 本地重组纯文档提交对齐（be851f5）。**量纲教训**：实测 +6 分（百分制）而非预估 +9~+11——SAST 有效权重低于 Critical 档假设，单点反推的权重模型误差要给宽区间。遗留：dependabot 3 个 PR 待合并（合并时验证 CODE-042 注释漂移）；分支保护 2 分钟可选项未做；CI-Tests=-1 待首个 PR 合并自然恢复。
 
 ## 七轮采集方法论（已验证有效，可复用）
 
