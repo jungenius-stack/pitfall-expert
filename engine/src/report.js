@@ -50,10 +50,10 @@ function buildReport(r) {
 
   L.push(`# 踩坑报告 · ${tierInfo.label}${en ? ' / Pitfall Report' : ''}`);
   if (en) {
-    // 面向非中文使用者：报告骨架是中文原生（卡库 125 张均为中文），此段说明字段含义，
+    // 面向非中文使用者：报告骨架是中文原生（卡库 117 张均为中文），此段说明字段含义，
     // 使英文用户至少能定位结论，不假装整份报告已英化。
     L.push('');
-    L.push('> **Read this in English**: the card library (125 cards) is originally written in Chinese, so card bodies below stay in Chinese. Structure of this report — `✅ 已查证` = **verified** (evidence chain attached); `❓ 未验证` = **unverified** (with a ≤5-min follow-up action); `🚫 盲区` = **declared blind spots**; `验证器清单` = **verifier list** (executable checks, the caller runs them). Field labels: 任务=task, 领域判定=domain routing, 扫描范围=cards scanned, 症状信号=symptom, 证据=evidence, 规避动作=mitigation, 置信度=confidence, 命中依据=why matched.');
+    L.push('> **Read this in English**: the card library (117 cards) is originally written in Chinese, so card bodies below stay in Chinese. Structure of this report — `✅ 已查证` = **verified** (evidence chain attached); `❓ 未验证` = **unverified** (with a ≤5-min follow-up action); `🚫 盲区` = **declared blind spots**; `验证器清单` = **verifier list** (executable checks, the caller runs them). Field labels: 任务=task, 领域判定=domain routing, 扫描范围=cards scanned, 症状信号=symptom, 证据=evidence, 规避动作=mitigation, 置信度=confidence, 命中依据=why matched.');
   }
   L.push('');
   L.push(`- 任务：${r.task}`);

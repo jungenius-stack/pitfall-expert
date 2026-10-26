@@ -85,7 +85,7 @@ if (exitCode === 2) {
 } else {
   console.log(`⑰号门：失败 —— ${increases.length} 处新增命中：`);
   for (const i of increases) console.log(`  · 任务${i.task} ${i.domain} ${i.from}→${i.to}`);
-  console.log('  处置：查是哪张卡的哪个字段/触发词点亮，改具体表述后重跑（先例：MATH-014「复杂度」、SCI-011「这张图」、CODE-045「实现」）。');
+  console.log('  处置：查是哪张卡的哪个字段/触发词点亮，改具体表述后重跑（先例：MATH-014「复杂度」、SCI-011「这张图」〔已并入 SCI-008〕、CODE-045「实现」〔已并入 CODE-043〕）。');
   exitCode = 1;
 }
 process.exit(exitCode);

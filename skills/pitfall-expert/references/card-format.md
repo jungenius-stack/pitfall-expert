@@ -52,7 +52,20 @@ cards:
 2. 按上述 schema 写入对应 `cards/<domain>.yaml`（新领域先建文件并在 SKILL.md 能力表登记）；
 3. 新领域激活三件套：capability 边界 + ≥5 张带溯源坑卡 + ≥1 条案例回放；
 4. **未遂坑优先**（海因里希 1:29:300）：被拦下的坑、低损害小坑优先入卡；
-5. 入库前跑校验（不通过不入库）：
+5. **跨域查重门（元坑㉑，2026-10-26 起）**：入库前对新卡跑全库触发词交集比对——命中（与任何既有卡共享 ≥2 个触发词）即强制人工裁决「合并 or 分立」，裁决理由写入卡头注释；脚本只抓词面，标题/描述语义近似仍需人工读一遍全库目录（查重缘由：8 对同义双卡全部漏过无查重的旧流程）：
+
+```bash
+node -e "const {loadCards}=require('./engine/src/scanner'); const cards=loadCards('./cards').cards; \
+const NEW='CODE-046'; const me=cards.find(c=>c.id===NEW); \
+if(!me){console.log('未找到 '+NEW);process.exit(1)} \
+const myT=new Set(me.triggers.map(t=>t.toLowerCase())); let hit=0; \
+for(const c of cards){ if(c.id===NEW) continue; \
+  const shared=c.triggers.filter(t=>myT.has(t.toLowerCase())); \
+  if(shared.length>=2){hit++;console.log('疑似重复 '+c.id+'《'+c.title+'》共享: '+shared.join(','))}} \
+console.log(hit?hit+' 张待人工裁决':'词面查重通过（语义近似仍需人工复核）')"
+```
+
+6. 入库前跑校验（不通过不入库）：
 
 ```bash
 node -e "const {loadCards}=require('./engine/src/scanner'); const r=loadCards('./cards'); console.log(r.cards.length+' cards', r.errors.length? JSON.stringify(r.errors):'✓ no errors')"

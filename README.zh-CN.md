@@ -75,7 +75,7 @@ git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-ex
 ```text
 # 踩坑报告 · ⚡ 快扫
 - 任务：帮我把 users.csv 按省份汇总人数，注意处理空值和重复行
-- 领域判定：代码（中）｜125 张坑卡逐条对照 100%
+- 领域判定：代码（中）｜117 张坑卡逐条对照 100%
 
 ## ✅ 已查证区（4 项）
 ### [CODE-014] CSV/数据解析

@@ -37,23 +37,63 @@ else
   pass "版本一致性：无 CHANGELOG（技能副本），已跳过（本副本 version ${SKILL_VERSION}）"
 fi
 
-# 2c. 本机副本一致性（元坑⑲副本滞后两次发作均靠体检发现：已装副本版本必须 == 仓库版本；CI/无副本环境自动跳过）
+# 2c. frontmatter 严格 YAML 可解析（2026-10-26 事故回写：description 纯量含 ASCII ': ' → js-yaml 报
+#     bad indentation → DSH/Agnes/豆包整技能静默拒绝；ZCode 宽松解析器照常显示=分发假阳性，门必须用严格解析器）
+JSYAML_PATH=""
+if [ -d "$ENGINE_DIR/node_modules/js-yaml" ]; then
+  JSYAML_PATH="$ENGINE_DIR/node_modules/js-yaml"
+elif [ -d "$(npm root -g 2>/dev/null)/js-yaml" ]; then
+  JSYAML_PATH="$(npm root -g 2>/dev/null)/js-yaml"
+fi
+if [ -n "$JSYAML_PATH" ]; then
+  if node -e "const y=require('$JSYAML_PATH');const fs=require('fs');y.load(fs.readFileSync('$SKILL_DIR/SKILL.md','utf8').split(/^---\$/m)[1])" 2>/dev/null; then
+    pass "frontmatter 严格 YAML 解析通过（js-yaml）"
+  else
+    fail "frontmatter 严格 YAML 解析失败——严格解析器（DSH/Agnes/豆包等）会整技能静默拒绝；常见因：纯量含 ASCII ': '（修法：值整体加单引号）"
+  fi
+else
+  # 降级门（无 js-yaml）：description 值须引号开头或不含 ASCII ': '；降级须声明，不静默跳过
+  desc_line="$(grep -m1 '^description:' "$SKILL_DIR/SKILL.md")"
+  case "$desc_line" in
+    description:\ \'*) pass "frontmatter 冒号启发式通过（description 已引号包裹；无 js-yaml 降级门）" ;;
+    *":\ "*) fail "description 疑似含未加引号的 ASCII ': '（降级启发式命中；装 js-yaml 或在仓库跑 selfcheck 精确判定）" ;;
+    *) pass "frontmatter 冒号启发式通过（未见 ASCII ': '；无 js-yaml 降级门）" ;;
+  esac
+fi
+
+# 2d. 本机副本一致性（元坑⑲副本滞后两次发作均靠体检发现；CI/无副本环境自动跳过）
+#     2026-10-26 升级：仓库环境下比整文件 shasum（version 行相同但内容旧的副本曾静默过门——~/Doubao 残留实录）
 if [ -f "$REPO_ROOT/CHANGELOG.md" ] && [ -n "${SKILL_VERSION:-}" ]; then
   COPY_FOUND=0; COPY_BAD=0
-  for cdir in "$HOME/.agents/skills/pitfall-expert" "$HOME/.claude/skills/pitfall-expert" "$HOME/.workbuddy/skills/pitfall-expert"; do
+  SRC_SKILL="$REPO_ROOT/skills/pitfall-expert/SKILL.md"
+  # 门清单与 sync-all-agents.sh 的 TARGET_SKILL_DIRS 必须同源（元坑⑲：两处硬编码=两个漂移面，本行已三次发作）
+  for cdir in "$HOME/.agents/skills/pitfall-expert" "$HOME/.claude/skills/pitfall-expert" "$HOME/.workbuddy/skills/pitfall-expert" "$HOME/.workbuddy-ai/skills/pitfall-expert" "$HOME/.dsh/skills/pitfall-expert" "$HOME/.codex/skills/pitfall-expert" "$HOME/.agnes/skills/pitfall-expert" "$HOME/Library/Application Support/Doubao/Profile 1/.doubao/agent_mode/workspace/.skills/pitfall-expert"; do
     if [ -d "$cdir" ] && [ -f "$cdir/SKILL.md" ]; then
       COPY_FOUND=$((COPY_FOUND + 1))
-      CV=$(grep -m1 '^  version:' "$cdir/SKILL.md" 2>/dev/null | sed 's/^  version:[[:space:]]*//')
-      if [ -n "${CV:-}" ] && [ "$CV" != "$SKILL_VERSION" ]; then
-        fail "副本版本漂移：${cdir} 停在 ${CV} ≠ 仓库 ${SKILL_VERSION}——重跑 install.sh 刷新（元坑⑲：副本滞后静默发作）"
-        COPY_BAD=1
+      if [ -f "$SRC_SKILL" ] && command -v shasum >/dev/null 2>&1; then
+        # 仓库环境：整文件比对（内容盲区关闭）
+        if [ "$(shasum "$cdir/SKILL.md" | cut -d' ' -f1)" != "$(shasum "$SRC_SKILL" | cut -d' ' -f1)" ]; then
+          fail "副本内容漂移：${cdir}/SKILL.md 与仓库源不一致——重跑 sync-all-agents.sh（version 相同内容旧也会被抓）"
+          COPY_BAD=1
+        fi
+      else
+        # 副本环境降级：比 version 行（无源可比）
+        CV=$(grep -m1 '^  version:' "$cdir/SKILL.md" 2>/dev/null | sed 's/^  version:[[:space:]]*//')
+        if [ -n "${CV:-}" ] && [ "$CV" != "$SKILL_VERSION" ]; then
+          fail "副本版本漂移：${cdir} 停在 ${CV} ≠ 仓库 ${SKILL_VERSION}——重跑 install.sh 刷新（元坑⑲：副本滞后静默发作）"
+          COPY_BAD=1
+        fi
       fi
     fi
   done
   if [ $COPY_FOUND -eq 0 ]; then
     pass "副本一致性：本机无已装副本（CI 环境），跳过"
   elif [ $COPY_BAD -eq 0 ]; then
-    pass "副本一致性：${COPY_FOUND} 个本机副本全部 = ${SKILL_VERSION}"
+    if [ -f "$SRC_SKILL" ]; then
+      pass "副本一致性：${COPY_FOUND} 个本机副本 SKILL.md 与仓库源逐字节一致（shasum）"
+    else
+      pass "副本一致性：${COPY_FOUND} 个本机副本全部 = ${SKILL_VERSION}"
+    fi
   fi
 fi
 

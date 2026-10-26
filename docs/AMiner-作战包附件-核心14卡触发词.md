@@ -29,5 +29,5 @@
 - SEC-003 间接提示注入致命三要素：提示注入、工单、issue、PR、私有仓库、生产凭据、prompt injection、untrusted input、privileged access、exfiltration、issue triage、customer ticket
 - MATH-001 循环论证：证明题、恒等式推导、解方程后验根、算法正确性证明、proof、circular reasoning、identity
 - MATH-012 统计推断误用：假设检验、A/B 实验、相关性分析、研究报告、数据驱动决策、hypothesis test、p-value、ab test、correlation
-- CODE-037 过早多 Agent 化：多agent、编排、multi-agent、orchestration、agent 团队、swarm、子agent、subagent、agent 架构、agent architecture
+- RD-021 未验证单 Agent 不行就上多 Agent（原 CODE-037 已于 2026-10-26 深扫并入本卡，触发词已合并）：多agent、编排、multi-agent、orchestration、agent 团队、swarm、子agent、subagent、agent 架构、agent architecture、上个 agent 吧、搞个 orchestrator、fan out to agents
 - CODE-038 上下文逐跳衰减与漂移：多agent协作、长任务、会话过长、context drift、long session、handoff、交接、指令遗忘、multi-agent coordination、long running task

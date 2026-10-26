@@ -3,14 +3,16 @@
 # 2026-10-17：AMiner 报告第 3/4 章批次（CODE-043 表面验证 / CODE-044 执行前体检[needs_verification]）；同日定量批次 CODE-003 补数值噪声成因（arXiv:2506.09501 旁证）
 # 2026-10-18：AMiner 两发 DeepDive 收口批次（CODE-045 规则式判定低估 agent 成功率，出处 AgentRewardBench/CUAVerifierBench）
 # 2026-10-24：AMiner 学术搜索（GLM5.3）批次——CODE-039 补反向误判证据（ASE 2026 过度矫正，直达验真），无新增卡
+# 2026-10-26：卡库深扫合并批次（docs/卡库深扫-2026-10-26.md）——CODE-030→015 / CODE-024→023 / CODE-045→043 并卡，
+#   CODE-037→RD-021 跨域并卡；CODE-041 退役（存档 docs/cases/退役卡存档-CODE-041.md）；CODE-040 补英文触发词（元坑⑩）
 # 字段规范见 docs/踩坑专家方法论_v0.3.md 第 9.1 条：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.7
+version: 0.7.8
 domain: code
-updated: '2026-10-24'
-card_count: 50
+updated: '2026-10-26'
+card_count: 45
 cards:
   - id: CODE-001
     title: 虚假不可能性
@@ -462,20 +464,24 @@ cards:
       - spreadsheet
       - data import
   - id: CODE-015
-    title: 顺手过度修改（范围蔓延）
-    description: 改 A 时顺手改 B/C/D，diff 远超需求范围——Karpathy 总结的 LLM 编程四大通病之一（默默猜需求/顺手过度改/过度工程/无验证宣称完成）。
-    symptom: PR diff 与需求无关的文件占比高；"既然看到了就修一下"；一次提交混多主题
+    title: 顺手过度修改与「只移动」偷改（范围蔓延）
+    description: >-
+      改 A 时顺手改 B/C/D，diff 远超需求范围——Karpathy 总结的 LLM 编程四大通病之一（默默猜需求/顺手过度改/过度工程/无验证宣称完成）。最险形态：明确要求仅移动/仅格式化，AI
+      却顺手删「冗余」变量、改日志拼接方式——原代码同一字符串引用被 == 比较，改动后变成两个对象，行为静默改变（指令的最小范围与 AI 的默认优化倾向不匹配）。
+    symptom: PR diff 与需求无关的文件占比高；"既然看到了就修一下"；一次提交混多主题；重构 diff 中混入语义改动；日志格式「顺手统一」；代码审查发现未授权变更
     severity:
-      S: 3
+      S: 6
       O: 4
-      D: 2
+      D: 7
     evidence:
       source: >-
-        multica-ai/andrej-karpathy-skills (219k★)；现场案例：「优化一下」结果 DTO/路由/依赖全改，前端解析失败联调中断（CSDN 复盘
-        2026-06）
+        multica-ai/andrej-karpathy-skills（219k★，LLM 编程四大通病）；腾讯云开发者（2026-06，B 级）：「只移动代码」却删 3
+        个变量+改日志格式，字符串 == 比较行为改变——原 CODE-030 于 2026-10-26 深扫并入本卡
       level: consensus
-    fix: 需求复述 + diff 审查双动作；范围外改动单独提交或明确征求同意；克制"看到了就修"
-    verifier: 提交前 diff 逐文件对照需求清单，无关文件必须给出理由或移出本提交
+    fix: >-
+      需求复述 + diff 审查双动作；范围外改动单独提交或明确征求同意；「纯移动/纯格式」任务必须用 git diff
+      --ignore-all-space 机械检查（非空 diff 即偷改），不靠肉眼；要求 AI 列出全部非格式性修改并说明理由
+    verifier: 对「纯移动/纯格式」任务跑 git diff --ignore-all-space——非空 diff 即命中；一般任务提交前 diff 逐文件对照需求清单，无关文件必须给出理由或移出本提交
     confidence: backed_by_context
     pass_k_relevant: false
     triggers:
@@ -483,10 +489,18 @@ cards:
       - 重构
       - 顺手优化
       - 修复时的格式调整
+      - 移动代码
+      - 格式化
       - scope creep
       - while at it
       - drive-by fix
+      - drive-by change
+      - move only
+      - reformat
       - refactor
+      - diff review
+    hazard_type: 易错环节
+    source_ref: karpathy-skills/tencent-cloud（原 CODE-030 并入）
   - id: CODE-016
     title: shell 变量展开被全角字符截断
     description: >-
@@ -816,27 +830,32 @@ cards:
     hazard_type: 工具链环境
     source_ref: AI纪要-2026-10-14-b
   - id: CODE-023
-    title: 限流参数被静默忽略（设了但不起作用，且无任何征兆）
+    title: 网关参数语义不可信（限流被静默忽略；校验通过≠能跑）
     description: >-
-      客户端设置了生成长度上限参数（max_tokens / max_completion_tokens），网关接受该参数却不在生成时执行， 输出远超上限；且 finish_reason 返回
-      stop 而非 length，HTTP 200，响应外观与正常完全一致， 客户端无法从响应察觉参数失效。代价：成本失控 + 长输出撑爆下游上下文。
-    symptom: 设了极小的输出上限但实际输出远超；finish_reason 从不出现 length；成本高于预期
+      同一网关两条同源表现（网关与后端各自维护参数语义且互不同步）：①客户端设置的生成长度上限参数（max_tokens /
+      max_completion_tokens）被网关接受却不在生成时执行，输出远超上限，且 finish_reason 返回 stop 而非
+      length、HTTP 200，响应外观与正常完全一致，客户端无法从响应察觉参数失效；②网关用「标称上下文」做前置校验、后端用「实际（更小）上下文」做服务限制，校验非单调（prompt
+      仅 2 字符 + max_tokens=1000000 被拒，45K prompt + 830000 却通过），且报错文本指向错误的对象，误导排查方向。代价：成本失控 + 长输出撑爆下游上下文 + 排查方向被带偏。
+    symptom: 设了极小的输出上限但实际输出远超；finish_reason 从不出现 length；成本高于预期；某组合通过校验却被后端拒绝；报错把 A 参数的问题说成 B 参数过长
     severity:
       S: 8
       O: 5
       D: 9
     evidence:
       source: >-
-        2026-10-15 实测（apiget / gpt-6-astra）：max_tokens=1 输出 2728 tok、max_tokens=50 输出 5421 tok （超设定
-        108 倍）、max_tokens=200 输出 4816 tok；换用 max_completion_tokens=1/100 同样被忽略 （分别输出 3023 / 3152
-        tok）。三次 finish_reason 均为 stop。同一参数在 OpenDesign 渠道 （deepseek-v4.1-flash）则正常生效——跨渠道行为不一致。
+        2026-10-15 同日同网关实测（apiget / gpt-6-astra）：max_tokens=1 输出 2728 tok（超设定 108 倍）、三次 finish_reason
+        均为 stop，同一参数在另一渠道正常生效（跨渠道不一致）；另 12 个数据点证实校验非单调、真实可服务上限 872000
+        由拒绝报错给出——原 CODE-024 于 2026-10-26 深扫并入本卡
       level: case
     fix: >-
-      对任何「限制类参数」做越界实测（设极小值 + 强制长输出任务），而非只测「能否接受该参数」； 把 finish_reason 纳入检查但不可单独作为证据（参数失效时它同样返回 stop）；
-      控成本改用外部手段（计时/字符数/流式累加中止）；跨渠道必须分别实测，禁止外推。
+      对任何「限制类参数」做越界实测（设极小值 + 强制长输出任务），而非只测「能否接受该参数」；上下文与输出参数一律以「实测能跑通的最大值」为准，不采信校验通过；max_tokens
+      填小值（≤32000 最安全）；finish_reason 纳入检查但不可单独作证据；遇到「prompt too
+      long」类报错先核对报错指向的参数是否与实际超限参数一致；跨渠道必须分别实测，禁止外推。
     verifier: >-
-      发 {"max_tokens":1,"messages":[{"role":"user","content":"写一篇 3000 字的文章，主题：雨夜。直接开始正文，不要停。"}]} →
-      预期：若 usage.completion_tokens > 10 则命中本坑（本次实测值 2728）。
+      判定表：①发 {"max_tokens":1,"messages":[{"role":"user","content":"写一篇 3000 字的文章，主题：雨夜。直接开始正文，不要停。"}]}——usage.completion_tokens
+      > 10 即参数失效命中；②三组对照复现校验非单调——prompt="hi"+max_tokens=999990（预期 200）vs +1000000（预期 400）、prompt≈45K
+      tok+max_tokens=830000（预期 200）vs +840000（预期 400）、prompt≈880K tok+max_tokens=60（预期 400 且报错含
+      872000）——三组同时成立即校验层不可信命中
     confidence: backed_by_context
     pass_k_relevant: true
     triggers:
@@ -845,50 +864,19 @@ cards:
       - 输出长度限制
       - 参数不生效
       - 成本失控
+      - 上下文长度
+      - 校验通过
+      - 报错误导
       - output length limit
       - silent parameter drop
       - finish_reason
-    hazard_type: 工具链环境
-    latent_condition: 网关在协议转换中丢弃参数；响应外观与正常完全一致，无任何可观测征兆
-    source_ref: 报告-2026-10-15-apiget-gpt6astra
-  - id: CODE-024
-    title: 校验层限制与实际服务限制不一致（通过校验 ≠ 能跑）
-    description: 网关用「标称上下文」做前置参数校验，后端用「实际（更小）上下文」做服务限制，两个数字不同； 且报错文本指向错误的对象，误导排查方向。表现为「参数校验通过但在服务端被拒」的错位。
-    symptom: 某组合通过校验却被后端拒绝；报错把 A 参数的问题说成 B 参数过长
-    severity:
-      S: 6
-      O: 2
-      D: 9
-    evidence:
-      source: >-
-        2026-10-15 实测（apiget / gpt-6-astra），12 个数据点，规则自相矛盾、无法用任何简单公式解释： (a) prompt 仅 "hi" +
-        max_tokens=999990 → 200 通过；+1000000 → 400 拒绝（报错文本为 "prompt is too long: input exceeds the
-        maximum context length"，而 prompt 只有 2 个字符）。 (b) prompt=45321 tok + max_tokens=830000（和
-        875321）→ 通过；+840000（和 885321）→ 拒绝； +872000 → 拒绝。→ 和值不是判据（小 prompt 的和可达 999998 却通过）。 (c)
-        prompt=553750 tok + max_tokens=60 → 通过；prompt=876739 + max_tokens=60 → 拒绝，
-        此时报错才给出具体数字（"876739 tokens > 872000 maximum context length"）——与 (a)(b) 的 无数字报错属于不同校验路径。
-        结论：网关对 max_tokens 的校验非单调、与 prompt 长度不构成简单线性关系，疑为网关缺陷； 真实可服务的 prompt 上限为 872000（路径 c 明确给出）。
-      level: case
-    fix: >-
-      上下文与输出参数一律以「实测能跑通的最大值」为准，不采信校验通过； 配置值向下取整留余量；max_tokens 一律填小值（≤32000 最安全）——因为该参数既不生效， 填大反而在大
-      prompt 时触发 400；遇到「prompt too long」类报错先核对报错指向的参数是否与实际超限参数一致。
-    verifier: >-
-      三组对照即可复现矛盾：①prompt="hi" + max_tokens=999990（预期 200）与 +1000000（预期 400）； ②prompt≈45K tok +
-      max_tokens=830000（预期 200）与 +840000（预期 400）； ③prompt≈880K tok + max_tokens=60（预期 400 且报错含
-      872000）。 三组同时成立 = 命中本坑（校验非单调）。
-    confidence: backed_by_context
-    pass_k_relevant: false
-    triggers:
-      - 上下文长度
-      - 校验通过
       - context length
       - max_tokens 上限
-      - 报错误导
       - validation mismatch
       - context_length_exceeded
     hazard_type: 工具链环境
-    latent_condition: 网关校验阈值与后端服务阈值分别维护、不同步；报错文本由校验层生成，指向校验层视角的参数
-    source_ref: 报告-2026-10-15-apiget-gpt6astra
+    latent_condition: 网关在协议转换中丢弃参数；校验阈值与后端服务阈值分别维护不同步；响应外观与正常完全一致，无任何可观测征兆
+    source_ref: 报告-2026-10-15-apiget-gpt6astra（原 CODE-024 并入）
   - id: CODE-025
     title: 模型自我报告伪造（fabricated provenance）
     description: >-
@@ -1085,38 +1073,6 @@ cards:
       - adversarial review
     hazard_type: 工具链环境
     source_ref: secrss-700GB
-  - id: CODE-030
-    title: 「只移动/只格式化」指令下的偷改（隐性行为变更）
-    description: >-
-      明确要求仅重组包结构/仅格式化，AI 却顺手删「冗余」变量、改日志拼接方式——原代码同一字符串引用被 == 比较，改动后变成两个对象，行为静默改变。指令的最小范围与 AI
-      的默认优化倾向不匹配。
-    symptom: 重构 diff 中混入语义改动；日志格式「顺手统一」；代码审查发现未授权变更
-    severity:
-      S: 6
-      O: 4
-      D: 7
-    evidence:
-      source: 腾讯云开发者（2026-06，B 级）：「只移动代码」却删 3 个变量+改日志格式，字符串 == 比较行为改变；同文另证 CODE-019
-      level: case
-    fix: >-
-      重构后用 git diff --ignore-all-space 机械检查而非肉眼；重点 grep Optional/stream()/lambda 与字符串操作；要求 AI
-      列出全部非格式性修改并说明理由
-    verifier: 对「纯移动/纯格式」任务跑 git diff --ignore-all-space——非空 diff 即偷改
-    confidence: backed_by_context
-    pass_k_relevant: false
-    triggers:
-      - 重构
-      - 移动代码
-      - 格式化
-      - 顺手优化
-      - refactor
-      - move only
-      - reformat
-      - drive-by change
-      - scope creep
-      - diff review
-    hazard_type: 易错环节
-    source_ref: tencent-cloud
   - id: CODE-031
     title: AI 生成迁移脚本在生产库锁表（开发库通过≠生产安全）
     description: >-
@@ -1314,51 +1270,6 @@ cards:
       - does the output make sense
     hazard_type: 易错环节
     source_ref: mljar-2026-05
-  - id: CODE-037
-    title: 过早多 Agent 化（80% 情况下精止单 Agent 更优）
-    description: >-
-      未验证单 Agent 可行就引入多 Agent：协调成本随 Agent 数指数增长（单 Agent $0.10 的任务多 Agent 花
-      $1.50），规划者突然写代码、交接丢上下文、竞态与重复工作接踵而来。跨源共识：约 80% 的情况下，精心设计的单 Agent 优于多 Agent 系统。
-    symptom: 架构图先画了五个角色；子任务之间其实要频繁互相等待/通信；成本随 agent 数暴涨；「协调崩溃」「角色退化」在生产中出现
-    severity:
-      S: 6
-      O: 4
-      D: 6
-    evidence:
-      source: >-
-        Splunk 工程博客（七种多 Agent 生产故障模式，协调税 $0.10→$1.50，80% 规则）+ Machine Learning Mastery 九大反模式（「过早多
-        Agent 化」列首位）——双源共识（AMiner DeepDive 报告汇编）
-      level: consensus
-    fix: 默认单 Agent 起步；只有子任务真正独立（零执行期通信）、读多写少、可确定性编排时才拆多 Agent；拆分前先量化单 Agent 的失败点在哪
-    verifier: 列出各子任务间的执行期通信需求——超过零且无确定性编排即命中；用单 Agent 跑同任务对比成本与成功率一次
-    confidence: backed_by_context
-    pass_k_relevant: false
-    triggers:
-      - 多agent
-      - 编排
-      - multi-agent
-      - orchestration
-      - agent 团队
-      - swarm
-      - 子agent
-      - subagent
-      - agent 架构
-      - agent architecture
-      - 上个 agent 吧
-      - 分给多个 agent 并行
-      - 搞个 orchestrator
-      - 拆成子任务给 agent
-      - swarm 一下
-      - agent 流水线
-      - spawn subagents
-      - fan out to agents
-      - agent framework
-      - pipeline of agents
-      - 多个 agent 协作
-      - coordinator agent
-      - 编排一层
-    hazard_type: 常见错误
-    source_ref: Splunk/MLM
   - id: CODE-038
     title: 上下文逐跳衰减与漂移（多 Agent 传递压缩 + 长会话失忆）
     description: >-
@@ -1450,32 +1361,13 @@ cards:
       - 设计规范落地
       - 字体圆角间距
       - 反向测试
+      - write assertions
+      - assertion lock
+      - test baseline
+      - design spec gate
+      - reverse test
     hazard_type: 常见错误
     source_ref: dsh-zcode-ui 1.13.0 设计语言对齐（2026-10-14）
-  - id: CODE-041
-    title: 静态色阶档位号跨明暗主题不守恒
-    description: 设计系统的静态色阶（如 neutral-bluish-100…1000）在亮色与暗色主题下是**反向**映射的：同一个档位号在亮色是浅色、暗色是深色。按「亮色命中某档」推断暗色用同一档，会拿到亮度相反的颜色，且不报错。
-    symptom: 令牌化/换肤后某一主题的对比度骤降或颜色明显跳变；代码里出现「两边共用一个档位令牌」的写法；同一变量在明暗下差出 3 个以上亮度层级
-    severity:
-      S: 3
-      O: 4
-      D: 5
-    evidence:
-      source: dsh-zcode-ui 实战（2026-10-14）：收归设置页 --sp-* 时，--sp-muted 暗色需 #8f8f8f，而 --dsw-static-neutral-bluish-500 亮色是 #8f8f8f、暗色却是 #5c5c5c；按档位号引用会得到相反的值，必须逐主题分别核对
-      level: case
-    fix: 任何「两边用同一档」的推断都必须**分别在两套主题下取计算值核对**；无法用一个令牌覆盖两套时，逐主题显式取值并注明原因（不要为了统一而改变视觉）
-    verifier: 用真实渲染取两套主题下的 computed value 做逐项 diff（不是读源码推断）；任一项与改前不符即命中
-    confidence: backed_by_context
-    pass_k_relevant: false
-    triggers:
-      - 令牌化
-      - 换肤
-      - 明暗主题
-      - 设计令牌
-      - 对比度
-      - color token
-    hazard_type: 常见错误
-    source_ref: dsh-zcode-ui 1.13.0 设置页令牌收归（2026-10-14）
   - id: CODE-042
     title: 单规则探针验证依赖整表级联的性质（假阳性）
     description: 用「只注入目标规则」的最小 HTML 探针去验证依赖样式表级联/媒体查询/令牌继承的性质（如 reduced-motion 归零、主题切换），会因缺少上下文而得出错误结论——常常是假阳性，让人去修一个不存在的问题。
@@ -1501,18 +1393,21 @@ cards:
     hazard_type: 常见错误
     source_ref: dsh-zcode-ui 1.13.0 reduced-motion 复核（2026-10-14）
   - id: CODE-043
-    title: 验证器只做表面检查（编译/单测绿 ≠ 任务达成）
-    description: "MAST 对 7 个主流框架 1642 条轨迹的标注：任务验证失败占 21–24%，其中「错误验证」9.1% 指验证器只做表面检查（代码是否编译）而不对照任务原始目标；同一模型仅添加高层目标验证步骤，MAS 成功率最高提升 15.6%。验证器层级缺失是多 Agent 系统三大失败类之一，与 CODE-039（LLM 评代码误判）分属两层：那张是评审者能力，这张是验证器设计。"
-    symptom: 验收=编译绿/lint 绿/单测绿，但没人把产出对照任务原文；agent 自称完成即放行；下游基于「已验证」标签消费错误产物
+    title: 验证器只做表面检查与路径匹配（编译/单测绿≠任务达成；判绿判红都错）
+    description: "验证器设计层的两条同源失败：①只做表面检查——验证器查「代码是否编译/lint 是否过」而不对照任务原始目标（MAST：任务验证失败占 21–24%，其中「错误验证」9.1%；同一模型仅添加高层目标验证步骤，MAS 成功率最高提升 15.6%）；②验收判定写成调用路径匹配——断言「必须调用 X 接口/必须出现 Y 字段」，agent 用非常规路径达成目标被判失败（系统性低估成功率），反向放过形式合规但有副作用的轨迹（重复下单/多删文件/多发消息）。CUAVerifierBench 对照：精心设计的执行式 verifier 与人类一致率可达人类间水平、假阳性近零——问题不在自动判定本身，而在判定写成了路径匹配。与 CODE-039（LLM 评代码误判）分属两层：那张是评审者能力，这张是验证器设计。"
+    symptom: 验收=编译绿/lint 绿/单测绿但没人把产出对照任务原文；agent 自称完成即放行；验收脚本断言调用路径而非最终状态；验收只看最终字段不看副作用；成功率曲线与实际体感严重脱节
     severity:
       S: 6
       O: 7
-      D: 6
+      D: 8
     evidence:
-      source: "Why Do Multi-Agent LLM Systems Fail?（MAST，NeurIPS 2025，arXiv:2503.13657，已验真）；AMiner 报告 4.1.1/4.1.3"
+      source: "Why Do Multi-Agent LLM Systems Fail?（MAST，NeurIPS 2025，arXiv:2503.13657，已验真）；AgentRewardBench（COLM 2025，1302 条专家标注轨迹，agent-reward-bench.github.io）；CUAVerifierBench（COLM 2026，verified verifier 假阳性近零）；AMiner 报告 4.1.1/4.1.3——原 CODE-045 于 2026-10-26 深扫并入本卡"
       level: empirical
-    fix: 验证器分两层——低级正确性（编译/单测）+ 高层目标对照（产出逐条比对任务原文，由非执行者角色独立完成）
-    verifier: 抽 N 条「已通过验证」的产出逐条对照任务原文目标——任一条目标无对应验证动作即命中
+    fix: >-
+      验证器分两层——低级正确性（编译/单测）+ 高层目标对照（产出逐条比对任务原文，由非执行者角色独立完成）；验收判定从「调用路径匹配」改为「目标状态断言」（查最终状态/数据库/文件内容，而非查调用了什么）+ 副作用断言（不该多的东西没多）；规则式判定作初筛，抽样人工复核校准判绿/判红方向偏差
+    verifier: >-
+      判定表：①抽 N 条「已通过验证」的产出逐条对照任务原文目标——任一目标无对应验证动作即命中；②拿一条已知成功但走了非常规路径的
+      agent 轨迹跑验收脚本——判失败即路径匹配命中；③再拿一条成功但有多余副作用的轨迹——判通过即反向命中
     confidence: backed_by_context
     pass_k_relevant: false
     triggers:
@@ -1521,11 +1416,22 @@ cards:
       - 编译通过
       - 测试全绿
       - lint通过
+      - 验收脚本
+      - 自动判定
+      - 判绿
+      - 任务成功判定
+      - agent 轨迹
+      - 成功率
       - done criteria
       - 任务完成判定
       - 怎么算完成
+      - acceptance test
+      - autograder
+      - task success
+      - agent trajectory
+      - pass rate
     hazard_type: 常见错误
-    source_ref: AMiner报告第4.1节-2026-10-17
+    source_ref: AMiner报告第4.1节-2026-10-17（原 CODE-045 并入）
   - id: CODE-044
     title: Agent 失败种子近半在启动前埋下（提示模糊/上下文缺/权限错配/数据差）
     description: "对三家 SaaS 公司 AI 工作流的审计称，平均 40% 的 Agent 失败案例不是模型能力不足，而是任务启动前埋下的种子：提示词模糊、上下文缺失、工具权限错配、输入数据质量差；意图清晰度<0.5 的任务失败率是>0.7 者的 4.3 倍。三个故障现场：上游 API 分页参数变更致静默截断（只拉首页 100 条）、权限已回收但 Agent 信任缓存、中间步骤无量化约束致 7 种口径答案。（40%/4.3 倍为单一 C 级源数字，未找到独立出处；定性方向有 MAST A 级锚：系统设计类失败占 44–45%）"
@@ -1549,34 +1455,10 @@ cards:
       - 执行前检查
       - 事前体检
       - 交给自动化跑
+      - hand off to the agent
+      - let the agent handle it
+      - pre-flight check
+      - just run it
+      - delegate to automation
     hazard_type: 常见错误
     source_ref: AMiner报告第3.1.3节-2026-10-17
-  - id: CODE-045
-    title: 规则式/自动判定系统性低估 agent 成功率（判绿了其实没做成，判红了其实做对了）
-    description: "AgentRewardBench 用 5 个基准 × 4 个 LLM 的 1302 条 agent 轨迹，每条经专家按「成功/副作用/重复性」三问评审，再与 12 个 LLM judge 对比：规则式判定（关键字/状态断言/正则）系统性低估 agent 成功率——agent 用非常规路径达成了目标，规则只认预设路径，于是判失败；反向也会放过有副作用但形式合规的轨迹。来源：AgentRewardBench（COLM 2025，agent-reward-bench.github.io）。对照证据：CUAVerifierBench（COLM 2026）显示精心设计的执行式 verifier 与人类一致率可达人类间水平、假阳性近零——**问题不在自动判定本身，而在判定写成了路径匹配**。"
-    symptom: 验收脚本断言「必须调用 X 接口/必须出现 Y 字段」这类调用路径；agent 换了等价解法就被判失败；或验收只看最终字段不看副作用（重复下单/多删文件/多发消息）；成功率曲线与实际体感严重脱节
-    severity:
-      S: 6
-      O: 7
-      D: 8
-    evidence:
-      source: "AgentRewardBench（COLM 2025，1302 条专家标注轨迹，agent-reward-bench.github.io）；CUAVerifierBench（COLM 2026，过程+结果双标签，verified verifier 假阳性近零）；AMiner DeepDive 报告 2026-10-18 第三节"
-      level: empirical
-    fix: 验收判定从「调用路径匹配」改为「目标状态断言」——查最终状态/数据库/文件内容，而非查调用了什么；另加副作用断言（不该多的东西没多）；规则式判定作为初筛，抽样人工复核校准判绿/判红方向偏差
-    verifier: 拿一条已知成功但走了非常规路径的 agent 轨迹跑验收脚本——判失败即本坑命中；再拿一条成功但有多余副作用的轨迹——判通过即反向命中
-    confidence: backed_by_context
-    pass_k_relevant: false
-    triggers:
-      - 验收脚本
-      - 自动判定
-      - 判绿
-      - 任务成功判定
-      - agent 轨迹
-      - 成功率
-      - acceptance test
-      - autograder
-      - task success
-      - agent trajectory
-      - pass rate
-    hazard_type: 易错环节
-    source_ref: AMiner报告2026-10-18-第三节AgentRewardBench

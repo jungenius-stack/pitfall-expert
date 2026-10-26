@@ -1,7 +1,7 @@
 {
-  "_comment": "第⑰号门守门电池：10 条任务 + 现行 125 卡基线。新增/修改坑卡后必须重跑，跨域误命中增量必须为 0。",
-  "_generatedAt": "2026-10-18",
-  "_cardCount": 125,
+  "_comment": "第⑰号门守门电池：10 条任务 + 现行 117 卡基线（2026-10-26 深扫合并批次：125→117）。新增/修改坑卡后必须重跑，跨域误命中增量必须为 0。",
+  "_generatedAt": "2026-10-26",
+  "_cardCount": 117,
   "tasks": [
     { "id": 1,  "text": "用多个 agents 并行处理数据清洗", "note": "⑰号规范样本：多 Agent 主题真阳性放行" },
     { "id": 2,  "text": "帮我重构这个函数，把复杂度降下来", "note": "MATH-014 曾在此撞词（已修）" },
@@ -9,14 +9,14 @@
     { "id": 4,  "text": "review 这个 PR，检查测试是否都绿了", "note": "代码域高命中基线" },
     { "id": 5,  "text": "写一篇关于旅行的博客文章", "note": "创意域，应零命中" },
     { "id": 6,  "text": "这个方案值不值得做，帮我参谋一下", "note": "strategy 域真阳性" },
-    { "id": 7,  "text": "按照这张图实现页面布局", "note": "SCI-011「这张图」+ CODE-045「实现」两次撞词点，现应仅 RD-010" },
+    { "id": 7,  "text": "按照这张图实现页面布局", "note": "SCI-011「这张图」+ CODE-045「实现」两次撞词点，现应仅 RD-006（RD-010 已于 2026-10-26 深扫并入 RD-006）" },
     { "id": 8,  "text": "分析这份实验数据，跑个 t 检验看显著性", "note": "science 域真阳性" },
     { "id": 9,  "text": "帮我谈判压低供应商报价", "note": "strategy 域真阳性" },
     { "id": 10, "text": "翻译这段文档到英文", "note": "纯执行任务，应接近零命中" }
   ],
   "baseline": {
     "1":  { "code": 12, "security": 0, "creative": 0, "math": 0,  "rd": 0, "science": 1, "strategy": 0 },
-    "2":  { "code": 4,  "security": 0, "creative": 0, "math": 0,  "rd": 0, "science": 0, "strategy": 0 },
+    "2":  { "code": 3,  "security": 0, "creative": 0, "math": 0,  "rd": 0, "science": 0, "strategy": 0 },
     "3":  { "code": 1,  "security": 0, "creative": 0, "math": 1,  "rd": 0, "science": 0, "strategy": 0 },
     "4":  { "code": 13, "security": 2, "creative": 0, "math": 0,  "rd": 1, "science": 1, "strategy": 0 },
     "5":  { "code": 0,  "security": 0, "creative": 0, "math": 0,  "rd": 0, "science": 0, "strategy": 0 },

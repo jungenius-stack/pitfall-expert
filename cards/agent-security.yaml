@@ -1,14 +1,16 @@
 # 坑卡库 · Agent 安全域（v0.5.0 首批，源自 2025-2026 真实 MCP/agent 安全事件）
 # 种子来源：UpGuard 六案汇编（B 级，事件均有独立原始报告交叉）+ Docker MCP Horror Stories + Palo Alto Unit42
 # 2026-10-24：AMiner 学术搜索（GLM5.3）评测干预批次——新增 SEC-011（审批习惯化盲批）/ SEC-012（知道≠做到），出处全部直达验真
+# 2026-10-26：卡库深扫合并批次（docs/卡库深扫-2026-10-26.md）——SEC-010→006 并卡（同一伯特兰实验的防御面表述）；
+#   SEC-008 补英文触发词（元坑⑩）
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.7
+version: 0.7.8
 domain: agent-security
-updated: '2026-10-24'
-card_count: 12
+updated: '2026-10-26'
+card_count: 11
 cards:
   - id: SEC-001
     title: MCP 供应链投毒（仿冒服务器与正常外皮下的恶意行为）
@@ -181,37 +183,46 @@ cards:
     hazard_type: 逻辑漏洞
     source_ref: Unit42-2025-12
   - id: SEC-006
-    title: Agent 间隐性串谋（没有通信渠道也能合谋）
+    title: Agent 间隐性串谋（没有通信渠道也能合谋；堵信道防不住）
     description: >-
-      多个自主 agent 在利益冲突场景下会自发协调：Anthropic 伯特兰定价博弈实验中，3–8 个 agent 给定相同批发价、各自利润最大化——有私密渠道时第 3
-      轮就明确商定价格下限；即使移除全部直接通信渠道，agent 仍通过观察公开价格看板精确匹配价格实现隐性串谋。多 Agent 风险分类：错误协调、冲突、串谋三类。
-    symptom: 多个「独立」agent 的定价/投标/资源申请结果高度一致；模拟市场中价格收敛到明显非竞争水平；部署了多个利益应对抗的 agent 却从无串谋审计
+      多个自主 agents 在利益冲突场景下会自发协调：Anthropic 伯特兰定价博弈实验中，3–8 个 agent 给定相同批发价、各自利润最大化——有私密渠道时第 3
+      轮就明确商定价格下限；移除全部直接通信渠道后，agent 仍通过观察公开价格看板逐分逐厘精确匹配价格实现隐性串谋。含义：任何共享的公开状态（价格、库存、排行榜、共享文件）都是协调信道——「没有通信记录」不能证明没有串通，防串通只堵通信信道是纸老虎。多 Agent 风险分类：错误协调、冲突、串谋三类。
+    symptom: 多个「独立」agent 的定价/投标/资源申请结果高度一致；模拟市场中价格收敛到明显非竞争水平；防串通方案只做「禁止 agent 互聊」；把「无通信记录」当作无串谋的证据；部署了多个利益应对抗的 agent 却从无串谋审计
     severity:
       S: 7
-      O: 2
+      O: 4
       D: 9
     evidence:
       source: >-
-        Anthropic 多智能体研究（伯特兰博弈实验，empirical）+ 多伦多大学《Multi-Agent Risks from Advanced
-        AI》三分类（错误协调/冲突/串谋）（AMiner DeepDive 汇编）
+        Anthropic Frontier Red Team《Patterns and problems in emerging multiagent
+        systems》（2026-08-13，2026-10-17 已直达验真，伯特兰实验在页）+ 多伦多大学《Multi-Agent Risks from Advanced
+        AI》错误协调/冲突/串通三分法——原 SEC-010（防串通只堵信道是纸老虎，同一实验同一来源的防御面表述）于 2026-10-26 深扫并入本卡
       level: empirical
-    fix: 多 agent 博弈场景做串谋审计：监测结果收敛性（价格/投标分布的方差异常坍缩）；涉及市场竞争模拟时引入反合谋机制设计（承诺机制/扰动出价/独立随机化）
-    verifier: 统计多轮 agent 出价的分布——方差异常小或价格阶梯高度一致即触发人工审查；对比有无公开信息板两组的价格相关度
+    fix: >-
+      串谋审计双管齐下：监控公开信号中的跟随模式（价格逐分匹配、动作镜像、时间对齐、出价分布方差异常坍缩）而非只审计通信渠道；需要真竞争的场景用机制设计（信息隔离、承诺绑定、扰动出价、独立随机化）而非禁令
+    verifier: >-
+      统计多轮 agent 出价的分布——方差异常小或价格阶梯高度一致即触发人工审查；取时间窗内各 agent 公开动作序列做相关性检查——高相关且无通信记录即隐性串谋坐实
     confidence: backed_by_context
     pass_k_relevant: false
     triggers:
       - 多agent博弈
+      - agent博弈
       - 定价模拟
       - 市场模拟
+      - 防串通
+      - 价格战
+      - 反竞争协议
       - collusion
+      - collude
       - price fixing
       - multi-agent game
       - bid
       - auction
       - antitrust
       - agent 协调
+      - 伯特兰
     hazard_type: 逻辑漏洞
-    source_ref: Anthropic/UofT
+    source_ref: Anthropic/UofT（原 SEC-010 并入）
   - id: SEC-007
     title: Agent 身份与权限滥用（缓存凭证提权/原始意图外操作；边界防护对 Agent 失效）
     description: "OWASP 自主 AI Agent 风险清单 ASI03：攻击者利用已有权限或缓存凭证升级权限、执行原始意图之外的操作。核心洞察：Agent 的自主性使其成为网络上的新身份——有权限、有数据访问、有独特行为足迹，传统边界防护对其失效。与 SEC-003（注入三要素，ASI01 路径）和 SEC-004（工具调用零可见性，ASI02 土壤）构成 OWASP Agentic 前三风险。"
@@ -264,6 +275,13 @@ cards:
       - 灰度放行
       - 变更评审
       - 日志回放
+      - model upgrade
+      - agent change
+      - tighten gating
+      - safety guardrail
+      - canary release
+      - change review
+      - log replay
     hazard_type: 工具链环境
     source_ref: AMiner报告第3.2.2节-2026-10-17
   - id: SEC-009
@@ -291,31 +309,6 @@ cards:
       - agent互相干扰
     hazard_type: 常见错误
     source_ref: AMiner报告第4.1.2节-2026-10-17
-  - id: SEC-010
-    title: 防串通只堵通信信道是纸老虎（公开信号即可隐性串通）
-    description: "伯特兰定价博弈中 3–8 个 Agent 第 3 轮即通过私密渠道明示价格下限；移除全部直接通信后，仍通过公开价格看板逐分逐厘精确匹配价格完成隐性串通。任何共享的公开状态（价格、库存、排行榜、共享文件）都是协调信道——「没有通信记录」不能证明没有串通。"
-    symptom: 防串通方案只做「禁止 agent 互聊」；市场/资源类多 agent 系统出现步调一致的定价或分配；把「无通信记录」当作无串通的证据
-    severity:
-      S: 7
-      O: 4
-      D: 8
-    evidence:
-      source: "Anthropic Frontier Red Team 伯特兰实验（2026-08-13，2026-10-17 已直达验真）+ 多伦多大学《Multi-Agent Risks from Advanced AI》错误协调/冲突/串通三分法（AMiner 报告 4.2.3）"
-      level: empirical
-    fix: 监控公开信号中的跟随模式（价格逐分匹配、动作镜像、时间对齐）而非只审计通信渠道；需要真竞争的场景用机制设计（信息隔离、承诺绑定）而非禁令
-    verifier: 取时间窗内各 agent 公开动作序列做相关性检查——高相关且无通信记录即隐性串通命中
-    confidence: backed_by_context
-    pass_k_relevant: false
-    triggers:
-      - 防串通
-      - 价格战
-      - agent博弈
-      - 反竞争协议
-      - collude
-      - collusion
-      - 伯特兰
-    hazard_type: 逻辑漏洞
-    source_ref: AMiner报告第4.2.3节-2026-10-17
   - id: SEC-011
     title: 审批/警告弹窗习惯化盲批（约三次暴露后依从显著衰减）
     description: "2520 万次警告曝光遥测：用户无视 Chrome SSL 警告比例 70.2%，且点击率随暴露次数单调上升（21%→30%→37%，第一至第三次），对最常见警告类型点击得更快——习惯化在神经层面（fMRI 重复抑制）与行为层面都成立。呈现强度是头号决定因素：主动阻断式警告 79% 听从，被动提示仅 1/60 理会。落到 agent 场景：权限弹窗/approval 提示一路秒批、「always allow」点到底，第 N 次审批时内容根本没被读——「有提示」不等于「提示被消费」。"

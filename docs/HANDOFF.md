@@ -61,9 +61,10 @@ node engine/src/cli.js "任意任务" --tier standard  # 手动扫一个看效�
 4. **dsh 插件仅 mock 测试**，未真机；
 5. **真实用户零**：所有验证都是自举/外部考题/文献——最缺真实任务回写；hooks 写入侧拦截（弱点二完全解）未做；
 6. 战略/决策域占位；「AI 战略建议正面偏差」待一手研究源；RD-018 源论文未定位（已声明）；SEC-007 待 OWASP 一手核实；
-7. 元坑登记簿现 **17 条**（`references/meta-pitfalls.md`）——方法论自身的翻车记录，新会话继续写。
+7. 元坑登记簿现 **21 条**（`references/meta-pitfalls.md`，2026-10-26 ㉑ 跨域查重缺失入簿）——方法论自身的翻车记录，新会话继续写。
 8. **外部认证路线第四步（2026-10-25 已完成，当日闭环）——CodeQL SAST 接入**：起手 Scorecard 5.5/10、SAST=0；终态 **6.1/10、SAST=10**（"SAST tool detected: CodeQL"），CodeQL 首跑绿。经过：本地起草 codeql.yml（codeql-action v4.39.1 SHA 固定）→ 推送被令牌 scope 墙拒（钥匙串 OAuth 令牌无 workflow 权限，实测报文入卡候选 CODE-041）→ 用户网页直建（f8c5c7f，与本地逐字节一致）→ 本地重组纯文档提交对齐（be851f5）。**量纲教训**：实测 +6 分（百分制）而非预估 +9~+11——SAST 有效权重低于 Critical 档假设，单点反推的权重模型误差要给宽区间。遗留：dependabot 3 个 PR 待合并（合并时验证 CODE-042 注释漂移）；分支保护 2 分钟可选项未做；CI-Tests=-1 待首个 PR 合并自然恢复。
 9. **分数冲刺可行集与远期路线（2026-10-25 当日闭环，报告 docs/踩坑报告-分数冲刺-2026-10-25.md）**：起手 6.1 → **终态 6.3**（SAST 被压 7 时；自愈后预计 ~6.6）。当日落地：dependabot 3 PR 全合并（#4 网页/#3 git/#2 REST API）、分支保护规则集 main-protection 三规则（无 Require PR）、CI-Tests -1→10。**关键新知识**：REST `PUT /pulls/{n}/merge` 与 rulesets API 不受令牌 workflow 权限墙限制（被墙的只是 git 推送通道）——CODE-041 候选 fix 更新为此；API 字段名 `required_status_checks`≠`required_checks`。**SAST 暂 7 的原因**：三个 PR 建于 codeql.yml 落地同分钟，PR 提交无 CodeQL 记录，新 PR 自愈。**预估复盘两课**：分支保护无 PR 只得 3 分（非 3~7 上沿）；检查项不独立——合并新 PR 会动 SAST 的覆盖分母。**明确不做**：License 换 OSI（法律决策换 ~0.03）、Fuzzing/OSS-Fuzz（投入产出）、SECURITY.md 深挖（Low 权重 +0.2 上限）；**自愈项**：Maintained 2027-01 过 90 天线；Code-Review 随每次「先批准再合并」的 PR 攒（当前 0/25）。**远期三项**：① npm 发布进 CI + OIDC（Packaging -1→10）；② GitHub Release 签名（Signed-Releases）；③ CII badge 自证（当前白捡 InProgress 2 分，补表格可到 7~8）。
+10. **卡库深扫合并批次（2026-10-26 当日闭环，v0.7.12，报告 docs/卡库深扫-2026-10-26.md）**：125→117——7 组同义双卡合并（CODE-030→015 / 024→023 / 045→043 / 037→RD-021 跨域、SEC-010→006、RD-010→006、SCI-011→008）+ CODE-041 退役（存档 docs/cases/退役卡存档-CODE-041.md）；4 张纯中文触发词补英文（双语 117/117）；card-format.md 回写流程新增跨域查重门；元坑㉑入簿；发布文案/README/引擎/电池计数全量更新并已八端 sync。上表第 5/6 条遗留部分销账：hooks 写入侧拦截 v0.7.8 已落地、strategy 域已激活 5 卡、RD-018 已验真。**⚠ 编号撞号警示：第 8/9 条提到的「CODE-041/042/043 候选」（令牌 scope 墙 / 注释漂移 / 分支保护直推）用的是库内当时已被占用的编号——这三张候选将来入卡必须改领 046 起的空号；041 号已随退役永久弃用，绝不可复用。**
 
 ## 七轮采集方法论（已验证有效，可复用）
 

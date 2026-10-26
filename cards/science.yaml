@@ -1,14 +1,15 @@
 # 坑卡库 · 科学/ML 域（v0.5.4 激活批次：5 张，达到激活门槛）
 # 2026-10-17：AMiner 定量批次（SCI-007~011：表格取值错位/矛盾不拒答/统计检验选错/命令参数失配/图表读值——SCI-007/009 待 TableBench/StatQA 数字补验）
+# 2026-10-26：卡库深扫合并批次（docs/卡库深扫-2026-10-26.md）——SCI-011→008 并卡（图表问答两卡合一，ChartHal/CharXiv 同源族）
 # 来源：PMC/Kaggle/SO 经典/量化社区共识/DS 教程生态，均带出处
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.2
+version: 0.7.3
 domain: science
-updated: '2026-10-17'
-card_count: 11
+updated: '2026-10-26'
+card_count: 10
 cards:
   - id: SCI-001
     title: 训练/测试数据泄漏（验证分数虚高，部署后才崩）
@@ -252,20 +253,29 @@ cards:
     hazard_type: 常见错误
     source_ref: AMiner定量报告二.2节-2026-10-17
   - id: SCI-008
-    title: 图表与问题矛盾时不拒答（幻觉值量纲格式全对，置信无差别）
-    description: "图表与问题矛盾（信息缺失/冲突）条件下模型几乎不拒绝作答：GPT-5 仅 34.46%、o4-mini 22.79%（ChartHal, arXiv:2509.17481，1,062 样本，直达验真——摘要明确「涉及图中缺失或矛盾信息的问题特别容易触发幻觉」）；SOTA 在上下文与问题矛盾时同样难以拒答（FaithEval, ICLR 2025，旁证）。幻觉数值在量纲、数量级、格式上与真值分布一致，错误应答与正确应答的置信度无差别。"
-    symptom: 问「图里 X 是多少」而图中没有 X，模型照样给出确定数字；错误答案与正确答案措辞同样自信；无人做过「不存在值」探测
+    title: 图表问答取值不可靠（矛盾不拒答；推理性问题接近半错）
+    description: >-
+      图表/表格问答的两条同源失败：①图表与问题矛盾（信息缺失/冲突）时模型几乎不拒绝作答——GPT-5 仅 34.46%、o4-mini
+      22.79%（ChartHal），幻觉数值在量纲、数量级、格式上与真值分布一致，错误应答与正确应答的置信度无差别；②真实学术图表上描述性问题尚可（约
+      80%），推理性问题 GPT-4o 仅 47.1%、人类 80.5%（CharXiv）——「解释说得头头是道、数值取错」，模型视觉内容已理解仍答错。含错/误导图表是放大器：模型不会因图有错而降低置信，误导读图（倒置轴等）连人带模型一起骗。
+    symptom: 问「图里 X 是多少」而图中没有 X，模型照样给出确定数字；错误答案与正确答案措辞同样自信；让模型看图给结论并直接引用数值；无人抽查图上锚点值；对「图本身可能有错/误导性」零设防
     severity:
       S: 6
       O: 7
       D: 7
     evidence:
       source: >-
-        ChartHal（arXiv:2509.17481，直达验真：1,062 样本/GPT-5 34.46%/o4-mini 22.79% 原句在摘要；「多数开源 0%」为正文级）+
-        FaithEval（ICLR 2025，未直达旁证：unanswerable/inconsistent/counterfactual 三类上下文仍作答）+ FAITH（ACM ICAIF 2025，bib 在）
+        ChartHal（arXiv:2509.17481，直达验真：1,062 样本/GPT-5 34.46%/o4-mini 22.79% 原句在摘要）+ CharXiv（arXiv:2406.18521,
+        NeurIPS 2024 D&B，直达验真：2,323 图/47.1%/人类 80.5% 原句在摘要）+ FaithEval（ICLR 2025，旁证：矛盾上下文仍作答）+
+        Unveiling the Ignorance of MLLMs（CVPR 2025，旁证：视觉内容已理解仍答错）+ CHARTOM（旁证：误导读图）+ FAITH（ACM ICAIF
+        2025，bib 在）——原 SCI-011 于 2026-10-26 深扫并入本卡
       level: empirical
-    fix: "动手前做掩码回填抽检（遮住 N 个已知单元格/图上锚点让模型补全，对不上即弃用该数据通道）；要求模型先复述表/图骨架（行列数+表头/轴范围）再答题——骨架复述错即停"
-    verifier: "混入一个「表中/图中不存在」的提问——模型给出确定数值即命中（预期多数命中）；掩码回填 3 个单元格任一不符即该模型对该数据源弃用"
+    fix: >-
+      动手前做掩码回填抽检（遮住 N 个已知单元格/图上锚点让模型补全，对不上即弃用该数据通道）；先 chart-to-table——模型先输出结构化数据表并复述表/图骨架（行列数+表头/轴范围），人工或代码抽查
+      3–5 个锚点值，全对才准做推理；关键结论做区域级追问（「该值对应哪个轴哪个点」）；对来源不明的图表先查误导性（轴截断/倒置）
+    verifier: >-
+      判定表：①混入一个「表中/图中不存在」的提问——模型给出确定数值即命中（预期多数命中）；②掩码回填 3 个单元格任一不符即该模型对该数据源弃用；③抽
+      3 个锚点值人工读图核对——任一错即图表理解层不可信，全部数值转人工核对；④同图改配色/加噪重问一次，答案漂移即弃用
     confidence: backed_by_context
     pass_k_relevant: true
     triggers:
@@ -274,10 +284,18 @@ cards:
       - 图上数字是多少
       - 表里有没有
       - 数据在第几行
+      - 看图说话
+      - 图表分析
+      - 趋势怎么样
+      - 从图上看
+      - 图中趋势
       - what does this chart show
       - in the chart
+      - chart analysis
+      - read the graph
+      - trend from the chart
     hazard_type: 常见错误
-    source_ref: AMiner定量报告二.1节-2026-10-17
+    source_ref: AMiner定量报告二节-2026-10-17（原 SCI-011 并入）
   - id: SCI-009
     title: 统计检验选错但算得无懈可击（适用性错误：「正确执行的错误检验」）
     description: "LLM 的统计错误结构与人类互补：模型主要犯适用性错误——检验前提不满足仍套用（非独立样本用独立 t 检验、忽略多重比较），人类主要犯任务混淆错误（StatQA, NeurIPS 2024 D&B，11,623 例，GPT-4o 最好约 64.83%——bib 作者全，数字待补验）。最险处：选错口径后的执行流程（公式、代码、p 值）往往完全正确——一个「算得无懈可击的错误检验」。教科书式简单 vignette 上选对率高（Mondal 2024，旁证），制造「方法选择已可靠」的错觉，但复测信度不稳（Bard 重测相关 r=-0.22）。"
@@ -336,32 +354,3 @@ cards:
       - 帮我写统计分析代码
     hazard_type: 常见错误
     source_ref: AMiner定量报告四.2节-2026-10-17
-  - id: SCI-011
-    title: 图表推理性问答接近半错（解释头头是道、数值取错；有错不降置信）
-    description: "真实学术图表上描述性问题尚可（约 80%），推理性问题 GPT-4o 仅 47.1%、人类 80.5%、最强开源 29.2%（CharXiv, NeurIPS 2024 D&B, 2,323 张真实 arXiv 图，直达验真）。模型视觉内容已理解仍答错（CVPR 2025 注意力研究，旁证）——「解释说得头头是道、数值取错」。含错/误导图表是放大器：模型不会因图有错而降低置信（ChartHal 验真部分），误导读图（倒置轴等）连人带模型一起骗（CHARTOM，旁证）。〔注：报告引「ChartMistake 55% vs 91%」的编号经查为另一篇论文，数字弃用。〕"
-    symptom: 让模型看图给结论并直接引用数值；无人抽查图上锚点值；对「图本身可能有错/误导性」零设防
-    severity:
-      S: 6
-      O: 7
-      D: 6
-    evidence:
-      source: >-
-        CharXiv（arXiv:2406.18521, NeurIPS 2024 D&B，直达验真：2,323 图/47.1%/人类 80.5% 原句在摘要）+ Unveiling
-        the Ignorance of MLLMs（arXiv:2406.10638, CVPR 2025，未直达旁证：视觉内容已理解仍答错）+ CHARTOM（arXiv:2408.14419，未直达旁证）
-      level: empirical
-    fix: "先 chart-to-table：模型先输出结构化数据表，人工/代码抽查 3–5 个锚点值，全对才准做推理；关键结论做区域级追问（「该值对应哪个轴哪个点」）；对来源不明的图表先查误导性（轴截断/倒置）"
-    verifier: "抽 3 个锚点值人工读图核对——任一错即命中（图表理解层不可信，全部数值转人工核对）；同图改配色/加噪重问一次，答案漂移即弃用"
-    confidence: backed_by_context
-    pass_k_relevant: false
-    triggers:
-      - 看图说话
-      - 图表分析
-      - 趋势怎么样
-      - 从图上看
-      - 图中趋势
-      - chart analysis
-      - what does this chart show
-      - read the graph
-      - trend from the chart
-    hazard_type: 常见错误
-    source_ref: AMiner定量报告二.3节-2026-10-17
