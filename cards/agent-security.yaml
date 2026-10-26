@@ -3,11 +3,13 @@
 # 2026-10-24：AMiner 学术搜索（GLM5.3）评测干预批次——新增 SEC-011（审批习惯化盲批）/ SEC-012（知道≠做到），出处全部直达验真
 # 2026-10-26：卡库深扫合并批次（docs/卡库深扫-2026-10-26.md）——SEC-010→006 并卡（同一伯特兰实验的防御面表述）；
 #   SEC-008 补英文触发词（元坑⑩）
+# 2026-10-26 晚：AMiner 证据升级批次——SEC-005 双源补强（arXiv:2601.17549 摘要逐字 + MCP 官方规范页直达）；
+#   SEC-007 Kaspersky 转述替换为 OWASP 官方一手（资源页直达 + crosswalk 文件存在性 GitHub API 核实）
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.8
+version: 0.7.9
 domain: agent-security
 updated: '2026-10-26'
 card_count: 11
@@ -166,11 +168,18 @@ cards:
       O: 2
       D: 9
     evidence:
-      source: Palo Alto Unit42（2025-12）：MCP sampling 针对广泛使用的编程工具的攻击向量研究；单源一手安全研究
+      source: >-
+        Palo Alto Unit42（2025-12）：MCP sampling 针对广泛使用的编程工具的攻击向量研究；单源一手安全研究——2026-10-26
+        双源补强：Breaking the Protocol: Security Analysis of the MCP Specification and Prompt Injection
+        Vulnerabilities in Tool-Integrated LLM Agents（arXiv:2601.17549，摘要直达验真："bidirectional sampling without
+        origin authentication enabling server-side prompt injection"；847 攻击场景 × 5 个 MCP server 实现，攻击成功率较等价非
+        MCP 集成 +23–41%；三大 host 无采样来源标识的细节为正文级未逐字复核）+ MCP 官方规范 Sampling
+        页（modelcontextprotocol.io，原文直达："servers to request LLM sampling ('completions' or 'generations') from
+        language models via clients"，页内同时警告 human-in-the-loop SHOULD 常开）
       level: case
     fix: 默认拒绝第三方服务器的 sampling 请求；仅对自有/审计过的服务器开启；开启处视为 「该服务器可向模型上下文注入内容」对待，与 SEC-003 同级设防
     verifier: 检查客户端 sampling 确认设置是否默认询问/拒绝；grep 当前授权过 sampling 的服务器清单
-    confidence: needs_verification
+    confidence: backed_by_context
     pass_k_relevant: false
     triggers:
       - sampling
@@ -232,11 +241,11 @@ cards:
       O: 3
       D: 8
     evidence:
-      source: "OWASP Agentic AI Top 10（ASI01-03）via Kaspersky 2026 转述（B 级二手，待一手核实）"
+      source: "OWASP Top 10 for Agentic Applications 2026 官方（genai.owasp.org 资源页 2025-12-09 直达；crosswalk 仓库 GenAI-Security-Project/crosswalk 的 Agentic_AITG.md，文件存在性经 GitHub API 核实）：ASI03 Identity & Privilege Abuse（Critical）——agents 继承并缓存凭据、攻击者借之横向移动、测试须覆盖凭据泄漏全路径与凭据作用域访问控制（crosswalk 原句未逐字复核）——原 Kaspersky B 级转述 2026-10-26 替换为官方一手"
       level: consensus
     fix: 给 agent 独立身份与最小权限（不共用人类长期凭证）；凭证可轮换且有有效期；对 agent 行为设基线，偏离基线的操作需人工确认；不可信输入会话不挂宽权限（与 SEC-003 三要素互为补充）
     verifier: 检查 agent 用的凭证——与人类账号同一个即命中；凭证创建超过 90 天未轮换即命中；答不出「agent 被允许做什么、不允许做什么」清单即命中
-    confidence: needs_verification
+    confidence: backed_by_context
     pass_k_relevant: false
     triggers:
       - agent凭据

@@ -5,11 +5,13 @@
 # 2026-10-24：AMiner 学术搜索（GLM5.3）批次——CODE-039 补反向误判证据（ASE 2026 过度矫正，直达验真），无新增卡
 # 2026-10-26：卡库深扫合并批次（docs/卡库深扫-2026-10-26.md）——CODE-030→015 / CODE-024→023 / CODE-045→043 并卡，
 #   CODE-037→RD-021 跨域并卡；CODE-041 退役（存档 docs/cases/退役卡存档-CODE-041.md）；CODE-040 补英文触发词（元坑⑩）
+# 2026-10-26 晚：AMiner 证据升级批次（docs/回写候选-证据升级批次-2026-10-26.md）——CODE-020/022 升 empirical、CODE-035 官方文档一手、
+#   CODE-044 弃 C 级 40%/4.3× 换 MAST 44.2%（N=1,642）、CODE-021 维持 needs_verification 但定性背书包齐
 # 字段规范见 docs/踩坑专家方法论_v0.3.md 第 9.1 条：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.8
+version: 0.7.9
 domain: code
 updated: '2026-10-26'
 card_count: 45
@@ -755,12 +757,13 @@ cards:
       D: 8
     evidence:
       source: >-
-        AI
-        智能纪要转述（抖音实战分享《AI大项目开发五大坑》，2026-10-14）；行业共识经验，未经一手核验；解法：直接影响（待改类/接口）+间接影响（定时任务/消费者/报表）两层分析并输出回归清单，高风险目录预标注
-      level: consensus
+        Ripples of a Mutation（ICSE 2024，DOI:10.1145/3597503.3639179，Crossref 核实；43K+ 变异体 / 110 万次变异测试运行实证：状态感染可传播至下游而测试静默放行——原句 ACM 付费墙未逐字复核）+
+        API 演化双证（McDonnell et al. ICSM 2013：约 28% 客户端 API 引用过期且适配代码更易出缺陷；Hora et al. SQJ 2018：Pharo 生态 3,600 系统 6
+        年演化的下游扩散量化）——原抖音转述源于 2026-10-26 AMiner 取证升级批次替换
+      level: empirical
     fix: 修改前输出两层影响分析：直接影响=调用方全枚举；间接影响=定时任务/消息消费者/报表/下游服务；同步生成回归测试清单。公共「大动脉」代码在规则文档预标注，改动前过前置四问
     verifier: grep 被改符号的全部调用点（含配置注册/反射/定时任务处），列出间接影响清单并逐项给出回归验证方式；清单为空时先怀疑漏查而非无影响
-    confidence: needs_verification
+    confidence: backed_by_context
     pass_k_relevant: false
     triggers:
       - 影响分析
@@ -784,7 +787,12 @@ cards:
       O: 3
       D: 7
     evidence:
-      source: AI 智能纪要转述（抖音实战分享《vibe coding 八条避坑》，2026-10-14）；行业共识经验，未经一手核验；原话「错误的流程加上自动化，只会得到规模化的错误」
+      source: >-
+        AI 智能纪要转述（抖音实战分享《vibe coding 八条避坑》，2026-10-14）；行业共识经验，未经一手核验；原话「错误的流程加上自动化，只会得到规模化的错误」——2026-10-26
+        AMiner 复查：量化实证未找到（已搜 automating unvalidated process / automation error amplification 等 8
+        组词），定性背书包齐：RPA 奠基文献（van der Aalst et al., BISE 2018，DOI:10.1007/s12599-018-0542-4，Crossref 核实）+
+        RPA 关键成功因素研究（Plattfaut et al., Computers in Industry 2022：19 名专家访谈 32 个 CSF）——维持
+        needs_verification，定性共识
       level: consensus
     fix: 顺序铁律：手动跑通全流程 → 沉淀 SOP → 半自动试点 → 全自动。自动化边界=只自动化已验证正确的流程
     verifier: 自动化上线前检查：该流程是否存在至少一次完整手动跑通的记录/SOP？没有=先跑通再自动化
@@ -811,12 +819,15 @@ cards:
       D: 5
     evidence:
       source: >-
-        AI 智能纪要转述（抖音实战分享《vibe coding 八条避坑》，2026-10-14）；行业共识经验，未经一手核验；解法：代码项目 git worktree
-        隔离、非代码项目独立副本，各自测完再合并回主线
-      level: consensus
+        AI
+        智能纪要转述（抖音实战分享《vibe coding 八条避坑》，2026-10-14）；行业共识经验，未经一手核验；解法：代码项目 git worktree
+        隔离、非代码项目独立副本，各自测完再合并回主线——2026-10-26 AMiner 取证升级：AgenticFlict（AIware 2026，DOI:10.1145/3805760.3814923，Crossref+摘要逐字验真：142K+
+        AI agent PR / 59K+ 仓库 / 冲突率 27.67%）+ ConE（Microsoft Research, TOSEM 2022：并发编辑的文件更可能引入
+        bug，评估 26,000 PR）+ Brindescu et al., ESE（143 个开源项目：冲突关联代码 bug 概率翻倍、需人工干预时 26×——DOI:10.1007/s10664-019-09735-4，数字为摘要转述）
+      level: empirical
     fix: 一任务一空间：代码项目为每个并行任务建独立 git worktree，测完合并回主线；非代码项目用独立文件夹/副本
     verifier: 并行启动前检查各任务工作区路径互不重叠（git worktree list 对比）；重叠=先隔离再开工
-    confidence: needs_verification
+    confidence: backed_by_context
     pass_k_relevant: false
     triggers:
       - 并行任务
@@ -1219,11 +1230,14 @@ cards:
       O: 3
       D: 7
     evidence:
-      source: OpenAI 社区报告（2025-07，B 级单源）：code interpreter 生成的文件路径在后续轮次失效，notebook 状态与文件被静默清除而模型无感知
+      source: >-
+        OpenAI 官方文档《Code Interpreter》（platform.openai.com/docs/guides/tools-code-interpreter）：容器 20 分钟不用即过期，过期后全部数据从系统丢弃且**不可恢复**，需在存活期内下载所需文件——官方产品规范一手（URL
+        直达可达；原句由 2026-10-26 AMiner 取证转录，JS 渲染页未能逐字复核）；专门研究「跨轮状态静默重置」的学术文献未找到（已搜 sandbox
+        state persistence across turns 等 5 组词，学术侧仅安全类基准 CIRCLE/CIBER 沾边）——原 OpenAI 社区单源升级
       level: case
     fix: 跨轮次依赖产物的任务，每轮开头重验关键状态（文件存在性/变量探测）；重要产物即时落盘到持久路径，不留在会话沙盒内
     verifier: 跨轮任务开头跑一次状态存在性断言（文件/变量清单与预期 diff）——发现消失即命中
-    confidence: needs_verification
+    confidence: backed_by_context
     pass_k_relevant: false
     triggers:
       - notebook
@@ -1434,18 +1448,18 @@ cards:
     source_ref: AMiner报告第4.1节-2026-10-17（原 CODE-045 并入）
   - id: CODE-044
     title: Agent 失败种子近半在启动前埋下（提示模糊/上下文缺/权限错配/数据差）
-    description: "对三家 SaaS 公司 AI 工作流的审计称，平均 40% 的 Agent 失败案例不是模型能力不足，而是任务启动前埋下的种子：提示词模糊、上下文缺失、工具权限错配、输入数据质量差；意图清晰度<0.5 的任务失败率是>0.7 者的 4.3 倍。三个故障现场：上游 API 分页参数变更致静默截断（只拉首页 100 条）、权限已回收但 Agent 信任缓存、中间步骤无量化约束致 7 种口径答案。（40%/4.3 倍为单一 C 级源数字，未找到独立出处；定性方向有 MAST A 级锚：系统设计类失败占 44–45%）"
+    description: "MAST 对 7 个主流框架 1,642 条多 Agent 轨迹的失败解剖（6 名专家标注，κ=0.88）：系统设计/规范类问题占 44.2%，居三类失败之首——提示词模糊、上下文缺失、工具权限错配、输入数据质量差均归此类，即近半失败在任务启动前埋下。三个故障现场（C 级转述案例，保留作症状示例）：上游 API 分页参数变更致静默截断（只拉首页 100 条）、权限已回收但 Agent 信任缓存、中间步骤无量化约束致 7 种口径答案。"
     symptom: 一句话任务直接扔给 agent 执行；执行前没核对工具权限与输入数据质量；失败后归因「模型不行」但问题在输入侧
     severity:
       S: 6
       O: 8
       D: 5
     evidence:
-      source: "三层可解释性架构/事前体检报告（CSDN 工程博客转述，单一 C 级源；2026-10-17 补查无独立出处，网传 40% 系 Gartner 口径，降 🟡）；AMiner 报告 3.1.3"
-      level: case
+      source: "MAST / Why Do Multi-Agent LLM Systems Fail?（arXiv:2503.13657，NeurIPS 2025 + ICSE 版；1,642 条轨迹、系统设计/规范类 44.2% 为正文级分布统计〔N=1,642，摘要只给分类法〕）+ 失败模式分类综述（Elsevier 2026，覆盖 40+ 篇实证文献）——原 CSDN C 级转述之 40%/4.3× 数字（无独立出处）于 2026-10-26 弃用，由 A 级锚替换"
+      level: empirical
     fix: 多步任务执行前过四项体检——意图动词与约束是否具体、上下文是否齐全、工具权限是否匹配当前任务、输入数据质量；任一项不过先补再跑
     verifier: 把任务描述读给不了解内情的同事，对方复述不出 3 个核心约束即意图清晰度不足命中
-    confidence: needs_verification
+    confidence: backed_by_context
     pass_k_relevant: true
     triggers:
       - 交给agent跑

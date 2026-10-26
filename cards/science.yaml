@@ -1,12 +1,14 @@
 # 坑卡库 · 科学/ML 域（v0.5.4 激活批次：5 张，达到激活门槛）
 # 2026-10-17：AMiner 定量批次（SCI-007~011：表格取值错位/矛盾不拒答/统计检验选错/命令参数失配/图表读值——SCI-007/009 待 TableBench/StatQA 数字补验）
 # 2026-10-26：卡库深扫合并批次（docs/卡库深扫-2026-10-26.md）——SCI-011→008 并卡（图表问答两卡合一，ChartHal/CharXiv 同源族）
+# 2026-10-26 晚：AMiner 证据升级批次——SCI-007/009 数字补验清账（StatQA 64.83% 摘要逐字；TableBench 数字区间化）；
+#   SCI-007「错误集中在 lookup」被 FinSheet 反向证据证伪并改写（查找最稳 89.1%，崩在复合操作与大表）
 # 来源：PMC/Kaggle/SO 经典/量化社区共识/DS 教程生态，均带出处
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.3
+version: 0.7.4
 domain: science
 updated: '2026-10-26'
 card_count: 10
@@ -226,7 +228,7 @@ cards:
     source_ref: 用户DeepDive-判断可靠性-2026-10-15
   - id: SCI-007
     title: 表格取值错位——返回的是另一个真实单元格的值（对账查不出）
-    description: "复杂表格推理约为人类一半水平（TableBench, AAAI 2025：人类 85.91% vs GPT-4-Turbo 40.38%——bib 卷期页码全，数字待补验）；金融电子表格按复杂度分层：简单查找 89.1% → 复杂聚合 19.6%（FinSheet-Bench，未直达）。关键失败形态：错位错误（取错行/错列）产出的是「真实存在的另一个单元格的值」——数值合法、量纲正确、确实在表里，人工抽查对账极难发现（MiMoTable 旁证：错误集中在结构导航 lookup 而非计算）。"
+    description: "复杂表格推理约为人类一半水平（TableBench, AAAI 2025：人类 85.91%〔官方榜逐字验真〕vs 最强裸模型约 42–51〔arXiv v2 Table 3，TCoT/SCoT/PoT 三口径区间〕；2026 年带工具的 agent 系统已近追平〔官方榜首 84.62〕——坑集中在裸模型直读场景）。金融电子表格按操作类型分层（FinSheet-Bench，2026-10-26 直达验真）：简单查找恰是最稳环节（全模型 89.1%），崩塌在复杂聚合 53.7%/计数 41.7%/排序 37.5%，大型复杂版式再砍半（最大表 48.6% vs 最简 86.2%）——错误集中在复合操作与大表，不在简单查找。关键失败形态：错位错误（取错行/错列）产出的是「真实存在的另一个单元格的值」——数值合法、量纲正确、确实在表里，人工抽查对账极难发现。"
     symptom: 让模型从表格/报表取数并直接引用；取值无行列坐标可验证；人工对账只查「这个数在不在表里」（错位值当然在）
     severity:
       S: 7
@@ -234,12 +236,14 @@ cards:
       D: 8
     evidence:
       source: >-
-        TableBench（AAAI 2025, 39(24):25497-25506，bib 全、数字待补验）+ FinSheet-Bench（arXiv:2603.07316，未直达）+
-        MiMoTable（arXiv:2412.11711，未直达旁证：错误集中在 lookup/结构导航）
+        TableBench（AAAI 2025, 39(24):25497-25506，arXiv:2408.09174；人类 85.91% 官方榜逐字验真，模型数字存在列口径歧义故取保守区间）+
+        FinSheet-Bench（arXiv:2603.07316，2026-10-26 直达验真：查找最稳 89.1%/聚合崩塌/大表砍半原句在摘要——并证伪本卡原引「错误集中在
+        lookup」）+ MiMoTable（arXiv:2412.11711，COLING 2025：428 表/1,719 QA，Claude-3.5-Sonnet 最好 77.4%）——2026-10-26
+        AMiner 取证升级批次，数字待补验已清账
       level: empirical
     fix: "让模型输出坐标声明（「取值来自第 i 行第 j 列」），用代码独立验证坐标；聚合运算全部下放 pandas/SQL；长表先按问题切片再喂入"
     verifier: "抽 5 个取值核对坐标声明与原表——任一坐标错即命中；对账时核对行列键而非只核数值存在性"
-    confidence: needs_verification
+    confidence: backed_by_context
     pass_k_relevant: true
     triggers:
       - 读一下这个表
@@ -306,12 +310,14 @@ cards:
       D: 7
     evidence:
       source: >-
-        StatQA / Are Large Language Models Good Statisticians?（NeurIPS 2024 D&B, Zhu et al. HKUST，bib 全、数字待补验）+
-        Mondal et al. Perspect Clin Res 2024（bib 在，未直达旁证）
+        StatQA / Are Large Language Models Good Statisticians?（NeurIPS 2024 D&B，arXiv:2406.07815——2026-10-26
+        摘要逐字验真：11,623 例、GPT-4o 最好 64.83%；「LLM 主犯适用性错误、人类主犯任务混淆错误」为摘要定性结论，分布数字在正文 Figure
+        6 未读取精确值；人类对照规模=6 名研究生 ×117 题分层抽样，引用须附样本量限定）+ Mondal et al. Perspect Clin Res 2024（bib
+        在，未直达旁证）——数字待补验已清账
       level: empirical
     fix: "模型先输出适用性 checklist（独立性/分布/方差齐性/多重比较/单双侧）再选检验，缺项打回；重要分析用第二个（异源）模型独立选型，分歧即人审"
     verifier: "让模型回答「该检验的三个前提是什么、本数据是否满足」——答不出前提、或答出但不对照本数据即命中"
-    confidence: needs_verification
+    confidence: backed_by_context
     pass_k_relevant: false
     triggers:
       - 跑个回归
