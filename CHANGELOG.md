@@ -13,6 +13,8 @@
 
 **补记（2026-10-26 晚，AMiner 证据升级批次，卡数不变 117）**：9 张卡证据升级——CODE-020/022 升 empirical（Ripples ICSE 2024 百万级运行 + AgenticFlict 142K AI PR 冲突率 27.67%，Crossref+摘要逐字验真）、CODE-035 升 OpenAI 官方文档一手、CODE-044 弃 C 级 40%/4.3× 换 MAST 44.2%（N=1,642，κ=0.88）、SEC-005 双源补强（arXiv:2601.17549 摘要逐字 + MCP 官方规范页直达）、SEC-007 换 OWASP 官方一手、SCI-007/009 数字补验清账（StatQA 64.83% 摘要逐字；TableBench 区间化）；CODE-021 维持 needs_verification（量化实证未找到，定性背书包齐）。SCI-007「错误集中在 lookup」被 FinSheet-Bench 反向证据证伪并改写（简单查找最稳 89.1%，崩在复合聚合/计数/排序与大表）。元坑⑳「CCS 2023 唯一负面实证」结论过时：CHI 2025×2 + TSE 2026 已出，新口径「被动提示偏否定/混合、正面仅见主动式干预与 agent 端哨兵」，发布文案/评测协议/GitHub Release 同步修正。出处核验：Crossref 6 DOI + arXiv 摘要逐字 5 篇 + 官方页 2 处（详见 docs/回写候选-证据升级批次-2026-10-26.md）。
 
+**补记（2026-10-28，AMiner 收尾与门控底座批次，卡数不变 117）**：SCI-003 四级分层证据组装升 empirical（孤儿议题诚实解法：Panko 系错误率 corpus + JMIR 田野 + Wang&Strong 理论锚 + 行业调查；**needs_verification 降至 1**，仅剩 CODE-021）；安全域 5 卡保鲜（SEC-001 投毒量级升级 O3→4〔471 artifacts campaign+filesystem-pro-plus 待官方确认〕、SEC-003 持久记忆注入面〔Bad Memory〕、SEC-005 客户端分化、SEC-007 Vercel OAuth 实名事件、SEC-011 Vance MISQ 2025 习惯化泛化补强）；**hooks+dsh 阻断提示按 Kim CHI 2025 证据加被拦内容摘要**（双端测试全绿）；评测协议 v0.2.2 新增拦截行为曲线测量+文案设计先验+③空白声明（agent 硬拦行为学实验零命中——拦截日志即最早数据点）；防幻觉第 4 拦（Bad Memory 浏览器说法不在摘要未采信）+Wang&Strong DOI 本机补核；Crossref 11 DOI 全中。详见 docs/回写候选-收尾与门控底座批次-2026-10-28.md。
+
 ## v0.7.11（2026-10-25）
 
 **selfcheck 新增 2c 本机副本一致性门（元坑⑲副本滞后两次发作的机制化封堵）：已装副本（~/.agents、~/.claude、~/.workbuddy）的 SKILL 版本必须 == 仓库版本，漂移即红并提示重跑 install.sh；CI/无副本环境自动跳过。** 起因：本机三副本静默停在 0.7.8 落后两版（0.7.6 时代同症状第一次），两次都靠自举体检偶然发现而非机制报警——与⑲同构：对齐靠手工必漏。负例已验（临时改副本版本 → 门红 → 还原复绿）。

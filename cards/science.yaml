@@ -3,14 +3,16 @@
 # 2026-10-26：卡库深扫合并批次（docs/卡库深扫-2026-10-26.md）——SCI-011→008 并卡（图表问答两卡合一，ChartHal/CharXiv 同源族）
 # 2026-10-26 晚：AMiner 证据升级批次——SCI-007/009 数字补验清账（StatQA 64.83% 摘要逐字；TableBench 数字区间化）；
 #   SCI-007「错误集中在 lookup」被 FinSheet 反向证据证伪并改写（查找最稳 89.1%，崩在复合操作与大表）
+# 2026-10-28：AMiner 收尾批次（docs/回写候选-收尾与门控底座批次-2026-10-28.md）——SCI-003 四级分层证据组装升 empirical
+#   （直接对口实证确认为「孤儿议题」，按机制同构组装：Panko 系错误率 corpus + JMIR 田野 + Wang&Strong 理论锚 + 行业调查）
 # 来源：PMC/Kaggle/SO 经典/量化社区共识/DS 教程生态，均带出处
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.4
+version: 0.7.5
 domain: science
-updated: '2026-10-26'
+updated: '2026-10-28'
 card_count: 10
 cards:
   - id: SCI-001
@@ -110,12 +112,18 @@ cards:
       D: 6
     evidence:
       source: >-
-        r/dataanalysis 社区讨论（B/C 级）：分析师仍在手工修 broken joins、chasing missing fields、explaining
-        mismatched numbers across dashboards；跨口径为 BI 领域共识问题
-      level: consensus
+        2026-10-28 AMiner 取证（直接对口实证为「孤儿议题」——学界无同题研究，按机制同构四级组装，DOI 全部 Crossref 核实）：①机制主证据=Panko
+        系表格错误率 corpus（Panko & Sprague, DSS 1998，DOI:10.1016/S0167-9236(97)00038-9：152 模型 35% 含错、CER 2.0%；Powell
+        et al. 审计协议, I&M 2008，DOI:10.1016/j.im.2008.03.004：50 个生产环境表格公式错误率 ~1.8%；Panko 2013 HICSS：CER
+        1–6% 区间〔DOI 未核〕；Panko 2006 CAIS：几乎所有大型表格含多个错误）+ 自动检查工具对自然错误几乎无效（Aurigemma & Panko
+        2010〔CoRR，DOI 未核〕）；②唯一直接田野=Fesshaye et al., JMIR 2024（DOI:10.2196/48294，n=24
+        定性：指标未标准化→跨来源数字不一致→信任崩塌→数据弃用；LMIC 公卫场景，外推限制声明）；③理论锚=Wang & Strong, JMIS 1996（DOI:10.1080/07421222.1996.11518099——过滤器口径/时区/去重粒度均属
+        contextual consistency 公认 DQ 维度）+ Lee et al. AIMQ 2002（可测量问卷）；④量级=Monte Carlo 行业调查（n=200：数据团队月均
+        67 起数据事件——厂商立场标注）——原 Reddit 社区源降为现象存在性注脚
+      level: empirical
     fix: 分析开始前先做口径对齐：指标定义文档（过滤条件/时间窗/去重规则/时区）+ 指标注册表（哪个数字以哪张表为准）； AI 取数时强制声明来源表与口径；关键汇报数字与官方看板 diff 一次
     verifier: 对将引用的每个指标找到第二来源交叉核对一次——差超过 0.5% 即存在口径分歧，先查口径再出数
-    confidence: needs_verification
+    confidence: backed_by_context
     pass_k_relevant: false
     triggers:
       - 看板

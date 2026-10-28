@@ -104,7 +104,7 @@ function main(json) {
     const cards = [...new Set(d.hits.filter(h => h.tier === 'hard').map(h => h.cardId))];
     if (mode === 'block') {
       appendLog({ ts: new Date().toISOString(), event, mode, decision: 'hard_block', tool, rules: cards, input: digest });
-      process.stderr.write(`【踩坑专家·阻断】命中硬拦截规则（${cards.join(', ')}）——不可逆/泄密类操作，必须人工确认。\n如确认无误请人工执行；或设 PITFALL_HOOK_MODE=report 改为只报告（此条规则来自坑卡 intercept 字段，可解释可审计）。\n`);
+      process.stderr.write(`【踩坑专家·阻断】命中硬拦截规则（${cards.join(', ')}）——不可逆/泄密类操作，必须人工确认。\n被拦内容摘要：${digest.slice(0, 120)}\n如确认无误请人工执行；或设 PITFALL_HOOK_MODE=report 改为只报告（规则来自坑卡 intercept 字段，可解释可审计）。\n`);
       process.exit(2);
     }
     appendLog({ ts: new Date().toISOString(), event, mode, decision: 'hard_warn', tool, rules: cards, input: digest });

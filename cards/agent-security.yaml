@@ -5,13 +5,16 @@
 #   SEC-008 补英文触发词（元坑⑩）
 # 2026-10-26 晚：AMiner 证据升级批次——SEC-005 双源补强（arXiv:2601.17549 摘要逐字 + MCP 官方规范页直达）；
 #   SEC-007 Kaspersky 转述替换为 OWASP 官方一手（资源页直达 + crosswalk 文件存在性 GitHub API 核实）
+# 2026-10-28：AMiner 收尾批次（docs/回写候选-收尾与门控底座批次-2026-10-28.md）——SEC-001 保鲜（投毒量级升级 O3→4）、
+#   SEC-003 保鲜（Bad Memory 持久记忆注入面）、SEC-005 保鲜（客户端 sampling 实现分化）、SEC-007 保鲜（Vercel OAuth 事件）、
+#   SEC-011 补强（Vance MISQ 2025 习惯化泛化）；观察名单 2 项未达建卡门槛不入库
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.9
+version: 0.7.10
 domain: agent-security
-updated: '2026-10-26'
+updated: '2026-10-28'
 card_count: 11
 cards:
   - id: SEC-001
@@ -22,12 +25,16 @@ cards:
     symptom: 新装的 MCP 服务器来源只有注册表搜索结果；行为「完全正常」；出现无法解释的出站连接
     severity:
       S: 9
-      O: 3
+      O: 4
       D: 9
     evidence:
       source: >-
         UpGuard 六案汇编（2026）：SmartLoader 仿 Oura Ring MCP（2026-02，StealC 窃密，窃取浏览器密码/云令牌/SSH 密钥/钱包） +
-        Postmark 邮件 MCP 仿冒（2025-09，npm 首个野外恶意 MCP，密送 BCC）；原始报告独立可查
+        Postmark 邮件 MCP 仿冒（2025-09，npm 首个野外恶意 MCP，密送 BCC）；原始报告独立可查——2026-10-28 保鲜扫描（量级升级，O
+        3→4）：Socket 追踪同一 campaign 累计 471 个恶意 artifacts（2026-06 新波次 18 包 23 版本伪装 MCP 名：openai-mcp / langchain-core-mcp /
+        ray-mcp-server 等，窃开发者与云凭据）；filesystem-pro-plus 事件（2026-08，注册表首个大规模 typosquat 实战：仿冒
+        filesystem-pro 一周 14,300 下载、≥47 组织被侵入、60 秒延迟触发抓取环境变量与 SSH/AWS 密钥——多源社区复盘口径一致，**待主流安全媒体/官方确认**，较
+        2025-09 postmark 单周 ~1,500 下载放大约 10 倍）
       level: case
     fix: >-
       MCP 只从官方/项目一手仓库安装并核对发布者身份；新装服务器审计其网络行为（出站目标白名单）； 记住「工具工作正常 ≠
@@ -95,7 +102,9 @@ cards:
       source: >-
         三案交叉（均为 2025，独立原始报告）：Invariant Labs GitHub issue 注入窃取私有仓库（2025-05）； Supabase/Cursor
         工单注入回显集成令牌（2025-07）；Amazon Q VS Code PR 注入清除文件系统与 AWS 资源； UpGuard 六案汇编 + Docker MCP Horror
-        Stories
+        Stories——2026-10-28 保鲜：注入面扩展到持久记忆——Bad Memory（华盛顿大学，arXiv:2607.14611，摘要直达验真：已植入
+        Claude Code/Codex 记忆文件的载荷可成功攻击当前与未来全部会话〔Haiku 4.5/Opus 4.7/GPT-5.2/GPT-5.5 四模型实测〕；取证会话所引「7
+        款 AI 浏览器 4 款可注入」不在该文摘要，未采信）
       level: case
     fix: 对每个 agent 会话做三要素审计：读不可信内容的会话不挂特权凭据（拆分会话/最小令牌）； 回帖渠道禁止携带凭据类查询结果；不可信内容与特权操作之间设人工确认门（破坏性操作前必过）
     verifier: 五分钟三问：本会话读不读外部提交内容？挂没挂特权凭据？能不能对外发内容？——三个「是」即 🐯， 拆掉任意一要素再开工
@@ -175,7 +184,9 @@ cards:
         origin authentication enabling server-side prompt injection"；847 攻击场景 × 5 个 MCP server 实现，攻击成功率较等价非
         MCP 集成 +23–41%；三大 host 无采样来源标识的细节为正文级未逐字复核）+ MCP 官方规范 Sampling
         页（modelcontextprotocol.io，原文直达："servers to request LLM sampling ('completions' or 'generations') from
-        language models via clients"，页内同时警告 human-in-the-loop SHOULD 常开）
+        language models via clients"，页内同时警告 human-in-the-loop SHOULD 常开）——2026-10-28 保鲜：客户端实现分化成为利用面决定因素（多源综述转述）——Claude
+        Code 至 2026-08 不支持 sampling（issue #1785）、opencode 2026-04 已支持、VS Code 按 modelPreferences 行动：spec
+        的人审门控实际取决于各客户端实现，薄实现=攻击面不均匀分布；MCPTox 基准称 20 个 LLM agent 平均 ASR 36.5%、最强模型反而更高（2026-04，转述未核）
       level: case
     fix: 默认拒绝第三方服务器的 sampling 请求；仅对自有/审计过的服务器开启；开启处视为 「该服务器可向模型上下文注入内容」对待，与 SEC-003 同级设防
     verifier: 检查客户端 sampling 确认设置是否默认询问/拒绝；grep 当前授权过 sampling 的服务器清单
@@ -241,7 +252,7 @@ cards:
       O: 3
       D: 8
     evidence:
-      source: "OWASP Top 10 for Agentic Applications 2026 官方（genai.owasp.org 资源页 2025-12-09 直达；crosswalk 仓库 GenAI-Security-Project/crosswalk 的 Agentic_AITG.md，文件存在性经 GitHub API 核实）：ASI03 Identity & Privilege Abuse（Critical）——agents 继承并缓存凭据、攻击者借之横向移动、测试须覆盖凭据泄漏全路径与凭据作用域访问控制（crosswalk 原句未逐字复核）——原 Kaspersky B 级转述 2026-10-26 替换为官方一手"
+      source: "OWASP Top 10 for Agentic Applications 2026 官方（genai.owasp.org 资源页 2025-12-09 直达；crosswalk 仓库 GenAI-Security-Project/crosswalk 的 Agentic_AITG.md，文件存在性经 GitHub API 核实）：ASI03 Identity & Privilege Abuse（Critical）——agents 继承并缓存凭据、攻击者借之横向移动、测试须覆盖凭据泄漏全路径与凭据作用域访问控制（crosswalk 原句未逐字复核）——原 Kaspersky B 级转述 2026-10-26 替换为官方一手；2026-10-28 保鲜：Vercel/Context.ai OAuth 事件（官方 KB 承认，2026-04 披露、2026-10-16 官布关闭）——员工给第三方 AI 工具授 Allow All，token 被 infostealer 窃取后打入 Vercel 内部，非敏感环境变量与部分客户凭据（GitHub token、npm 发布令牌）外泄，疑似 ShinyHunters 叫价 $2M：常设 OAuth grant 本身即入口的实名实证"
       level: consensus
     fix: 给 agent 独立身份与最小权限（不共用人类长期凭证）；凭证可轮换且有有效期；对 agent 行为设基线，偏离基线的操作需人工确认；不可信输入会话不挂宽权限（与 SEC-003 三要素互为补充）
     verifier: 检查 agent 用的凭证——与人类账号同一个即命中；凭证创建超过 90 天未轮换即命中；答不出「agent 被允许做什么、不允许做什么」清单即命中
@@ -327,7 +338,7 @@ cards:
       O: 7
       D: 8
     evidence:
-      source: "Akhawe & Felt, Alice in Warningland（USENIX Security 2013，25.2M 曝光遥测，usenix.org 直达验真）；Egelman et al., You've Been Warned（CHI 2008，DOI:10.1145/1357054.1357219，主动阻断 79% vs 被动提示 1/60）；Ancker et al.（BMC Med Inform 2017，DOI:10.1186/s12911-017-0430-8，每次既往暴露都提高忽视率）"
+      source: "Akhawe & Felt, Alice in Warningland（USENIX Security 2013，25.2M 曝光遥测，usenix.org 直达验真）；Egelman et al., You've Been Warned（CHI 2008，DOI:10.1145/1357054.1357219，主动阻断 79% vs 被动提示 1/60）；Ancker et al.（BMC Med Inform 2017，DOI:10.1186/s12911-017-0430-8，每次既往暴露都提高忽视率）——2026-10-28 补强：Vance et al., The Fog of Warnings（MIS Quarterly 2025, 49(4)，DOI:10.25300/misq/2025/18531，2 现场实验+1 fMRI，Crossref 核实）：习惯化会泛化——与非安全类通知混排的警告被无意识忽略，在视觉外观或交互模式上区分警告与通知可缓解"
       level: empirical
     fix: 高危操作用主动阻断式提示（强制停顿+具体后果描述）；常规操作分诊降级压弹窗总量（警告频率本身是变量）；审批类工具检查「批准延迟随序号单调下降」的习惯化信号
     verifier: 抽取审批日志算批准延迟对审批序号的斜率——延迟单调下降即命中；或故意夹入一个明显危险的请求，被秒批即命中

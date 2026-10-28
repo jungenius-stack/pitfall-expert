@@ -103,7 +103,7 @@ export async function decide(exec, opts = {}) {
     logDecision(logOn, { ts: new Date().toISOString(), event: 'pre-execute', mode, decision: 'hard_block', tool: toolOf(exec), rules: hardCards, input: digestOf(ext.task) });
     return {
       action: 'deny',
-      reason: `踩坑专家·阻断：命中硬拦截规则（${hardCards.join(', ')}）——不可逆/泄密类操作，必须人工确认。规则来自坑卡 intercept 字段，可解释可审计；确认无误请人工执行，或设 PITFALL_HOOK_MODE=report 改为只报告。`
+      reason: `踩坑专家·阻断：命中硬拦截规则（${hardCards.join(', ')}）——不可逆/泄密类操作，必须人工确认。被拦内容摘要：${String(ext.task || '').slice(0, 120)}。规则来自坑卡 intercept 字段，可解释可审计；确认无误请人工执行，或设 PITFALL_HOOK_MODE=report 改为只报告。`
     };
   }
 
