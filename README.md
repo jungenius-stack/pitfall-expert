@@ -12,7 +12,7 @@
 [![License: MIT](https://img.shields.io/badge/code-MIT-f4c430?style=flat-square)](LICENSE)
 [![Content: CC BY 4.0](https://img.shields.io/badge/cards_&_docs-CC_BY_4.0-3f9f7f?style=flat-square)](LICENSE-CONTENT.md)
 [![Skill](https://img.shields.io/badge/form-skill_+MCP_engine_+hooks-5c4ee5?style=flat-square)](#architecture)
-[![Cards](https://img.shields.io/badge/pitfall_cards-117-cb3837?style=flat-square)](cards/)
+[![Cards](https://img.shields.io/badge/pitfall_cards-118-cb3837?style=flat-square)](cards/)
 [![M8ven Score](https://m8ven.ai/badge/mcp/jungenius-stack-pitfall-expert-25pguy?v=4166e02af23fc5a86ed33a78fa10e700)](https://m8ven.ai/mcp/jungenius-stack-pitfall-expert-25pguy?s=readme)
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [What it can catch](#what-it-can-catch) · [Battle record](#battle-record) · [FAQ](#faq) · [Documentation](#documentation)
@@ -68,7 +68,7 @@ git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-ex
 
 Your agent said **"done"** — and the migration isn't. It agreed with the doomed plan, called single-run luck "reliable", and you found out when the bill arrived.
 
-**pitfall-expert** scans the task **before work starts**: it matches the task against a seven-domain library of 117 pitfall cards in `cards/` — each distilled from real incidents and peer-reviewed research — binds every blocking pit to an **executable verifier** (pre-declared decision table + executed-result write-back), and outputs a **three-zone honest report**: ✅ verified (evidence chains, quotable sources) / ❓ unverified (5-minute follow-up actions) / 🚫 declared blind spots. Card bodies are written in Chinese; pass `--lang=en` (or `lang: "en"` over MCP) to prepend an English field glossary that maps every report section and field label.
+**pitfall-expert** scans the task **before work starts**: it matches the task against a seven-domain library of 118 pitfall cards in `cards/` — each distilled from real incidents and peer-reviewed research — binds every blocking pit to an **executable verifier** (pre-declared decision table + executed-result write-back), and outputs a **three-zone honest report**: ✅ verified (evidence chains, quotable sources) / ❓ unverified (5-minute follow-up actions) / 🚫 declared blind spots. Card bodies are written in Chinese; pass `--lang=en` (or `lang: "en"` over MCP) to prepend an English field glossary that maps every report section and field label.
 
 The failure modes come with receipts, because they've been measured: agents declare solvable tasks impossible (54.9% of WebArena failures), claim completion while the environment is unchanged (MAST), pass weak test suites (7.8% of "passing" SWE-bench patches are wrong), mistake single-run luck for reliability (pass^8 < 25%), and side with a wrong user over half the time (*Science*, 2026: 51%). Those exact findings are seed cards in this library — card counts live in `cards/`; trust the directory over any number in prose.
 
@@ -82,7 +82,7 @@ Everything runs locally: a keyword scan over YAML cards, no network calls, no ta
 ```text
 # 踩坑报告 · ⚡ 快扫
 - 任务：aggregate users.csv by province, mind nulls and duplicate rows
-- 领域判定：code (medium) · 117 cards checked one by one, 100% coverage
+- 领域判定：code (medium) · 118 cards checked one by one, 100% coverage
 
 ## ✅ 已查证区（4 项）
 ### [CODE-014] CSV/数据解析

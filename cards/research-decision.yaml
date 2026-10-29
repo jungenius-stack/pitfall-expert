@@ -2,6 +2,7 @@
 # 2026-10-17：AMiner 顾问偏差批次——无新增卡，4 处证据更新（RD-018 源论文定位清欠账 / RD-020 并入同质化证据 / RD-017 升 empirical / RD-011 补 CHI 佐证）
 # 2026-10-21：AMiner DeepDive 意图推断批次——新增 RD-023（重复询问制造重要性错觉）；SKILL.md 同步四处硬化（定级否证条件/扫描计数降级/判狼反证搜索/预验尸产出定位）
 # 2026-10-24：AMiner 学术搜索（GLM5.3）创作批次——新增 RD-024 幻觉引用（元坑候选⑨从流程教训升级为通用卡），出处直达验真
+# 2026-10-29：AMiner 学术搜索（GLM5.3）RD-030 入卡批次——新增 RD-030 多量纲问题被单轴作答（2 arXiv 标题逐字 + 6 DOI Crossref 全验真；㉑裁决：与 RD-015 让渡 二选一/which is better、与 STRAT-001 让渡 pros and cons/利弊、与 strategy 域让渡 值不值）；证据空白如实入卡：漏维率无学界量化。docs/回写候选-RD030入卡批次-2026-10-29.md
 # 2026-10-26：卡库深扫合并批次（docs/卡库深扫-2026-10-26.md）——RD-010→006 并卡（跨页条款冲突并入层级漏读）；
 #   RD-021 吸收 CODE-037 触发词（跨域并卡）；RD-020 补英文触发词（元坑⑩）
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
@@ -10,8 +11,8 @@
 
 version: 0.7.8
 domain: research-decision
-updated: '2026-10-26'
-card_count: 23
+updated: '2026-10-29'
+card_count: 24
 cards:
   - id: RD-001
     title: 把「搜不到」当「不存在」（负面定性证据不足）
@@ -721,3 +722,33 @@ cards:
       - 论文列表
     hazard_type: 常见错误
     source_ref: Walters-SciRep23/Bhattacharyya-Cureus23
+
+  - id: RD-030
+    title: 多量纲问题被单轴作答（「哪个更好」只答了一个维度）
+    description: "「A 和 B 哪个更好」的「更好」含多个独立维度（质量/成本/风险/可逆性…），模型与人都倾向挑一轴答得斩钉截铁。LLM 侧实证：模型具备正确维度上的事实仍被单一表层线索支配——仅用实体热度/提及顺序等表层特征的逻辑回归预测模型选择，比模型自身的数值预测更准（7B–32B，EACL 2026）；逻辑等价的比较题被单一框架词（more/less/equal）方向性牵引（300 场景×14 提示×3 模型家族≈12,600 次评测）。人类侧：可比维度被系统性过度加权，明确警告与「答对给钱」均无法纠正（Slovic & MacPhillamy 1974）；自述理由与实际回归权重脱节且事后高置信（81 名治安法官，Dhami & Ayton 2001）；过程级反应时证据显示被试主观以为在综合权衡、行为却走单线索（Bergert & Nosofsky 2007）。诚实边界：「漏维率/单维占比」学界无直接量化（2026-10 检索空白，本卡不写测量值）；非补偿环境下单线索策略可与加权整合打平（Hogarth & Karelaia 2005）——本卡主张限于补偿性多维权衡场景。"
+    symptom: 比较/选型问题直接给结论没有拆轴；通篇只有一个评价轴（只谈便宜或只谈性能）；追问第二维度时结论翻转；「更好/更值得」从未先问「在哪个性上」
+    severity:
+      S: 3
+      O: 8
+      D: 4
+    evidence:
+      source: "Knowing the Facts but Choosing the Shortcut（EACL 2026，arXiv:2510.16815，标题逐字验真）+ More or Less Wrong（arXiv:2506.03923，标题逐字验真）+ Slovic & MacPhillamy 1974（DOI:10.1016/0030-5073(74)90013-0，Crossref 验真）+ Dhami & Ayton 2001（DOI:10.1002/bdm.371）+ Bergert & Nosofsky 2007（DOI:10.1037/0278-7393.33.1.107）+ 对策侧 Grove et al. 2000 元分析 136 项研究（机械整合平均约 +10% 准确率，DOI:10.1037/1040-3590.12.1.19）；边界引 Hogarth & Karelaia 2005（DOI:10.1287/mnsc.1050.0448）——AMiner 两发作战包，出处核验记录见 docs/回写候选-RD030入卡批次-2026-10-29.md"
+      level: empirical
+    fix: "比较类问题先拆轴再作答：①列出「更好/更值得」实际含哪些独立维度（含用户没说出口的：成本/风险/可逆性/维护）；②每轴各配证据分别作答，不许合并；③最后合成结论并声明主导轴与理由。联动：数字轴先过 RD-004 量纲审计；顺序敏感比较加 RD-015 双序校验。低风险小事（选午饭）不拆——摩擦与风险成正比"
+    verifier: 自检两问——①回答列出≥2 个独立维度了吗？②每维度结论分别有证据吗？任一否=单轴作答，重写；对照信号：换个维度追问同一问题，结论翻转即原回答单轴
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 哪个更好
+      - 哪个好
+      - 哪个更适合
+      - 选哪个
+      - 怎么选
+      - 更值得
+      - 孰优孰劣
+      - 还是选
+      - A还是B
+      - which should I choose
+      - which one should I
+    hazard_type: 常见错误
+    source_ref: AMiner 2026-10-29-RD030两发批次

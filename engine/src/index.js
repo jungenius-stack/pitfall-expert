@@ -75,7 +75,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           description: 'Report language hint. zh (default) = header as-is. en = prepend an ' +
             'English field-glossary so non-Chinese speakers can locate the verified / ' +
             'unverified / blind-spot sections. Card bodies stay Chinese because the ' +
-            '117-card library is written in Chinese.'
+            '118-card library is written in Chinese.'
         }
       },
       required: ['task']
