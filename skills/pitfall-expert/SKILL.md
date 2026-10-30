@@ -5,13 +5,13 @@ display_name_en: Pitfall Expert
 description_zh: '先见坑，再动手。你的 AI 说做完了，真的做完了吗——以前只能赌，现在不用。118 张带出处的坑卡，覆盖代码、数学、决策、安全、科研、创作、战略七个领域，一次扫清。每张卡，一条规避动作，一个可执行验证器。查过的，附证据与出处。没查的，附五分钟内能做的检查动作。看不到的，直说。结尾一份阻断清单，做完再开工。全部本地运行，不联网、不收集、不追踪。踩坑专家——完成，等于披露完整。'
 description_en: 'See the pitfall before you step in. Your agent says done — is it? You used to guess. Now you no longer have to. 118 evidence-backed cards across seven domains (code, math, decisions, agent security, science, writing, strategy), scanned in one pass. Every card — one avoidance move, one runnable verifier. Verified comes with receipts. Unverified comes with a 5-minute check. Blind spots are declared, not hidden. A blocking checklist to finish before work begins. Fully local — no network, no collection, no tracking. Pitfall Expert. Done means fully disclosed.'
 category: 开发工具
-version: 0.7.13
+version: 0.8.0
 author: JunGenius
 description: '踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/做计划/写方案/拆任务/任务拆解/排期/里程碑/验收标准/开工前/动手前/怕返工/will this break/what could go wrong/premortem", or the task involves payments, irreversible deletion, publishing, data migration, or sending external communications. NOT for casual chat, single-fact lookups, or when the user explicitly says to skip the check and just do it. 完成等于披露完整，而非结果完美。'
 user-invocable: true
 metadata:
-  version: 0.7.13
-  updated: "2026-10-29"
+  version: 0.8.0
+  updated: "2026-10-31"
 ---
 
 # 踩坑专家（Pitfall Expert）
@@ -38,6 +38,7 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 2. **定级闸门一问**：此任务最坏会改坏什么**不可恢复**的东西？答不出、或答出任何一项 → 至少 T1；
    - **判「无不可恢复风险」必须附否证条件（2026-10-21 补）**：写一句「出现什么具体信号说明我这个判断是错的」（例：出现了 X 类操作 / 改动了 Y 配置 / 涉及 Z 数据）。**写不出否证条件 = 视为答不出 = 至少 T1**。
    - 依据：本方判断的自评不可靠且无法自纠——共识估计在受过偏差教育、收到真实共识反馈、面对 20 个一致反对信息后仍由自身反应主导（Krueger & Clement 1994, JPSP）；且「压制自身偏好」的纠偏直觉在低确定性时反弹放大错误（Herzog/Hattula/Dahl 2021, JMR 58(3)）。故「自信答无风险」不能当放行理由，只能用可被外部推翻的条件当理由。
+   - **遍历性第二问（2026-10-31 补）**：此操作会重复多少次？单次低危 × 高频重复 = 高危——1% 出错率重复 100 次，至少翻车一次约 63%（1−0.99¹⁰⁰，算术非文献引用；失败相关时更集中）。重复 ≥10 次且单次含写/不可逆副作用 → 锁 T1+；定时/批量/循环类按总次数上限估。概念源：塔勒布遍历性（经 taleb-perspective 蒸馏引入），判读细则见 `references/tier-triggers.md` 规则 6。
 3. 定档位。**自动激活场景没有真人协商**——不写「已协商」，报告头写**定级理由**（命中哪个触发器/为何没命中），用户一句话可改档：
    - **T0 快扫**（分钟级）：低风险小任务。轻量子集——坑卡速查+假设倾倒简版+紧凑三行输出（见 L4）；无验证器清单义务、无回写预告（除非发现新坑）、DoD 内部自检不写入报告、机检豁免；
    - **T1 标准**（默认，十分钟级）：M1–M7 全跑，🐯 真坑实测验证 + 验证器清单；
@@ -59,7 +60,7 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 - 「这是具体证据指向的真风险，还是放之四海皆准的套话？」（标准：该条是否让用户停下来查证一个具体事实/重算一个具体数字）；
 - **具体≠真**：模型自身生成的具体断言（版本号/issue 号/数字/「已知问题」）视同 C 级信源——无出处一律进 ❓ 并附溯源动作，不得直接标 🐯（幻觉天然具体，M4）；
 - 分级：
-  - 🐯 真坑（阻断级）；
+  - 🐯 真坑（阻断级）：T1 起每条附**不对称性一行**——下行多深/可逆否/重复暴露几次（T2 展开全图：上行多大、谁承担）；「赢了赚小、输了出局」型不对称加重阻断建议（2026-10-31 补，概念源：塔勒布《非对称风险》）；
   - 🟡 中风险：对策必须绑可执行检查（同 M13 标准）——**裸对策降 ❓**，不许让「有对策即可推进」沦为未验证的安慰；
   - 🐘 大象（今天没事、条件触发即致命）：**必须写明监控者三问——谁、在何时、看什么信号**；答不出 → 并入 🐯，把检查放进执行流程；
   - 🐺 纸老虎（看似吓人大概率没事，显式列出、不设防）：**判狼证据须 A 级一手或直接复现**——单一二手源不满足，降 🟡；纯内省不算数；**无免死金牌**——后续扫描可重新质疑。
@@ -78,6 +79,7 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 - 每条陈述落入且仅落于一态：✅ **已查证到 X**（附证据链：来源+方式+时间+**可复核的原文/输出引用**——可粘贴复核的片段，非转述）/ ❓ 未验证（附原因+5 分钟内可执行的补验动作）/ 🚫 盲区（本任务类型中系统性看不见什么 + 本次未覆盖范围）；
 - **三区都必须显式出现**，空区写「本区为空」+ **本次**判断为空的依据（具体事实，模板话术不合格）；
 - **阻断待办前置**：决策建议节头部放「动手前必须完成的检查」（从 ❓ 区提取阻断级条目；无则写「无」）；
+- **中间地带警报（2026-10-31 补）**：任务含迁移/切换/上线/全量发布时，决策建议节附此警报——全量一刀切与长期双写灰度都是杠铃两端的中间地带；改写方向：金丝雀 + 回滚预留（九成资源保生存底线，一成做受控试验）。无此形态写「无」，不许空调用（概念源：塔勒布杠铃策略）；
 - 正文只呈现命中的坑卡，扫描计数一行带过——逐卡作答塞满正文 = 报告通胀 = 没人读；
 - **T0 紧凑模式**：三区合并为一节三行表格，总长 ≤10 行；报告结尾声明档位边界；按 `references/report-template.md` 输出。
 
@@ -85,7 +87,8 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 
 - 本次证实的新坑/拦下的未遂坑（**未遂优先**，海因里希 1:29:300）→ 按卡格式生成回写条目（放报告「回写预告」节，用户确认后入 `cards/`）；
 - 漏报（事后发现但当时如实披露）→ 可原谅，正常回写；谎报（声称已验证但无证据链）→ 不可原谅，追流程根因；
-- 本方法论/流程自身的翻车 → 记入元坑登记簿 `references/meta-pitfalls.md`，不与用户任务坑混流。
+- 本方法论/流程自身的翻车 → 记入元坑登记簿 `references/meta-pitfalls.md`，不与用户任务坑混流；
+- 回写即反脆弱：坑库从每次冲击中获益，回写率是系统变强指标、不是报告附属节（2026-10-31 补，概念源：塔勒布《反脆弱》）。
 
 ## 机制速查（M1–M13，详版见 references/mechanisms.md）
 
@@ -93,7 +96,7 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 |---|---|---|
 | M1 | 用户约束画像先行 | 预检维度第一来源是用户真实约束（读账本/历史会话/配置），通用清单只兜底；画像缺失必须上报；**最小化采集**——只取聚合值，敏感原文不进报告 |
 | M2 | 量纲审计前置 | 比较类结论先统一计量口径（计价基准/汇率/单位/含费/有效期），审计过程附报告 |
-| M3 | 信源分级绑定动作 | A 官方一手/B 权威二手/C 社媒传言；C 级只能触发核实任务，不得触发分析任务；**A 级源会过时**——文档为唯一证据的 ✅ 附版本核对 |
+| M3 | 信源分级绑定动作 | A 官方一手/B 权威二手/C 社媒传言；C 级只能触发核实任务，不得触发分析任务；**A 级源会过时**——文档为唯一证据的 ✅ 附版本核对；**押注追问（2026-10-31）**——该信源错了谁付代价？零押注权威源（厂商宣传页）封顶 C 级，吃狗粮证据可作 A/B 定级加分项 |
 | M4 | 负面定性高门槛 | 指控类定性双渠道交叉+检索边界+证伪清单；模型脑内断言视同 C 级，无出处进 ❓ |
 | M5 | 样本量强制声明 | 容量/速率/成本结论必须声明样本量、覆盖期、遗漏场景；不足则降级为待验证假设 |
 | M6 | 异常信号触发器 | too-good-to-be-true 自动升深审；条款层级枚举（缺层即坑）；优势归属检验 |
@@ -103,7 +106,7 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 | M10 | 缺省行为必测 | 缺省语义默认「未知」；禁止「不传参数=关闭」这类常识推断 |
 | M11 | 配置即验证 | 产出任何配置文件后必须真实加载解析一次才可标 ✅ |
 | M12 | 坑卡回写与相似召回 | 未遂坑优先记录；下次任务按相似度召回历史坑卡；漏报/谎报分轨 |
-| M13 | 验证器铸造 | 每条 🐯 必绑可执行验证器（判定表前置+副作用分类+环境预检+执行结果回填）；绑不上降 ❓ 区 |
+| M13 | 验证器铸造 | 每条 🐯 必绑可执行验证器（判定表前置+副作用分类+环境预检+执行结果回填）；绑不上降 ❓ 区；**对策排序减法优先（2026-10-31）**——先评「删触发条件/危险缺省」，再评「加防护层」 |
 
 ## 红线（违反任何一条 = 本次踩坑不合格；详版见对应机制）
 
