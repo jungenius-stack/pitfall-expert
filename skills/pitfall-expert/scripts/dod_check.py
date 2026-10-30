@@ -61,7 +61,7 @@ def check_report(path: Path) -> int:
 
     # 4. 🐯 真坑三态完整 + 验证器闭环（三态/验证器/判定表/执行结果；T0 无 ## 2 节自然通过）
     sec2 = section(text, 2)
-    pit_count = taint_count = verifier_count = 0
+    pit_count = taint_count = verifier_count = asym_count = 0
     if sec2:
         tiger_zone = re.split(r"^###?\s*[🟡🐘🐺]", sec2, maxsplit=1, flags=re.M)[0]
         pit_count = len(re.findall(r"[-*]\s*\*\*坑\*\*", tiger_zone))
@@ -73,11 +73,15 @@ def check_report(path: Path) -> int:
                 if (has_taint and "验证器" in block and "判定表" in block
                         and "执行结果" in block):
                     verifier_count += 1
+                if has_taint and "不对称性" in block:
+                    asym_count += 1
     item(4, f"🐯 真坑三态完整（{taint_count}/{pit_count}）", pit_count == taint_count,
          "存在缺少 '三态：✅/❓' 行的阻断级坑条目")
     item("4b", f"🐯 验证器闭环：判定表+执行结果（{verifier_count}/{pit_count}）",
          pit_count == verifier_count,
          "存在缺 验证器/判定表/执行结果 的阻断级坑条目（M13 四规）")
+    item("4c", f"🐯 不对称性行（{asym_count}/{pit_count}）", pit_count == asym_count,
+         "存在缺 '不对称性' 行的阻断级坑条目（v0.8.0 起 T1+ 必填；T0 无 🐯 区自然通过）")
 
     # 5. 披露率：T1/T2 要求 ## 3 与 ## 4 节存在且非空；T0 紧凑模式豁免独立节，改为三态标记齐备
     if is_t0:
@@ -92,6 +96,9 @@ def check_report(path: Path) -> int:
              f"## 3 {'缺' if not sec3 else 'ok'} / ## 4 {'缺' if not sec4 else 'ok'}（空区也须写「本区为空」）")
         item("5b", "阻断待办前置（第5节含「动手前必须完成的检查」）", todo_ok,
              "## 5 缺或无 '动手前' 清单（无阻断待办也须写「无」）")
+        midzone_ok = bool(sec5) and "中间地带警报" in sec5
+        item("5c", "中间地带警报槽位（迁移/切换/上线/全量发布/批量删除清理类必答；无此形态写「无」）",
+             midzone_ok, "## 5 缺 '中间地带警报' 行（v0.8.0 起 T1+ 必答，写「无」也算过）")
 
     # 6. 回写就绪（T1/T2 要求 ## 6 节；T0 仅在发现新坑时要求回写，无新坑则豁免）
     if is_t0:

@@ -33,6 +33,18 @@ SKILL_VERSION=$(grep -m1 '^  version:' "$SKILL_DIR/SKILL.md" | sed 's/^  version
 if [ -f "$REPO_ROOT/CHANGELOG.md" ]; then
   CHANGELOG_VERSION=$(grep -m1 '^## v' "$REPO_ROOT/CHANGELOG.md" | sed 's/^## v\([0-9.]*\).*/\1/')
   [ "${SKILL_VERSION}" = "${CHANGELOG_VERSION}" ] && pass "版本一致：SKILL ${SKILL_VERSION} = CHANGELOG 最新 ${CHANGELOG_VERSION}" || fail "版本漂移：SKILL ${SKILL_VERSION} ≠ CHANGELOG 最新 ${CHANGELOG_VERSION}（元坑⑲：漏 bump）"
+  # 2026-10-31 深审扩门：manifest.json/package.json 各带独立 version 字段，手工对齐必漏（⑲同类）——统一以 SKILL_VERSION 为基准比对
+  VER_EXTRA_OK=1
+  for vf in "$REPO_ROOT/skills/pitfall-expert/manifest.json" "$REPO_ROOT/package.json"; do
+    if [ -f "$vf" ]; then
+      VV=$(sed -n 's/.*"version":[[:space:]]*"\([0-9][0-9.]*\)".*/\1/p' "$vf" | head -1)
+      if [ "${VV}" != "${SKILL_VERSION}" ]; then
+        fail "版本漂移：$(basename "$vf") ${VV} ≠ SKILL ${SKILL_VERSION}（元坑⑲：多版本字段手工对齐必漏）"
+        VER_EXTRA_OK=0
+      fi
+    fi
+  done
+  [ $VER_EXTRA_OK -eq 1 ] && pass "版本一致：manifest.json/package.json = SKILL ${SKILL_VERSION}"
 else
   pass "版本一致性：无 CHANGELOG（技能副本），已跳过（本副本 version ${SKILL_VERSION}）"
 fi
