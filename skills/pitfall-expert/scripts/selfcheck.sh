@@ -18,7 +18,7 @@ pass() { echo "[PASS] $1"; }
 echo "== pitfall-expert selfcheck（融合版 v0.5）=="
 
 # 1. 目录完整性（融合版结构：references 五件 + scripts + tests + 仓库根 cards）
-for f in "SKILL.md" "references/mechanisms.md" "references/card-format.md" "references/report-template.md" "references/dod.md" "references/meta-pitfalls.md" "scripts/dod_check.py" "scripts/selfcheck.sh" "tests/sample-pass.md" "tests/sample-fail.md"; do
+for f in "SKILL.md" "manifest.json" "references/mechanisms.md" "references/card-format.md" "references/report-template.md" "references/dod.md" "references/meta-pitfalls.md" "scripts/dod_check.py" "scripts/selfcheck.sh" "tests/sample-pass.md" "tests/sample-fail.md"; do
   [ -f "$SKILL_DIR/$f" ] && pass "存在 $f" || fail "缺失 $f"
 done
 
@@ -29,19 +29,26 @@ grep -q '^description:' "$SKILL_DIR/SKILL.md" && grep -q 'Pitfall Expert' "$SKIL
 grep -q '^user-invocable: true' "$SKILL_DIR/SKILL.md" && pass "user-invocable: true" || fail "缺 user-invocable: true"
 
 # 2b. 版本一致性（元坑⑲：frontmatter version 必须 == CHANGELOG 最新版号；技能副本无 CHANGELOG 时跳过）
+#     2026-10-31 冷读扩门：SKILL.md 有两个 version 字段（顶层=市场平台实际解析 / metadata），只看 metadata 会让顶层成第四个漂移面
 SKILL_VERSION=$(grep -m1 '^  version:' "$SKILL_DIR/SKILL.md" | sed 's/^  version:[[:space:]]*//')
+TOP_VERSION=$(grep -m1 '^version:' "$SKILL_DIR/SKILL.md" | sed 's/^version:[[:space:]]*//')
 if [ -f "$REPO_ROOT/CHANGELOG.md" ]; then
+  [ -n "$TOP_VERSION" ] && [ "${TOP_VERSION}" = "${SKILL_VERSION}" ] && pass "SKILL.md 双 version 一致（顶层=metadata=${SKILL_VERSION}）" || fail "版本漂移：SKILL.md 顶层 version '${TOP_VERSION}' ≠ metadata '${SKILL_VERSION}'（顶层是市场平台实际解析字段——冷读🟡-1）"
   CHANGELOG_VERSION=$(grep -m1 '^## v' "$REPO_ROOT/CHANGELOG.md" | sed 's/^## v\([0-9.]*\).*/\1/')
   [ "${SKILL_VERSION}" = "${CHANGELOG_VERSION}" ] && pass "版本一致：SKILL ${SKILL_VERSION} = CHANGELOG 最新 ${CHANGELOG_VERSION}" || fail "版本漂移：SKILL ${SKILL_VERSION} ≠ CHANGELOG 最新 ${CHANGELOG_VERSION}（元坑⑲：漏 bump）"
   # 2026-10-31 深审扩门：manifest.json/package.json 各带独立 version 字段，手工对齐必漏（⑲同类）——统一以 SKILL_VERSION 为基准比对
+  # 冷读🟡-5 修正：文件缺失即红，不静默跳过（降级须声明纪律）
   VER_EXTRA_OK=1
   for vf in "$REPO_ROOT/skills/pitfall-expert/manifest.json" "$REPO_ROOT/package.json"; do
-    if [ -f "$vf" ]; then
-      VV=$(sed -n 's/.*"version":[[:space:]]*"\([0-9][0-9.]*\)".*/\1/p' "$vf" | head -1)
-      if [ "${VV}" != "${SKILL_VERSION}" ]; then
-        fail "版本漂移：$(basename "$vf") ${VV} ≠ SKILL ${SKILL_VERSION}（元坑⑲：多版本字段手工对齐必漏）"
-        VER_EXTRA_OK=0
-      fi
+    if [ ! -f "$vf" ]; then
+      fail "版本门：缺文件 ${vf}（冷读🟡-5：缺失即红，不静默跳过）"
+      VER_EXTRA_OK=0
+      continue
+    fi
+    VV=$(sed -n 's/.*"version":[[:space:]]*"\([0-9][0-9.]*\)".*/\1/p' "$vf" | head -1)
+    if [ "${VV}" != "${SKILL_VERSION}" ]; then
+      fail "版本漂移：$(basename "$vf") ${VV} ≠ SKILL ${SKILL_VERSION}（元坑⑲：多版本字段手工对齐必漏）"
+      VER_EXTRA_OK=0
     fi
   done
   [ $VER_EXTRA_OK -eq 1 ] && pass "版本一致：manifest.json/package.json = SKILL ${SKILL_VERSION}"
