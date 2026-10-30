@@ -112,7 +112,7 @@ git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-ex
 sh install.sh          # installs to every detected agent's skills dir, cards included
 ```
 
-Works with any harness that reads `~/.agents/skills/` (ZCode, DeepSeek Harness), `~/.claude/skills/` (Claude Code), or `~/.workbuddy/skills/`. Uninstall: `sh install.sh --uninstall`.
+Works with any harness that reads `~/.agents/skills/` (ZCode, DeepSeek Harness), `~/.claude/skills/` (Claude Code), `~/.codex/skills/` (Codex CLI), or `~/.workbuddy/skills/`. Uninstall: `sh install.sh --uninstall`.
 
 ### Ask your agent
 

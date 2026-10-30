@@ -103,7 +103,7 @@ git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-ex
 git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-expert && sh install.sh
 ```
 
-兼容 ZCode / DeepSeek Harness（`~/.agents/skills/`）、Claude Code（`~/.claude/skills/`）、WorkBuddy。卸载：`sh install.sh --uninstall`。
+兼容 ZCode / DeepSeek Harness（`~/.agents/skills/`）、Claude Code（`~/.claude/skills/`）、Codex CLI（`~/.codex/skills/`）、WorkBuddy。卸载：`sh install.sh --uninstall`。
 
 **对话里说**：
 

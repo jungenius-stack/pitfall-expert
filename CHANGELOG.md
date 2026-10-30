@@ -14,6 +14,8 @@
 
 **补记（2026-10-29 晚，RD-030 入卡批次，卡数 117→118）**：新增 RD-030「多量纲问题被单轴作答」（empirical 级）——AMiner 两发作战包回收（docs/AMiner-作战包-RD030入卡批次 + docs/回写候选-RD030入卡批次），证据双臂：LLM 侧（Knowing the Facts but Choosing the Shortcut，EACL 2026，arXiv:2510.16815——具备维度知识仍被单一热度线索支配；More or Less Wrong，arXiv:2506.03923——比较题被单一框架词牵引）+ 人类侧（Slovic & MacPhillamy 1974 警告与激励均无法纠正权重失衡；Dhami & Ayton 2001 自述与实际权重脱节；Bergert & Nosofsky 2007 反应时过程证据）；对策侧 Grove 2000 元分析 136 项。出处核验 2 arXiv 标题逐字 + 6 DOI Crossref 全命中。**诚实边界入卡**：漏维率无学界量化（检索空白如实声明）；非补偿环境单线索可打平（Hogarth & Karelaia 2005 分界条款）。㉑裁决让渡 5 个撞词（RD-015/STRAT-001/strategy 域），终版 11 触发词全库零交集；全仓写死面 117→118；⑰号门 10/10 零增量、selfcheck 全绿。RD-029「付费墙即产品」经裁决不入库（编号作废）。随 0.7.14 发版。
 
+**补记（2026-10-30，install.sh 补齐 Codex 目录）**：公共安装器装卸两段目录列表各加 `~/.codex/skills`（Codex CLI）——此前 README 宣传 Codex 接入但一键安装装不进 Codex（宣传-安装缺口：安装器只认 agents/claude/workbuddy 三目录）；README 双语对应行同步。沙盒验证（假 HOME 装卸三例）通过。随 0.7.14 发版。
+
 ## v0.7.12（2026-10-26）
 
 **卡库深扫合并批次：125→117（7 组同义双卡合并 + CODE-041 退役），回写流程新增跨域查重门（元坑㉑）。** 起因：深扫（docs/卡库深扫-2026-10-26.md）发现 8 对重复卡全部来自不同日期批次的域内独立写作——回写流程只有 schema 校验没有查重门；跨卡触发词碰撞 37 组，同一任务点亮多张卡=报告通胀=「少而精」的反面。

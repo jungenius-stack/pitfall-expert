@@ -13,7 +13,7 @@ say() { printf '%s\n' "$*"; }
 
 uninstall() {
   found=0
-  for dir in "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.workbuddy/skills"; do
+  for dir in "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.codex/skills" "$HOME/.workbuddy/skills"; do
     if [ -d "${dir}/${NAME}" ]; then
       rm -rf "${dir}/${NAME}"
       say "已移除 $dir/${NAME}"
@@ -32,7 +32,7 @@ if [ ! -f "$SKILL_SRC/SKILL.md" ]; then
 fi
 
 installed=0
-for dir in "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.workbuddy/skills"; do
+for dir in "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.codex/skills" "$HOME/.workbuddy/skills"; do
   parent="$(dirname "$dir")"
   # 目录已存在（= 用户在用该外壳）才安装；不替用户凭空创建外壳目录
   if [ -d "$parent" ]; then
