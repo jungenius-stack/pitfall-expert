@@ -38,6 +38,7 @@ npx --yes github:jungenius-stack/pitfall-expert "重构支付模块" --tier quic
 ## 发版前检查清单
 
 - [ ] `package.json` 与 `engine/package.json` 版本号已递增
+- [ ] **GitHub About 描述与 topics**（selfcheck 门外表面，机器管不到——写死卡数必随发版手工核对，或改用不含数字的措辞；2026-10-31 About 停留 117 实数 118 应验）
 - [ ] `engine/package-lock.json` 版本已同步（`cd engine && npm install --package-lock-only`）
 - [ ] `CHANGELOG.md` 有对应版本条目
 - [ ] 卡库实数与 README/CHANGELOG 里写的数字一致（`node -e "console.log(require('./engine/src/scanner').loadCards('./cards').cards.length)"`）
