@@ -16,6 +16,8 @@
 
 **补记（2026-10-30，install.sh 补齐 Codex 目录）**：公共安装器装卸两段目录列表各加 `~/.codex/skills`（Codex CLI）——此前 README 宣传 Codex 接入但一键安装装不进 Codex（宣传-安装缺口：安装器只认 agents/claude/workbuddy 三目录）；README 双语对应行同步。沙盒验证（假 HOME 装卸三例）通过。随 0.7.14 发版。
 
+**补记（2026-10-31，市场文案卡数门，元坑⑲第三案，卡数不变 118）**：v0.7.13 新增的市场字段（SKILL.md description_zh/_en + manifest.json description）成为卡数门外的第三个写死面——同日 RD-030 补记宣称「全仓写死面 117→118」扫了门内 7 文件、漏了门外 2 文件（市场文案停留 117，loadCards 实数 118）。修正：三处 117→118（SKILL.md ×2 + manifest.json ×1）；扩门：selfcheck 5b 卡数门文件清单补入 skills/pitfall-expert/SKILL.md 与 manifest.json，sed 形态补「N 张带出处的坑卡」「N evidence-backed cards」两种市场句式；⑲号元坑补记第三案。`docs/发布文案-首推.md` 为 v0.7.12 状态快照，不在门内，下次发布文案重写时同步。随 0.8.0 发版。
+
 ## v0.7.12（2026-10-26）
 
 **卡库深扫合并批次：125→117（7 组同义双卡合并 + CODE-041 退役），回写流程新增跨域查重门（元坑㉑）。** 起因：深扫（docs/卡库深扫-2026-10-26.md）发现 8 对重复卡全部来自不同日期批次的域内独立写作——回写流程只有 schema 校验没有查重门；跨卡触发词碰撞 37 组，同一任务点亮多张卡=报告通胀=「少而精」的反面。

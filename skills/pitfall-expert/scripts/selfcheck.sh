@@ -124,21 +124,27 @@ if command -v "$NODE_BIN" >/dev/null 2>&1 && [ -f "$ENGINE_DIR/src/scanner.js" ]
 fi
 
 # 5b. 卡数一致性（元坑⑲同类第二案：v0.7.7 卡库 121→125，8 个文件 11 处写死 120 静默漂移——README、package.json、
-# 引擎英文报告 glossary、MCP 工具描述、⑰号门电池元数据全在列。基准是上面 loadCards 实数，不引入第二个手工数字；无引擎的副本环境跳过（同 ⑰号门先例））
+#     引擎英文报告 glossary、MCP 工具描述、⑰号门电池元数据全在列。基准是上面 loadCards 实数，不引入第二个手工数字；无引擎的副本环境跳过（同 ⑰号门先例）。
+#     2026-10-31 第三案扩门：v0.7.13 新增的市场字段（SKILL.md description_zh/_en + manifest.json description）当时不在门内，
+#     RD-030 补记「全仓 117→118」扫了门内 7 文件漏了门外 2 文件——写死面新增位置必须同步进本门清单）
 if [ -n "${CARD_COUNT:-}" ]; then
   README_COUNT_BAD=0
   for rf in "$REPO_ROOT/README.md" "$REPO_ROOT/README.zh-CN.md" "$REPO_ROOT/package.json" \
             "$REPO_ROOT/engine/src/report.js" "$REPO_ROOT/engine/src/index.js" "$REPO_ROOT/eval/battery.json" \
-            "$REPO_ROOT/docs/入门版-贴即用.md"; do
+            "$REPO_ROOT/docs/入门版-贴即用.md" \
+            "$REPO_ROOT/skills/pitfall-expert/SKILL.md" "$REPO_ROOT/skills/pitfall-expert/manifest.json"; do
     [ -f "$rf" ] || continue
     # 已知写死形态：徽章 pitfall_cards-N｜N 张坑卡｜N pitfall cards｜N cards checked｜N evidence-backed pitfall cards｜
-    # N-card library｜卡库 N 张｜library (N cards)｜_cardCount: N（「100+ 张」非精确表述不匹配、不管）
+    # N-card library｜卡库 N 张｜library (N cards)｜_cardCount: N｜N 张带出处的坑卡（市场文案）｜N evidence-backed cards（市场文案）
+    # （「100+ 张」非精确表述不匹配、不管）
     for num in $(sed -n \
       -e 's/.*pitfall_cards-\([0-9][0-9]*\).*/\1/p' \
       -e 's/.*[^0-9]\([0-9][0-9]*\)[[:space:]]*张坑卡.*/\1/p' \
+      -e 's/.*[^0-9]\([0-9][0-9]*\)[[:space:]]*张带出处的坑卡.*/\1/p' \
       -e 's/.*[^0-9]\([0-9][0-9]*\) pitfall cards.*/\1/p' \
       -e 's/.*[^0-9]\([0-9][0-9]*\) cards checked.*/\1/p' \
       -e 's/.*[^0-9]\([0-9][0-9]*\) evidence-backed pitfall cards.*/\1/p' \
+      -e 's/.*[^0-9]\([0-9][0-9]*\) evidence-backed cards.*/\1/p' \
       -e 's/.*[^0-9]\([0-9][0-9]*\)-card .*/\1/p' \
       -e 's/.*卡库[[:space:]]*\([0-9][0-9]*\)[[:space:]]*张.*/\1/p' \
       -e 's/.*library (\([0-9][0-9]*\) cards).*/\1/p' \
@@ -147,7 +153,7 @@ if [ -n "${CARD_COUNT:-}" ]; then
       [ "$num" = "$CARD_COUNT" ] || { fail "卡数漂移：$(basename "$rf") 写死 ${num} ≠ loadCards 实数 ${CARD_COUNT}（元坑⑲）"; README_COUNT_BAD=1; }
     done
   done
-  [ $README_COUNT_BAD -eq 0 ] && pass "卡数一致：README*/package.json/引擎/电池/入门版 写死数字全部 = ${CARD_COUNT}"
+  [ $README_COUNT_BAD -eq 0 ] && pass "卡数一致：README*/package.json/引擎/电池/入门版/市场文案(SKILL+manifest) 写死数字全部 = ${CARD_COUNT}"
 fi
 
 # 6. 冒烟扫描（英文任务 + 中文任务各一次，验证双语 triggers）+ 三区齐备断言
