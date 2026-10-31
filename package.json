@@ -1,6 +1,6 @@
 {
   "name": "pitfall-expert",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Catch the known pitfalls before your agent starts — 119 evidence-backed pitfall cards across seven domains, three-zone honest reports (verified / unverified / declared blind spots) plus executable verifiers. Skill + MCP engine + hooks.",
   "license": "MIT",
   "type": "commonjs",
