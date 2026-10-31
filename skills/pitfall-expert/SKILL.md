@@ -5,12 +5,12 @@ display_name_en: Pitfall Expert
 description_zh: '先见坑，再动手。你的 AI 说做完了，真的做完了吗——以前只能赌，现在不用。119 张带出处的坑卡，覆盖代码、数学、决策、安全、科研、创作、战略七个领域，一次扫清。每张卡，一条规避动作，一个可执行验证器。查过的，附证据与出处。没查的，附五分钟内能做的检查动作。看不到的，直说。结尾一份阻断清单，做完再开工。全部本地运行，不联网、不收集、不追踪。踩坑专家——完成，等于披露完整。'
 description_en: 'See the pitfall before you step in. Your agent says done — is it? You used to guess. Now you no longer have to. 119 evidence-backed cards across seven domains (code, math, decisions, agent security, science, writing, strategy), scanned in one pass. Every card — one avoidance move, one runnable verifier. Verified comes with receipts. Unverified comes with a 5-minute check. Blind spots are declared, not hidden. A blocking checklist to finish before work begins. Fully local — no network, no collection, no tracking. Pitfall Expert. Done means fully disclosed.'
 category: 开发工具
-version: 0.8.1
+version: 0.8.2
 author: JunGenius
 description: '踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/做计划/写方案/拆任务/任务拆解/排期/里程碑/验收标准/开工前/动手前/怕返工/will this break/what could go wrong/premortem", or the task involves payments, irreversible deletion, publishing, data migration, or sending external communications. NOT for casual chat, single-fact lookups, or when the user explicitly says to skip the check and just do it. 完成等于披露完整，而非结果完美。'
 user-invocable: true
 metadata:
-  version: 0.8.1
+  version: 0.8.2
   updated: "2026-10-31"
 ---
 
@@ -88,6 +88,7 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 - 本次证实的新坑/拦下的未遂坑（**未遂优先**，海因里希 1:29:300）→ 按卡格式生成回写条目（放报告「回写预告」节，用户确认后入 `cards/`）；
 - 漏报（事后发现但当时如实披露）→ 可原谅，正常回写；谎报（声称已验证但无证据链）→ 不可原谅，追流程根因；
 - 本方法论/流程自身的翻车 → 记入元坑登记簿 `references/meta-pitfalls.md`，不与用户任务坑混流；
+- 能力/事实类断言写入持久层（SOP/记忆/坑卡/规范文档）时必须预绑**否证动作**（"拿什么能推翻它"）；无否证动作的 ✅ 不许入库（2026-10-31 补，元坑㉒；案例：OpenDesign 能力误判 → V9 探测片裁定；概念源：汉谟拉比法典——名字刻在桥上，塌了找人）；
 - 回写即反脆弱：坑库从每次冲击中获益，回写率是系统变强指标、不是报告附属节（2026-10-31 补，概念源：塔勒布《反脆弱》）。
 
 ## 机制速查（M1–M13，详版见 references/mechanisms.md）
@@ -98,7 +99,7 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 | M2 | 量纲审计前置 | 比较类结论先统一计量口径（计价基准/汇率/单位/含费/有效期），审计过程附报告 |
 | M3 | 信源分级绑定动作 | A 官方一手/B 权威二手/C 社媒传言；C 级只能触发核实任务，不得触发分析任务；**A 级源会过时**——文档为唯一证据的 ✅ 附版本核对；**押注追问（2026-10-31）**——该信源错了谁付代价？零押注**承诺**（厂商宣传页的 production-ready/安全/性能类声明）封顶 C 级；事实性一手文档（API 行为/参数/计价规则）仍按 A 级，实测优先不变；吃狗粮证据可作 A/B 定级加分项 |
 | M4 | 负面定性高门槛 | 指控类定性双渠道交叉+检索边界+证伪清单；模型脑内断言视同 C 级，无出处进 ❓ |
-| M5 | 样本量强制声明 | 容量/速率/成本结论必须声明样本量、覆盖期、遗漏场景；不足则降级为待验证假设 |
+| M5 | 样本量与证据独立性强制声明 | 容量/速率/成本/能力类结论必须声明样本量、覆盖期、遗漏场景；样本不足**或产生于本次请求设定的约束之下**（自设约束污染，元坑㉒）→ 一律 ❓ 禁升 ✅；「不存在/无此能力」类断言需 ≥2 路验证器 |
 | M6 | 异常信号触发器 | too-good-to-be-true 自动升深审；条款层级枚举（缺层即坑）；优势归属检验 |
 | M7 | 三态披露契约 | 禁裸「验证通过」；✅ 必附证据链+可复核原文引用+高时效条目复查条件，❓ 必附补验动作，🚫 必显式声明 |
 | M8 | 真实性过滤分级 | 真坑/中风险/大象/纸老虎四分，防清单通胀；裸对策降级、大象须有监控者、判狼须有证据 |
