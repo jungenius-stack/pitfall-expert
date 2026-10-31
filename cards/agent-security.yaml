@@ -26,7 +26,7 @@ cards:
       向 MCP 注册表提交仿冒知名服务的木马服务器：功能外观完全正常（邮件照发、数据照查）， 恶意行为藏在正常路径之外——静默 BCC、凭据外传、持久化后门。SmartLoader 案中攻击者
       花三个月搭假开发者生态（5 个假 GitHub 账号互 fork 制造活跃）通过审核；Postmark 仿冒 服务器每封邮件被密送攻击者，发收件双方均不可见。2026-10-31
       补（SEC-014 候选经裁决并入）：**工具描述投毒（TDP）**——恶意指令不写进代码、写进工具描述元数据（agent 规划决策依赖的「说明书」）：代码审计干净也防不住，agent 读描述、信描述、按描述行事。
-    symptom: 新装的 MCP 服务器来源只有注册表搜索结果；行为「完全正常」；出现无法解释的出站连接
+    symptom: 新装的 MCP 服务器来源只有注册表搜索结果；行为「完全正常」；出现无法解释的出站连接；TDP 面（2026-10-31 补）：工具描述/manifest 含对 agent 的祈使句或隐藏指令——代码审计干净、无出站异常也可能中招（恶意性在元数据里）
     severity:
       S: 9
       O: 4
@@ -41,7 +41,7 @@ cards:
         2025-09 postmark 单周 ~1,500 下载放大约 10 倍）——2026-10-31 TDP 补强（付费检索回收+免费核验，SEC-014 候选并入）：MCP-TDP 基准（CSCWD
         2026，arXiv:2605.24069，arXiv API 标题逐字核验——Tool Description Poisoning 系统研究：恶意指令藏于描述元数据而非可执行代码，8
         主流模型评测，leading models 近乎全中〔摘要记录截断于 nearly 100，精确值未核〕）；MCP 客户端实证（J. Cybersecurity and Privacy
-        2026，无 DOI 未核——tool poisoning 为最普遍客户端侧漏洞，7 大客户端防御对比）；MCP 渗透测试（IEEE ICAIC 2026，无 DOI 未核——15
+        2026，无 DOI 未核——tool poisoning 为最普遍客户端侧漏洞，7 大 MCP 客户端对比）；MCP 渗透测试（IEEE ICAIC 2026，无 DOI 未核——15
         个 MCP server：87% ≥1 critical 缺陷、34% 可被完整接管）
       level: case
     fix: >-
@@ -59,6 +59,7 @@ cards:
       - npm包
       - 工具描述
       - 工具说明书
+      - 元数据投毒
       - MCP server
       - supply chain
       - typosquat
@@ -67,6 +68,8 @@ cards:
       - install mcp
       - tool description
       - tool poisoning
+      - tool manifest
+      - tool metadata
     hazard_type: 事实性陷阱
     source_ref: UpGuard/SmartLoader/Postmark/MCP-TDP
   - id: SEC-002
@@ -413,7 +416,7 @@ cards:
         agent 记忆）；UMass 防御评估复现（arXiv:2601.05504——转述 MINJA 理想条件下注入成功率 >95%、攻击成功率 70%）；SpAIware（Future
         Generation Computer Systems 174:107994, 2026，DOI:10.1016/j.future.2025.107994，Crossref 核验——ChatGPT
         长期记忆 PoC：跨会话注入持久指令实现持续数据外泄）；InjecMEM（COLM 2026，arXiv:2608.23471——单次交互即可定向引导后续相关查询，non-target
-        查询不受影响）。团队独立性备注：AgentPoison 与 MINJA 共享一位合著者（Zhen Xiang），一作/机构/方法路径均不同，另有 3 支无关联团队——满足 ≥2 独立团队建卡线。近亲边界：SEC-003
+        查询不受影响）。团队独立性备注：AgentPoison 与 MINJA 共享一位合著者（Zhen Xiang），一作/机构/方法路径均不同；UMass 为对 MINJA 的复现+防御评估（转述其数字），非独立攻击实证——严格计 4 支独立攻击实证 + 1 支复现，仍远超 ≥2 独立团队建卡线。近亲边界：SEC-003
         讲「注入何时致命」（三要素），本卡讲「记忆是驻留攻击面」（持久性）——机制不同并存；SEC-003 的 Bad Memory 证据（arXiv:2607.14611）属本卡攻击面的单点先例
       level: empirical
     fix: >-

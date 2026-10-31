@@ -1,6 +1,6 @@
 {
-  "_comment": "第⑰号门守门电池：10 条任务 + 现行 119 卡基线（2026-10-26 深扫合并批次：125→117）。新增/修改坑卡后必须重跑，跨域误命中增量必须为 0。",
-  "_generatedAt": "2026-10-26",
+  "_comment": "第⑰号门守门电池：12 条任务 + 现行 119 卡基线（2026-10-26 深扫合并批次 125→117；2026-10-31 SEC-013 入库批次 118→119 并增补任务 11/12 守记忆字面盲区——SEC-013 字段分致中文泛「记忆」任务域翻转为已知代价并冻结于基线，防继续恶化）。新增/修改坑卡后必须重跑，跨域误命中增量必须为 0。",
+  "_generatedAt": "2026-10-31",
   "_cardCount": 119,
   "tasks": [
     { "id": 1,  "text": "用多个 agents 并行处理数据清洗", "note": "⑰号规范样本：多 Agent 主题真阳性放行" },
@@ -12,7 +12,9 @@
     { "id": 7,  "text": "按照这张图实现页面布局", "note": "SCI-011「这张图」+ CODE-045「实现」两次撞词点，现应仅 RD-006（RD-010 已于 2026-10-26 深扫并入 RD-006）" },
     { "id": 8,  "text": "分析这份实验数据，跑个 t 检验看显著性", "note": "science 域真阳性" },
     { "id": 9,  "text": "帮我谈判压低供应商报价", "note": "strategy 域真阳性" },
-    { "id": 10, "text": "翻译这段文档到英文", "note": "纯执行任务，应接近零命中" }
+    { "id": 10, "text": "翻译这段文档到英文", "note": "纯执行任务，应接近零命中" },
+    { "id": 11, "text": "写一个记忆翻牌小游戏", "note": "2026-10-31 增补：SEC-013 字段分致域翻转（旧版判 code）冻结于基线——冷读🟡-5 盲区守卫" },
+    { "id": 12, "text": "写一篇关于人类 long-term memory 机制的科普文章", "note": "2026-10-31 增补：同上（旧版判 research-decision）" }
   ],
   "baseline": {
     "1":  { "code": 12, "security": 0, "creative": 0, "math": 0,  "rd": 0, "science": 1, "strategy": 0 },
@@ -24,7 +26,9 @@
     "7":  { "code": 0,  "security": 0, "creative": 0, "math": 0,  "rd": 1, "science": 0, "strategy": 0 },
     "8":  { "code": 3,  "security": 0, "creative": 0, "math": 1,  "rd": 0, "science": 3, "strategy": 0 },
     "9":  { "code": 0,  "security": 0, "creative": 0, "math": 0,  "rd": 0, "science": 0, "strategy": 2 },
-    "10": { "code": 2,  "security": 0, "creative": 0, "math": 0,  "rd": 0, "science": 0, "strategy": 0 }
+    "10": { "code": 2,  "security": 0, "creative": 0, "math": 0,  "rd": 0, "science": 0, "strategy": 0 },
+    "11": { "code": 0,  "security": 1, "creative": 0, "math": 0,  "rd": 0, "science": 0, "strategy": 0 },
+    "12": { "code": 0,  "security": 2, "creative": 0, "math": 0,  "rd": 3, "science": 0, "strategy": 0 }
   },
   "_howToRun": "node eval/gate.js —— 逐条跑 quick 档，解析扫描范围，与 baseline 比对；任一新域增量 >0 即退出码 1"
 }
