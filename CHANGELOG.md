@@ -1,5 +1,12 @@
 # Changelog
 
+## [未发布工作区] GLM Scaling Pain 入库批次（卡数 119→121）
+
+**CODE-046（服务端间歇故障归因错位：乱码/复读/生僻字）+ CODE-047（竞态 bug 低负载隐身：「本地无法复现」≠没有 bug）入库 code.yaml。** 三源验真：智谱官方博客《Scaling Pain》（zhipuai.cn/zh/research/159，2026-04-29，A 级一手：复现率 3-5/万、修复后<3/万、spec_accept_length<1.4/accept_rate>0.96 检测阈值均原文数字）+ SGLang PR #22811（GitHub API 验真）+ SGLang issue #12073（2025-10-24，社区记录早于厂商半年）+ 量子位交叉；CODE-047 另挂 TaxDC（ASPLOS 2016）/DCatch（ASPLOS 2017）/CloudRaid（ESEC/FSE 2018）学术锚。两卡均预绑否证动作（元坑㉒规矩）；与 CODE-003（方差）/CODE-042（镜像假阳性）/CSV 解析卡的分流判定树写入卡内。评估全文：docs/踩坑报告-GLM降智入库评估-2026-11-01.md（DoD 机检 9/9）。
+
+**⑰号门首跑红灯实录（元坑⑲『高频词碎片』第三次应验）**：CODE-047 symptom「坏数据」+description「数据中心」2-gram 出「数据」撞任务 1「数据清洗」（SEC-001「元数据投毒」同款）；CODE-046 fix「检查…是否」撞任务 4。三处改词（坏数据→坏输出、数据中心→datacenter、检查是否→核验有无）后 12/12 零增冻结。**新卡入库时的高频词预检应进 selfcheck**（候选改进，未实施）。写死面 119→121 六文件同步（manifest/README×2/SKILL.md/battery/_cardCount）；AMiner 免费通道实测：search_paper_by_title/recommend_paper 免费，search_paper（pro）/get_paper_detail 收费。
+
+
 ## v0.8.2（2026-10-31）
 
 **元坑㉒「自设约束污染证据」批次：M5 扩证据独立性 + 持久层断言强制否证动作 + 技能回归卷 RG-001。无卡数变更（119），engine 0.2.7 不变。**

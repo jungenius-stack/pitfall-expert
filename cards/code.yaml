@@ -7,14 +7,18 @@
 #   CODE-037→RD-021 跨域并卡；CODE-041 退役（存档 docs/cases/退役卡存档-CODE-041.md）；CODE-040 补英文触发词（元坑⑩）
 # 2026-10-26 晚：AMiner 证据升级批次（docs/回写候选-证据升级批次-2026-10-26.md）——CODE-020/022 升 empirical、CODE-035 官方文档一手、
 #   CODE-044 弃 C 级 40%/4.3× 换 MAST 44.2%（N=1,642）、CODE-021 维持 needs_verification 但定性背书包齐
+# 2026-11-01：GLM Scaling Pain 入库批次（docs/踩坑报告-GLM降智入库评估-2026-11-01.md）——新增 CODE-046（服务端间歇故障归因错位）/CODE-047（竞态低负载隐身）；
+#   三源验真：智谱官方博客（zhipuai.cn/zh/research/159，2026-04-29）+SGLang PR#22811/issue#12073（GitHub API 验真，社区记录早于厂商半年）+量子位 2026-05-01；
+#   CODE-047 加 TaxDC（ASPLOS 2016，DOI:10.1145/2954679.2872374）学术锚；两卡均预绑否证动作（元坑㉒规矩）；
+#   AMiner 推荐之 Leyline/Pitfalls of KV Cache Compression 两篇 venue 未核，仅作背景不入 evidence
 # 字段规范见 docs/踩坑专家方法论_v0.3.md 第 9.1 条：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.9
+version: 0.7.10
 domain: code
-updated: '2026-10-26'
-card_count: 45
+updated: '2026-11-01'
+card_count: 47
 cards:
   - id: CODE-001
     title: 虚假不可能性
@@ -1479,3 +1483,91 @@ cards:
       - delegate to automation
     hazard_type: 常见错误
     source_ref: AMiner报告第3.1.3节-2026-10-17
+  - id: CODE-046
+    title: 服务端间歇故障被归因为模型能力/prompt（乱码/复读/生僻字三症状）
+    description: >-
+      模型输出乱码、复读、生僻字时，用户默认归因「prompt 写错/模型变笨」，在同一上下文内反复改写重试。实际可能是推理基础设施的间歇性故障（KV
+      Cache 竞态/加载时序）：特征是「与请求内容无关、与系统压力相关」，换新会话重发即恢复。智谱官方复盘（Scaling Pain，2026-04-29）：GLM-5
+      线上日均数亿次 Coding Agent 调用中每万请求 3-5 个异常，本地回放数百次 0 复现，「模型本身并非根本原因」——根因为 PD 分离 KV
+      Cache 竞态与 HiCache 加载时序缺失（SGLang PR #22811 修复）。与 CODE-003（复跑不一致）分属两层：003 是合法输出的方差（测可靠性），本卡是坏输出的故障（做归因）。遍历性：单次万分之三
+      × 千步 agent 任务 ≈26% 至少撞一次（均匀假设粗估，算术非文献）。
+    symptom: >-
+      输出乱码/无意义字符；同短语复读循环；蹦生僻字；同一 prompt 新开会话恢复正常；高峰时段/长上下文高发；「模型今天降智/变笨了」类体感但服务方无公告
+    severity:
+      S: 5
+      O: 4
+      D: 6
+    evidence:
+      source: >-
+        智谱官方博客《Scaling Pain：超大规模Coding Agent推理实践》（zhipuai.cn/zh/research/159，2026-04-29，A 级一手，含复现率
+        3-5/万与修复后<3/万原文数字）+ SGLang PR #22811（GitHub API 验真：标题原文 "Fix for the low-probability
+        garbled output issue in the GLM-5 series models"）+ SGLang issue #12073（2025-10-24，早于厂商博客半年的社区独立记录）+
+        量子位报道 2026-05-01 交叉。复盘全文见 docs/踩坑报告-GLM降智入库评估-2026-11-01.md
+      level: empirical
+    fix: >-
+      三症状任一出现先做归因二分：同一 prompt 新开会话（或清上下文）重发——恢复正常 ⇒ 服务端间歇故障，不在原上下文死磕、不改
+      prompt，该步输出作废重跑；仍异常 ⇒ prompt/任务侧问题；多次结果不同但均合理 ⇒ 走 CODE-003 方差判定；乱码出现在文件读取而非模型生成
+      ⇒ 走编码/解析类卡。agent 长任务在步骤间核验输出有无乱码/复读，命中即丢弃该步，不让坏输出进后续上下文；连续多请求异常 ⇒
+      记时间戳换时段/换服务端。
+    verifier: >-
+      判定表（环境预检：需可新开会话的服务）——原会话异常 + 新会话同 prompt 正常 ⇒ 命中本卡；新会话仍异常 ⇒ 不命中（prompt/任务侧）；同
+      prompt 多次输出不同但均合法 ⇒ 不命中（方差，走 CODE-003）；乱码只在读文件/终端显示出现 ⇒ 不命中（编码类）。副作用：只读。
+    confidence: backed_by_context
+    pass_k_relevant: true
+    triggers:
+      - 乱码
+      - 复读
+      - 生僻字
+      - 降智
+      - 模型变笨
+      - 模型抽风
+      - 输出异常
+      - 换会话就好了
+      - 模型今天不行
+      - garbled output
+      - repetition loop
+    hazard_type: 服务端/基础设施
+    source_ref: 智谱 Scaling Pain 复盘 + SGLang PR#22811/issue#12073（2026-11-01 入库）
+    falsification: 官方后续复盘推翻根因归因（如改判模型本身问题），或实测换会话后异常仍持续占主导 ⇒ 修卡
+  - id: CODE-047
+    title: 竞态类 bug 在低负载环境隐身（「本地无法复现」≠没有 bug）
+    description: >-
+      并发竞态/时序类 bug 的触发依赖生产压力形态（并发度、PD 分离比例、缓存回收压力），单线程/低负载回放可能数百次全绿——「无法复现」只是「当前环境不触发」，不是「不存在」。智谱案例：GLM-5
+      乱码本地回放数百次 0 复现，调高 PD 分离比例与负载后每万次复现 3-5 个；SGLang 社区在厂商定位前半年已有同类竞态记录（issue
+      #12073，2025-10）。学界底座：datacenter 分布式系统非确定性并发 bug 分类学 TaxDC（ASPLOS 2016）起一脉（DCatch ASPLOS'17 /
+      CloudRaid ESEC/FSE'18 / FlyMC EuroSys'19），竞态复现检测是十年经典难题。与 CODE-042 互为镜像：042 合成环境太假 →
+      假阳性；本卡本地环境太闲 → 假阴性。与 CODE-003 分属不同层：003 讲结果方差，本卡讲 bug 复现方法论。
+    symptom: 「本地跑几百遍都没问题」；线上偶发坏输出线下抓不到；复现频率线上>线下仍当作已充分复现；bug 修复后只靠低负载回归确认
+    severity:
+      S: 6
+      O: 4
+      D: 8
+    evidence:
+      source: >-
+        智谱《Scaling Pain》（A 级，含「本地回放数百次未复现 → 调压后 3-5/万」完整数字链）+ SGLang issue #12073（2025-10-24）+
+        TaxDC（Leesatapornwongsa et al., ASPLOS 2016, DOI:10.1145/2954679.2872374，AMiner 验真，被引 201-1000）+ DCatch（ASPLOS
+        2017, DOI:10.1145/3037697.3037735）+ CloudRaid（ESEC/FSE 2018, DOI:10.1145/3236024.3236071）
+      level: empirical
+    fix: >-
+      竞态排查的复现环境必须对齐生产压力形态——并发度、PD 分离/缓存回收比例、峰值负载模拟，只重放请求序列不够；「与请求内容无关、与系统压力相关」是基础设施竞态指纹；线上复现率>线下
+      ⇒ 优先怀疑环境保真度不足，而非「不构成证据」；修复验证也在生产压力形态下做，低负载回归绿不算修好。
+    verifier: >-
+      判定表——同一 bad case：单线程/低负载回放 N≥100 次 0 复现，而生产压力形态（对齐并发/负载参数）能复现 ⇒ 命中；两种环境都复现或都不复现
+      ⇒ 未判定（转日志挖掘等他法）。副作用：压测属写类，须在测试环境执行并配资源预算，禁止对生产压测。
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 无法复现
+      - 复现不了
+      - 竞态
+      - race condition
+      - heisenbug
+      - 本地没问题
+      - 本地好的
+      - 高并发
+      - 时序问题
+      - 线上偶发
+      - 压测
+    hazard_type: 常见错误
+    source_ref: 智谱 Scaling Pain + SGLang issue#12073 + TaxDC 学术脉络（2026-11-01 入库）
+    falsification: 出现同类竞态在低负载下即可稳定复现的实证案例 ⇒ 修卡（说明触发条件不含负载维度）
