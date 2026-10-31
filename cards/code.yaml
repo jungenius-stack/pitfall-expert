@@ -792,7 +792,10 @@ cards:
         AMiner 复查：量化实证未找到（已搜 automating unvalidated process / automation error amplification 等 8
         组词），定性背书包齐：RPA 奠基文献（van der Aalst et al., BISE 2018，DOI:10.1007/s12599-018-0542-4，Crossref 核实）+
         RPA 关键成功因素研究（Plattfaut et al., Computers in Industry 2022：19 名专家访谈 32 个 CSF）——维持
-        needs_verification，定性共识
+        needs_verification，定性共识。2026-10-31 付费复查（error amplification automation 等 4 组语义词）：直接量化实证仍零命中；
+        近义两组（Wickens et al., Human Factors 2015 不完美自动化下的自满与自动化偏见；Bahner et al., IJHCS 2008 N=24
+        自动化自满→核实不足→执行错误）为「依赖不完美自动化放大人为错误」的人因证据，与「未验证流程被自动化」机制相邻不重合——仍维持
+        needs_verification，诚实保留
       level: consensus
     fix: 顺序铁律：手动跑通全流程 → 沉淀 SOP → 半自动试点 → 全自动。自动化边界=只自动化已验证正确的流程
     verifier: 自动化上线前检查：该流程是否存在至少一次完整手动跑通的记录/SOP？没有=先跑通再自动化

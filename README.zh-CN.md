@@ -117,7 +117,7 @@ git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-ex
 node engine/src/cli.js "把 users.csv 导入 SQLite，注意空值和编码" --tier standard
 ```
 
-**装门控（推荐）**——技能自动激活率只有 20–50%，门控不靠任何人的自觉：见 [hooks/README.md](hooks/README.md)（默认先报告后放行；`PITFALL_HOOK_MODE=block` 硬拦 `rm -rf`、`git push --force`）与 [dsh-plugin/README.md](dsh-plugin/README.md)。
+**装门控（推荐）**——技能自动激活率只有 20–50%（社区实测，非同行评审测量），门控不靠任何人的自觉：见 [hooks/README.md](hooks/README.md)（默认先报告后放行；`PITFALL_HOOK_MODE=block` 硬拦 `rm -rf`、`git push --force`）与 [dsh-plugin/README.md](dsh-plugin/README.md)。
 
 **不装也行**——零安装入门版：一段提示词贴进任何聊天模型，保命机制全保留（[docs/入门版-贴即用.md](docs/入门版-贴即用.md)）。
 
