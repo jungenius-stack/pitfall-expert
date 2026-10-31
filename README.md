@@ -141,6 +141,10 @@ No harness? Paste the lite prompt from [`docs/入门版-贴即用.md`](docs/入�
 
 Your agent (or the CLI) scans the task against `cards/<domain>.yaml` — every card matched with evidence, every blocking pit bound to a runnable verifier. The skill persona (L0–L5 pipeline, 13 mechanisms) runs the parts engines can't: assumption dumping, pre-mortem, user-constraint profiling. Then the report passes a six-item DoD machine check (`dod_check.py`). Skill = the instructions, engine = the muscle, hooks = the seatbelt.
 
+## Card library: two layers (public core + personal-case templates)
+
+The 121 cards split by the `origin` field: **public layer** (108 cards, unmarked) — empirical/case/consensus-anchored universal pitfalls, shipped with the skill; **personal-case layer** (13 cards, `origin: personal-case`) — distilled from one real user's own missteps (a chain of research/procurement blunders, design-system battles, bugs hit while building this very project). The pitfall is universal; the origin is personal. They double as living templates for new users: follow the same recipe (real incident → generalize → independent evidence anchor), write your own mishaps as cards, swap them in — and the library becomes yours.
+
 ## What it can catch
 
 | Domain | Cards | Catches | Honest "cannot" |

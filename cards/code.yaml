@@ -535,6 +535,8 @@ cards:
       - bash variable
       - quoting
       - cjk
+    origin: personal-case（用户亲测（pitfall-expert 项目 P3 实测），证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: CODE-017
     title: await 无响应承诺（协议通知）
     description: >-
@@ -748,7 +750,9 @@ cards:
       - hidden invariant
       - legacy logic
     hazard_type: 隐含前提
-    source_ref: AI纪要-2026-10-14-a
+    source_ref: 发现线索：AI纪要 2026-10-14-a（工程集成实操段，未入仓；证据已独立锚化）
+    origin: personal-case（发现于用户工程集成实操，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: CODE-020
     title: 改动前缺两层影响分析（局部全绿、下游崩盘）
     description: >-
@@ -781,10 +785,14 @@ cards:
       - downstream
       - breaking change
     hazard_type: 易错环节
-    source_ref: AI纪要-2026-10-14-a
+    source_ref: 发现线索：AI纪要 2026-10-14-a（工程集成实操段，未入仓；证据已独立锚化）
+    origin: personal-case（发现于用户工程集成实操，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: CODE-021
     title: 错误流程自动化（规模化的错误）
-    description: 手动流程尚未验证成熟就交给 AI 自动化。AI 擅长把已验证的流程从 1 次复制到上百次，无法证明流程本身合理——错误流程+自动化=规模化错误。
+    description: >-
+      手动流程尚未验证成熟就交给 AI 自动化。AI 擅长把已验证的流程从 1 次复制到上百次，无法证明流程本身合理——错误流程+自动化=规模化错误。事故级实证：Knight
+      Capital（2012-08-01）部署验证不充分的流程 × 算法交易自动化 = 45 分钟约 400 万笔错误订单、损失约 4.6 亿美元（每秒约 17 万）、公司近乎出局——SEC 处罚令指出两大根因正是「部署前测试不充分」+「缺乏自动止损控制」。
     symptom: 「流程还没手动跑通就让它全自动跑」；自动化批量产出同构错误结果后才发现源头流程有错
     severity:
       S: 8
@@ -792,18 +800,15 @@ cards:
       D: 7
     evidence:
       source: >-
-        AI 智能纪要转述（抖音实战分享《vibe coding 八条避坑》，2026-10-14）；行业共识经验，未经一手核验；原话「错误的流程加上自动化，只会得到规模化的错误」——2026-10-26
-        AMiner 复查：量化实证未找到（已搜 automating unvalidated process / automation error amplification 等 8
-        组词），定性背书包齐：RPA 奠基文献（van der Aalst et al., BISE 2018，DOI:10.1007/s12599-018-0542-4，Crossref 核实）+
-        RPA 关键成功因素研究（Plattfaut et al., Computers in Industry 2022：19 名专家访谈 32 个 CSF）——维持
-        needs_verification，定性共识。2026-10-31 付费复查（error amplification automation 等 4 组语义词）：直接量化实证仍零命中；
-        近义两组（Wickens et al., Human Factors 2015 不完美自动化下的自满与自动化偏见；Bahner et al., IJHCS 2008 N=24
-        自动化自满→核实不足→执行错误）为「依赖不完美自动化放大人为错误」的人因证据，与「未验证流程被自动化」机制相邻不重合——仍维持
-        needs_verification，诚实保留
-      level: consensus
-    fix: 顺序铁律：手动跑通全流程 → 沉淀 SOP → 半自动试点 → 全自动。自动化边界=只自动化已验证正确的流程
-    verifier: 自动化上线前检查：该流程是否存在至少一次完整手动跑通的记录/SOP？没有=先跑通再自动化
-    confidence: needs_verification
+        Knight Capital 事故一手锚（2026-11-01 补，WebSearch 验真）：SEC Press Release 2013-222（sec.gov/newsroom/press-releases/2013-222，2013-10-16）——8
+        台服务器 1 台漏部署新代码、已退役 Power Peg 测试代码复活死循环买入，45 分钟损失约 $460M，罚款 $12M（违反 Market Access Rule
+        15c3-5）；机制同构诚实标注：Knight 为算法交易自动化非 AI，「未验证流程 × 自动化速度」事故实证，非同题研究。发现来源：AI
+        智能纪要转述（抖音实战分享《vibe coding 八条避坑》，2026-10-14，原话「错误的流程加上自动化，只会得到规模化的错误」，未入仓）。检索史（诚实保留）：2026-10-26
+        AMiner 复查 8 组词未找到统计性量化实证；2026-10-31 付费复查 4 组词仍零命中，近义人因证据（Wickens HF 2015 / Bahner IJHCS 2008）机制相邻不重合——统计性实证仍缺，事故级 case 锚已达标，consensus→case。
+      level: case
+    fix: 顺序铁律：手动跑通全流程 → 沉淀 SOP → 半自动试点 → 全自动。自动化边界=只自动化已验证正确的流程；自动化上线必须配「异常即熔断」的止损控制（Knight 反面：错误开始后无自动终止）
+    verifier: 自动化上线前检查：该流程是否存在至少一次完整手动跑通的记录/SOP？没有=先跑通再自动化；再查：异常输出有无自动熔断/回滚路径？两条缺一即命中
+    confidence: backed_by_context
     pass_k_relevant: false
     triggers:
       - 自动化流程
@@ -815,7 +820,7 @@ cards:
       - manual run first
       - scale up
     hazard_type: 逻辑漏洞
-    source_ref: AI纪要-2026-10-14-b
+    source_ref: 发现线索：AI纪要 2026-10-14-b（抖音《vibe coding 八条避坑》分享，未入仓；证据已独立锚化）
   - id: CODE-022
     title: 并行任务无隔离（同工作区互相覆盖）
     description: 多个 AI 任务同时改同一工作区：文件互相覆盖、代码冲突、两个会话各改各的不自知。并行的前提是隔离。
@@ -846,7 +851,7 @@ cards:
       - workspace isolation
       - concurrent edits
     hazard_type: 工具链环境
-    source_ref: AI纪要-2026-10-14-b
+    source_ref: 发现线索：AI纪要 2026-10-14-b（抖音《vibe coding 八条避坑》分享，未入仓；证据已独立锚化）
   - id: CODE-023
     title: 网关参数语义不可信（限流被静默忽略；校验通过≠能跑）
     description: >-
@@ -1389,6 +1394,8 @@ cards:
       - reverse test
     hazard_type: 常见错误
     source_ref: dsh-zcode-ui 1.13.0 设计语言对齐（2026-10-14）
+    origin: personal-case（用户 dsh-zcode-ui 1.13.0 实战，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: CODE-042
     title: 单规则探针验证依赖整表级联的性质（假阳性）
     description: 用「只注入目标规则」的最小 HTML 探针去验证依赖样式表级联/媒体查询/令牌继承的性质（如 reduced-motion 归零、主题切换），会因缺少上下文而得出错误结论——常常是假阳性，让人去修一个不存在的问题。
@@ -1413,6 +1420,8 @@ cards:
       - 合成夹具
     hazard_type: 常见错误
     source_ref: dsh-zcode-ui 1.13.0 reduced-motion 复核（2026-10-14）
+    origin: personal-case（用户 dsh-zcode-ui 1.13.0 实战，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: CODE-043
     title: 验证器只做表面检查与路径匹配（编译/单测绿≠任务达成；判绿判红都错）
     description: "验证器设计层的两条同源失败：①只做表面检查——验证器查「代码是否编译/lint 是否过」而不对照任务原始目标（MAST：任务验证失败占 21–24%，其中「错误验证」9.1%；同一模型仅添加高层目标验证步骤，MAS 成功率最高提升 15.6%）；②验收判定写成调用路径匹配——断言「必须调用 X 接口/必须出现 Y 字段」，agent 用非常规路径达成目标被判失败（系统性低估成功率），反向放过形式合规但有副作用的轨迹（重复下单/多删文件/多发消息）。CUAVerifierBench 对照：精心设计的执行式 verifier 与人类一致率可达人类间水平、假阳性近零——问题不在自动判定本身，而在判定写成了路径匹配。与 CODE-039（LLM 评代码误判）分属两层：那张是评审者能力，这张是验证器设计。"

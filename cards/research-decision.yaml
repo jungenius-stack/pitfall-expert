@@ -39,7 +39,9 @@ cards:
       - 负面定性
     hazard_type: 事实性陷阱
     latent_condition: 检索时滞（新事物未被搜索引擎收录）
-    source_ref: cases/D1
+    source_ref: docs/cases/坑点案例库-v1.md D1
+    origin: personal-case（用户真实翻车案例提炼，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: RD-002
     title: 验证维度按通用清单而非用户真实约束
     description: 按通用模板验证全绿就宣布「全链路通过」——用户的核心约束可能恰好不在模板里。通用清单查大家都怕的坑，用户画像查这个用户会撞上的坑。
@@ -66,7 +68,9 @@ cards:
       - 够用
     hazard_type: 隐含前提
     latent_condition: 验证清单模板化——通用项全绿制造虚假安全感
-    source_ref: cases/D2
+    source_ref: docs/cases/坑点案例库-v1.md D2
+    origin: personal-case（用户真实翻车案例提炼，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: RD-003
     title: 样本量欺诈——小样本推容量结论
     description: 用两天账本均值推「月耗 $29 够用」——低强度期均值天然低估峰值，偏差可达 3–7 倍。「够用」是分布尾部命题，不是均值命题。
@@ -92,7 +96,9 @@ cards:
       - 月耗
     hazard_type: 逻辑漏洞
     latent_condition: 均值掩盖分布（采样期恰好是低强度期）
-    source_ref: cases/D3
+    source_ref: docs/cases/坑点案例库-v1.md D3
+    origin: personal-case（用户真实翻车案例提炼，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: RD-004
     title: 计量口径不一致的比较（两家的 $1 不是同一种美元）
     description: 「A $120 > B $100 所以 A 赢」只比面值不比含金量——计价基准（高峰/闲时）、缓存计价、隐藏费用、有效期不统一时排序整体失效甚至反转。
@@ -120,7 +126,9 @@ cards:
       - 口径
     hazard_type: 逻辑漏洞
     latent_condition: 计价基准藏在各家文档不同位置，对比模板没有「口径」字段
-    source_ref: cases/D4
+    source_ref: docs/cases/坑点案例库-v1.md D4
+    origin: personal-case（用户真实翻车案例提炼，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: RD-005
     title: 低可信源先分析后核实
     description: 拿到短视频/论坛传言就按其口径展开完整分析——标注「⚠️仅社媒来源」不是免责，C 级信源只能触发核实任务，不能触发分析任务；未核实事实上的推理大厦必然作废。
@@ -146,7 +154,9 @@ cards:
       - 短视频
     hazard_type: 事实性陷阱
     latent_condition: 「标注了可信度」被当成免责，而非行动指令
-    source_ref: cases/D5
+    source_ref: docs/cases/坑点案例库-v1.md D5
+    origin: personal-case（用户真实翻车案例提炼，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: RD-006
     title: 纸面数字与总闸——条款层级漏读与跨页冲突
     description: >-
@@ -189,7 +199,9 @@ cards:
       - terms conflict
     hazard_type: 隐性条款坑
     latent_condition: 条款呈多层结构且厂商营销页与文档页维护不同步；只读到最显眼的一层/一页
-    source_ref: cases/D6 + 报告-2026-10-15-opendesign-vs-commandcode（原 RD-010 并入）
+    source_ref: docs/cases/坑点案例库-v1.md D6 + OpenDesign-vs-CommandCode 选型实测 2026-10-15（原始记录未入仓，结论数字内联卡内；原 RD-010 并入）
+    origin: personal-case（用户真实翻车案例提炼，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: RD-007
     title: 优势归属错配——宣传红利在你的使用路径上不成立
     description: 「它家缓存命中率 98% 所以额度更耐用」——红利可能只属于厂商自家客户端；走 API/自有工具链的用户一分吃不到却被计入对比优势。劣势同理要问归属。
@@ -214,7 +226,9 @@ cards:
       - 宣传
     hazard_type: 逻辑漏洞
     latent_condition: 优势成立的前提（特定客户端/路径）不随优势一起宣传
-    source_ref: cases/D6
+    source_ref: docs/cases/坑点案例库-v1.md D6
+    origin: personal-case（用户真实翻车案例提炼，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: RD-008
     title: 裸「验证通过」——验证边界不透明
     description: 「全链路验证通过」「技术层干净」不说明验了哪几项、用什么方式、哪些没验——用户无法区分验证过的和猜的，只能事后质疑质检，信任崩塌起点。
@@ -252,7 +266,9 @@ cards:
       - 没问题的
     hazard_type: 逻辑漏洞
     latent_condition: 结论无论深浅都呈现同等的自信外观
-    source_ref: cases/D7
+    source_ref: docs/cases/坑点案例库-v1.md D7
+    origin: personal-case（用户真实翻车案例提炼，证据已独立锚化；新用户可参考其写法替换为自己的案例卡）
+
   - id: RD-009
     title: 同 CDN 故障域被当成「多渠道冗余」
     description: 为对冲某渠道的可用性风险而加购第二家渠道，但两家 API 域名解析到同一个 CDN/云厂商； 该 CDN 线路劣化时「冗余」同时失效，实际仍为单点。冗余的前提是故障域不重叠。
@@ -284,7 +300,7 @@ cards:
       - single point of failure
     hazard_type: 隐含前提
     latent_condition: 多个供应商共用同一 CDN/云厂商，平时看不出，故障时同时失效
-    source_ref: 报告-2026-10-15-opendesign-vs-commandcode
+    source_ref: OpenDesign-vs-CommandCode 选型实测 2026-10-15（原始记录未入仓，结论数字内联卡内）
   - id: RD-011
     title: AI 的附和不是认可（谄媚效应：满意被误当质量）
     description: >-
@@ -361,7 +377,7 @@ cards:
       - reproducible judgment
       - 多次输出相同
     hazard_type: 隐含前提
-    source_ref: 用户DeepDive-判断可靠性-2026-10-15
+    source_ref: docs/reference/DeepDive_LLM-as-judge判断可靠性与一致_2026年10月15日.zip + docs/出处核验记录-判断可靠性批次.md
   - id: RD-013
     title: AI 裁判抓不出坏答案（正面偏差：TNR<25%，多数投票无效）
     description: "LLM 裁判识别有效输出的 TPR>96%，但识别无效输出的 TNR<25%——几乎抓不出坏答案。简单多数投票不足以纠正（集体偏向「通过」），需少数否决式规则加回归校准。两层补充界：①**难度天花板**——JudgeBench 用知识/推理/数学/代码四类难例响应对（标签反映客观正确性）测强 judge（GPT-4o 等）仅**略高于随机**，即「抓不出坏答案」在难题上恶化成「基本判不出」；②**去偏的理论上限**——去偏方法不比被评模型更强时，最多只能省掉一半真值标注（Limits to Scalable Evaluation，ICLR 2025），所以「用 judge 替代人工」在任何配置下都不成立，只能减半。"
@@ -390,7 +406,7 @@ cards:
       - 全部通过
       - 没问题
     hazard_type: 事实性陷阱
-    source_ref: 用户DeepDive-判断可靠性-2026-10-15
+    source_ref: docs/reference/DeepDive_LLM-as-judge判断可靠性与一致_2026年10月15日.zip + docs/出处核验记录-判断可靠性批次.md
   - id: RD-014
     title: 模型认得出并偏爱自己的输出（自我偏好与自我识别线性相关）
     description: "GPT-4 与 Llama 2 能以非平凡准确率区分自己生成的文本，且自我识别能力与自我偏好强度线性相关（微调实验，通过混淆因素控制）。同源模型的「好评」对自身产出不构成独立证据。"
@@ -416,7 +432,7 @@ cards:
       - 自己写的自己评
       - 自评通过
     hazard_type: 隐含前提
-    source_ref: 用户DeepDive-判断可靠性-2026-10-15
+    source_ref: docs/reference/DeepDive_LLM-as-judge判断可靠性与一致_2026年10月15日.zip + docs/出处核验记录-判断可靠性批次.md
   - id: RD-015
     title: 呈现顺序可翻转 AI 结论（位置偏差可被恶意利用）
     description: "仅交换两个候选的呈现顺序，就能系统性操纵裁判排名——ChatGPT 当裁判时 Vicuna-13B 在 80 题中 66 题「击败」ChatGPT。位置偏差不是随机噪声，质量差距越小越容易受位置影响。"
@@ -444,7 +460,7 @@ cards:
       - prefer
       - 对比评估
     hazard_type: 常见错误
-    source_ref: 用户DeepDive-判断可靠性-2026-10-15
+    source_ref: docs/reference/DeepDive_LLM-as-judge判断可靠性与一致_2026年10月15日.zip + docs/出处核验记录-判断可靠性批次.md
   - id: RD-016
     title: 无外部反馈的自我纠正不升反降（「再检查一遍」是伪动作）
     description: "推理任务上，LLM 仅凭内在能力自我纠正（不借助外部反馈）效果不升反降。Self-Refine 报告的自提升中有一部分可归因于「改得更长更好看」而非更对。让模型「自己再想想」不产生新信息——公理 2「内省不算验证」的直接实证。"
@@ -471,7 +487,7 @@ cards:
       - 再想想
       - 重新审一遍
     hazard_type: 隐含前提
-    source_ref: 用户DeepDive-判断可靠性-2026-10-15
+    source_ref: docs/reference/DeepDive_LLM-as-judge判断可靠性与一致_2026年10月15日.zip + docs/出处核验记录-判断可靠性批次.md
   - id: RD-017
     title: AI 咨询的失效边界（背景太薄、事实晚于训练截止、连续对抗无新增）
     description: "三类场景下 AI 反驳/建议系统性失效：①输入完整度——决策背景讲给不知情同事听，对方复述不出三个核心假设与最大顾虑，则背景太薄，AI 的反驳只在表面打转；②时效性——关键事实发生在模型训练截止之后，基于旧信息的反驳可信度系统性下降；③过度使用——同一决策连续 3 轮以上对抗，每轮新增实质问题趋近于零时，剩余犹豫来自情绪而非信息，需要拍板而非再分析。"

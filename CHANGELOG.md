@@ -4,6 +4,7 @@
 
 **CODE-046（服务端间歇故障归因错位：乱码/复读/生僻字）+ CODE-047（竞态 bug 低负载隐身：「本地无法复现」≠没有 bug）入库 code.yaml。** 三源验真：智谱官方博客《Scaling Pain》（zhipuai.cn/zh/research/159，2026-04-29，A 级一手：复现率 3-5/万、修复后<3/万、spec_accept_length<1.4/accept_rate>0.96 检测阈值均原文数字）+ SGLang PR #22811（GitHub API 验真）+ SGLang issue #12073（2025-10-24，社区记录早于厂商半年）+ 量子位交叉；CODE-047 另挂 TaxDC（ASPLOS 2016）/DCatch（ASPLOS 2017）/CloudRaid（ESEC/FSE 2018）学术锚。两卡均预绑否证动作（元坑㉒规矩）；与 CODE-003（方差）/CODE-042（镜像假阳性）/CSV 解析卡的分流判定树写入卡内。评估全文：docs/踩坑报告-GLM降智入库评估-2026-11-01.md（DoD 机检 9/9）。
 
+**深审处置批次（同日第二批，docs/卡库深审-2026-11-01.md 裁决落地）**：①CODE-021 补 Knight Capital 事故锚（SEC Press Release 2013-222 验真：8 台服务器 1 台漏部署+Power Peg 复活，45 分钟约 $460M、罚款 $12M）——consensus→case、needs_verification→backed_by_context，检索史诚实保留（统计性实证仍缺，机制同构已标注「算法交易自动化非 AI」），fix/verifier 补熔断检查；②悬空 source_ref 全量修正：RD-001~008 cases/D1~D7→docs/cases/坑点案例库-v1.md、DeepDive 5 张→docs/reference/ 真实 zip 路径、AI纪要 4 张→「发现线索（未入仓）」、OpenDesign 报告 2 张→「原始记录未入仓，结论内联」；③卡库分层落地：13 张个人案例卡注入 origin: personal-case（RD-001~008 + CODE-016/019/020/040/042——CODE-022 剔除：发现线索虽为抖音纪要但证据已 AgenticFlict 学术锚化，非个人实践），README 双语加分层章节（公共 108 + 个人模板 13），card-format.md 补 origin/falsification 字段规范+修示例悬空路径。深审勘误：个人卡 14→13 张。
 **⑰号门首跑红灯实录（元坑⑲『高频词碎片』第三次应验）**：CODE-047 symptom「坏数据」+description「数据中心」2-gram 出「数据」撞任务 1「数据清洗」（SEC-001「元数据投毒」同款）；CODE-046 fix「检查…是否」撞任务 4。三处改词（坏数据→坏输出、数据中心→datacenter、检查是否→核验有无）后 12/12 零增冻结。**新卡入库时的高频词预检应进 selfcheck**（候选改进，未实施）。写死面 119→121 六文件同步（manifest/README×2/SKILL.md/battery/_cardCount）；AMiner 免费通道实测：search_paper_by_title/recommend_paper 免费，search_paper（pro）/get_paper_detail 收费。
 
 

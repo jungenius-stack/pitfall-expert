@@ -26,7 +26,9 @@ cards:
     # —— 可选扩展字段（引擎不校验，供溯源）——
     hazard_type: 事实性陷阱      # 常见错误/隐含前提/易错环节/工具链环境/事实性陷阱/逻辑漏洞/隐性条款坑
     latent_condition: …          # 长期隐患（潜伏条件）
-    source_ref: cases/D1         # 案例溯源（ZCode 案例库）
+    source_ref: docs/cases/坑点案例库-v1.md D1   # 案例溯源（路径必须真实存在于仓库；未入仓的原始记录写明「未入仓，结论内联」）
+    origin: personal-case（用户真实翻车案例提炼，证据已独立锚化）  # 个人案例层标注：坑通用但出处为个人实践——新用户的换卡模板；不写=公共层
+    falsification: …             # 否证动作（L5 强制）：拿什么能推翻这张卡——无否证动作的 ✅ 不入库（元坑㉒）
     # —— 可选拦截规则（引擎校验结构；门控 gate-core 直接消费，v0.7.8+）——
     # 仅给判定可机器化的坑挂：hard=block 模式下硬阻断（exit 2）；soft=放行但显著警告+日志。
     # patterns 为 JS 正则字符串；缺省 tools=['Bash']（作用于命令文本）；作用于 Write/Edit 写入内容的规则必须显式 tools: [Write]。
