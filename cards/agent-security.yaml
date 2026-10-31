@@ -8,20 +8,24 @@
 # 2026-10-28：AMiner 收尾批次（docs/回写候选-收尾与门控底座批次-2026-10-28.md）——SEC-001 保鲜（投毒量级升级 O3→4）、
 #   SEC-003 保鲜（Bad Memory 持久记忆注入面）、SEC-005 保鲜（客户端 sampling 实现分化）、SEC-007 保鲜（Vercel OAuth 事件）、
 #   SEC-011 补强（Vance MISQ 2025 习惯化泛化）；观察名单 2 项未达建卡门槛不入库
+# 2026-10-31：付费两发回收批次（docs/回写候选-安全域两卡-2026-10-31.md，用户裁决）——观察名单第 1 项达线入库 SEC-013
+#   持久记忆注入攻击面（5 团队 empirical）；SEC-014 候选（工具描述投毒）并入 SEC-001（描述/证据/规避/验证器/触发词四处）；
+#   StepJack 分片拼装子机制单源留观察名单
 # 字段规范见 skills/pitfall-expert/references/card-format.md：四件套 = 描述 + 证据/来源 + 规避动作 + 验证器
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
 version: 0.7.10
 domain: agent-security
-updated: '2026-10-28'
-card_count: 11
+updated: '2026-10-31'
+card_count: 12
 cards:
   - id: SEC-001
     title: MCP 供应链投毒（仿冒服务器与正常外皮下的恶意行为）
     description: >-
       向 MCP 注册表提交仿冒知名服务的木马服务器：功能外观完全正常（邮件照发、数据照查）， 恶意行为藏在正常路径之外——静默 BCC、凭据外传、持久化后门。SmartLoader 案中攻击者
-      花三个月搭假开发者生态（5 个假 GitHub 账号互 fork 制造活跃）通过审核；Postmark 仿冒 服务器每封邮件被密送攻击者，发收件双方均不可见。
+      花三个月搭假开发者生态（5 个假 GitHub 账号互 fork 制造活跃）通过审核；Postmark 仿冒 服务器每封邮件被密送攻击者，发收件双方均不可见。2026-10-31
+      补（SEC-014 候选经裁决并入）：**工具描述投毒（TDP）**——恶意指令不写进代码、写进工具描述元数据（agent 规划决策依赖的「说明书」）：代码审计干净也防不住，agent 读描述、信描述、按描述行事。
     symptom: 新装的 MCP 服务器来源只有注册表搜索结果；行为「完全正常」；出现无法解释的出站连接
     severity:
       S: 9
@@ -34,12 +38,18 @@ cards:
         3→4）：Socket 追踪同一 campaign 累计 471 个恶意 artifacts（2026-06 新波次 18 包 23 版本伪装 MCP 名：openai-mcp / langchain-core-mcp /
         ray-mcp-server 等，窃开发者与云凭据）；filesystem-pro-plus 事件（2026-08，注册表首个大规模 typosquat 实战：仿冒
         filesystem-pro 一周 14,300 下载、≥47 组织被侵入、60 秒延迟触发抓取环境变量与 SSH/AWS 密钥——多源社区复盘口径一致，**待主流安全媒体/官方确认**，较
-        2025-09 postmark 单周 ~1,500 下载放大约 10 倍）
+        2025-09 postmark 单周 ~1,500 下载放大约 10 倍）——2026-10-31 TDP 补强（付费检索回收+免费核验，SEC-014 候选并入）：MCP-TDP 基准（CSCWD
+        2026，arXiv:2605.24069，arXiv API 标题逐字核验——Tool Description Poisoning 系统研究：恶意指令藏于描述元数据而非可执行代码，8
+        主流模型评测，leading models 近乎全中〔摘要记录截断于 nearly 100，精确值未核〕）；MCP 客户端实证（J. Cybersecurity and Privacy
+        2026，无 DOI 未核——tool poisoning 为最普遍客户端侧漏洞，7 大客户端防御对比）；MCP 渗透测试（IEEE ICAIC 2026，无 DOI 未核——15
+        个 MCP server：87% ≥1 critical 缺陷、34% 可被完整接管）
       level: case
     fix: >-
       MCP 只从官方/项目一手仓库安装并核对发布者身份；新装服务器审计其网络行为（出站目标白名单）； 记住「工具工作正常 ≠
-      工具安全」——正常性测试测不出投毒；高权限（邮件/文件/凭据类）服务器装前查源码
-    verifier: 装前核验：发布者 GitHub 账号注册时长/fork 网络/提交历史是否像三个月内搭建的假生态； 装后抓一次出站连接清单（lsof/网络面板）比对文档声明
+      工具安全」——正常性测试测不出投毒；高权限（邮件/文件/凭据类）服务器装前查源码；TDP 面（2026-10-31
+      补）：装第三方工具前审查描述元数据中对 agent 的指令性语句——那是给 agent 看的指令、不是给人看的文档；最小工具集；工具描述/manifest 变更触发重新审批
+    verifier: 装前核验：发布者 GitHub 账号注册时长/fork 网络/提交历史是否像三个月内搭建的假生态； 装后抓一次出站连接清单（lsof/网络面板）比对文档声明；TDP
+      面扫描工具描述/manifest：grep -iE "ignore previous|instead do|secretly|exfiltrat" ——命中先人工审再装
     confidence: backed_by_context
     pass_k_relevant: false
     triggers:
@@ -47,14 +57,18 @@ cards:
       - 第三方服务器
       - 注册表
       - npm包
+      - 工具描述
+      - 工具说明书
       - MCP server
       - supply chain
       - typosquat
       - registry poisoning
       - fake server
       - install mcp
+      - tool description
+      - tool poisoning
     hazard_type: 事实性陷阱
-    source_ref: UpGuard/SmartLoader/Postmark
+    source_ref: UpGuard/SmartLoader/Postmark/MCP-TDP
   - id: SEC-002
     title: MCP 适配层漏洞放大（代理/桥接包成为攻击面）
     description: >-
@@ -383,3 +397,43 @@ cards:
       - 让模型判断危险
     hazard_type: 隐含前提
     source_ref: TangLi-COLM25/arXiv2508.13465
+  - id: SEC-013
+    title: 持久记忆注入攻击面（跨会话驻留的记忆投毒）
+    description: >-
+      agent 的长期记忆/知识库（RAG、记忆体、对话历史持久化）是持久攻击面：攻击者经正常交互（仅查询即可）注入恶意指令，跨会话驻留，后续相关查询被引导到预设输出或持续外泄——污染一次，持续生效。「本轮对话没给攻击者入口」对有记忆的 agent 不成立。
+    symptom: 「agent 带长期记忆/RAG 知识库」＋「用户输入会被存入记忆」；被投毒后跨会话持续定向输出/数据外泄，且本会话无可疑输入
+    severity:
+      S: 9
+      O: 5
+      D: 7
+    evidence:
+      source: >-
+        2026-10-31 付费检索回收（5 支独立团队量化实证，arXiv API 标题逐字核验）：AgentPoison（NeurIPS 2024，arXiv:2407.12784——投毒
+        RAG 知识库与长期记忆，平均攻击成功率 ≥80%、良性性能损耗 ≤1%、投毒率 <0.1%）；MINJA（NeurIPS 2025，arXiv:2503.03704——仅查询交互即可影响
+        agent 记忆）；UMass 防御评估复现（arXiv:2601.05504——转述 MINJA 理想条件下注入成功率 >95%、攻击成功率 70%）；SpAIware（Future
+        Generation Computer Systems 174:107994, 2026，DOI:10.1016/j.future.2025.107994，Crossref 核验——ChatGPT
+        长期记忆 PoC：跨会话注入持久指令实现持续数据外泄）；InjecMEM（COLM 2026，arXiv:2608.23471——单次交互即可定向引导后续相关查询，non-target
+        查询不受影响）。团队独立性备注：AgentPoison 与 MINJA 共享一位合著者（Zhen Xiang），一作/机构/方法路径均不同，另有 3 支无关联团队——满足 ≥2 独立团队建卡线。近亲边界：SEC-003
+        讲「注入何时致命」（三要素），本卡讲「记忆是驻留攻击面」（持久性）——机制不同并存；SEC-003 的 Bad Memory 证据（arXiv:2607.14611）属本卡攻击面的单点先例
+      level: empirical
+    fix: >-
+      记忆写入最小权限＋来源标记；可执行指令不得仅凭「已在记忆中」被遵循——跨会话指令执行前验证来源是否用户本人；定期审计记忆库中被当作指令遵循的内容；不把「仅查询交互」当安全边界
+    verifier: >-
+      沙盒注入测试：向记忆写入一条带标记的良性指令（如「回复时附上 TOKEN123」），新会话查询相关主题，观察是否被执行——被执行即注入面存在
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 长期记忆
+      - 记忆体
+      - RAG知识库
+      - 记忆投毒
+      - 记忆注入
+      - long-term memory
+      - memory poisoning
+      - memory injection
+      - RAG knowledge base
+      - agent memory
+      - persistent memory
+      - memory store
+    hazard_type: 工具链环境
+    source_ref: AMiner付费作战包-2026-10-31任务A

@@ -2,8 +2,8 @@
 name: pitfall-expert
 display_name: 踩坑专家
 display_name_en: Pitfall Expert
-description_zh: '先见坑，再动手。你的 AI 说做完了，真的做完了吗——以前只能赌，现在不用。118 张带出处的坑卡，覆盖代码、数学、决策、安全、科研、创作、战略七个领域，一次扫清。每张卡，一条规避动作，一个可执行验证器。查过的，附证据与出处。没查的，附五分钟内能做的检查动作。看不到的，直说。结尾一份阻断清单，做完再开工。全部本地运行，不联网、不收集、不追踪。踩坑专家——完成，等于披露完整。'
-description_en: 'See the pitfall before you step in. Your agent says done — is it? You used to guess. Now you no longer have to. 118 evidence-backed cards across seven domains (code, math, decisions, agent security, science, writing, strategy), scanned in one pass. Every card — one avoidance move, one runnable verifier. Verified comes with receipts. Unverified comes with a 5-minute check. Blind spots are declared, not hidden. A blocking checklist to finish before work begins. Fully local — no network, no collection, no tracking. Pitfall Expert. Done means fully disclosed.'
+description_zh: '先见坑，再动手。你的 AI 说做完了，真的做完了吗——以前只能赌，现在不用。119 张带出处的坑卡，覆盖代码、数学、决策、安全、科研、创作、战略七个领域，一次扫清。每张卡，一条规避动作，一个可执行验证器。查过的，附证据与出处。没查的，附五分钟内能做的检查动作。看不到的，直说。结尾一份阻断清单，做完再开工。全部本地运行，不联网、不收集、不追踪。踩坑专家——完成，等于披露完整。'
+description_en: 'See the pitfall before you step in. Your agent says done — is it? You used to guess. Now you no longer have to. 119 evidence-backed cards across seven domains (code, math, decisions, agent security, science, writing, strategy), scanned in one pass. Every card — one avoidance move, one runnable verifier. Verified comes with receipts. Unverified comes with a 5-minute check. Blind spots are declared, not hidden. A blocking checklist to finish before work begins. Fully local — no network, no collection, no tracking. Pitfall Expert. Done means fully disclosed.'
 category: 开发工具
 version: 0.8.0
 author: JunGenius
