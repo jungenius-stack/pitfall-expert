@@ -81,7 +81,7 @@ console.log('');
 if (exitCode === 2) {
   console.log('⑰号门：未判定（有任务解析失败）。不得当作通过。');
 } else if (increases.length === 0) {
-  console.log('⑰号门：通过 —— 跨域误命中增量 0（10/10 任务零增）。');
+  console.log(`⑰号门：通过 —— 跨域误命中增量 0（${spec.tasks.length}/${spec.tasks.length} 任务零增）。`);
 } else {
   console.log(`⑰号门：失败 —— ${increases.length} 处新增命中：`);
   for (const i of increases) console.log(`  · 任务${i.task} ${i.domain} ${i.from}→${i.to}`);
