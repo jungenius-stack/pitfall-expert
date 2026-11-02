@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.8.3（2026-11-02）
+
+本次发布的正式内容 = 此前「未发布工作区」的三批（GLM 入库 119→121、深审处置、安装链修复+命中账本），加本批的安装包深审与发布件同步。**卡数 121**（公共 108 + 个人模板 13），engine 0.2.8，技能 0.8.3。
+
+- **命中账本（卡级出勤表）**：`scanner.js` `appendLedger()` 向 `~/.pitfall-expert/hits.jsonl` 追加命中记录；四入口各传 source；`PITFALL_LEDGER=off` 关闭（引擎测试/selfcheck/⑰号门三处质检内置关闭，负例已验）；`cli.js --stats` 出勤表。只写本机不回传。
+- **🐯 干净克隆跑引擎必崩修复**：README 快速开始缺 `npm install`（自 v0.4.4，作者机依赖常驻所以看不见，CODE-003 自踩）→ install.sh 加引擎依赖引导（失败不阻塞技能安装）+ `eval/fresh-clone-smoke.sh` 真机门 + selfcheck 4b 离线静态门。
+- **🐯 hooks/README 注册样例格式修复**：扁平样例改 matcher-group（Claude Code 官方 schema），install.sh 打印填好路径的片段；门控注册收口为「不自动写 settings.json」。
+- **事故披露（自踩，走漏报轨）**：两次 `rm -rf ~/.pitfall-expert` 误删 hook 日志（该目录同时是日志默认家，CODE-026 自踩），数据量不可确认；hook 日志自 11-02 重新起算。
+- **给爸爸的安装包 T2 深审（docs-only）**：`docs/踩坑报告-爸爸安装包install.sh-T2-2026-11-02.md`——4 🐯（Gatekeeper 隔离拦双击 / 全局块写入≠agent 加载 / 审查者=作者 / 豆包卸载靠 rm 失效）+ token 账（全局块 367、完整技能 5627 + 领域卡库 14~23K）驱动安装包两层改造。同期 `docs/生活版-贴即用.md` 留档（非技术用户轻量版真源，不读卡库）。
+- **元坑候选**：「改需求时旧守卫变成破坏器」——同批三连（变体守卫 grep 旧文案自杀 / rsync 目标名写死致双技能覆盖 / 遗留清理逻辑删新组件且仍打印 ✓），全靠沙盒拦下零进包；根因=改一处只验一处，未验组合后新语义。
+- 验证：selfcheck 全过（含 4b 门、版本门三处 0.8.3、卡数门 121、副本门 8/8）、引擎 29/29、⑰号门 12/12 零增、fresh-clone-smoke 四判全过。
+
 ## [未发布工作区] GLM Scaling Pain 入库批次（卡数 119→121）
 
 **CODE-046（服务端间歇故障归因错位：乱码/复读/生僻字）+ CODE-047（竞态 bug 低负载隐身：「本地无法复现」≠没有 bug）入库 code.yaml。** 三源验真：智谱官方博客《Scaling Pain》（zhipuai.cn/zh/research/159，2026-04-29，A 级一手：复现率 3-5/万、修复后<3/万、spec_accept_length<1.4/accept_rate>0.96 检测阈值均原文数字）+ SGLang PR #22811（GitHub API 验真）+ SGLang issue #12073（2025-10-24，社区记录早于厂商半年）+ 量子位交叉；CODE-047 另挂 TaxDC（ASPLOS 2016）/DCatch（ASPLOS 2017）/CloudRaid（ESEC/FSE 2018）学术锚。两卡均预绑否证动作（元坑㉒规矩）；与 CODE-003（方差）/CODE-042（镜像假阳性）/CSV 解析卡的分流判定树写入卡内。评估全文：docs/踩坑报告-GLM降智入库评估-2026-11-01.md（DoD 机检 9/9）。
