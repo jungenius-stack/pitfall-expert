@@ -8,6 +8,7 @@
 - **🐯 干净克隆跑引擎必崩修复**：README 快速开始缺 `npm install`（自 v0.4.4，作者机依赖常驻所以看不见，CODE-003 自踩）→ install.sh 加引擎依赖引导（失败不阻塞技能安装）+ `eval/fresh-clone-smoke.sh` 真机门 + selfcheck 4b 离线静态门。
 - **🐯 hooks/README 注册样例格式修复**：扁平样例改 matcher-group（Claude Code 官方 schema），install.sh 打印填好路径的片段；门控注册收口为「不自动写 settings.json」。
 - **事故披露（自踩，走漏报轨）**：两次 `rm -rf ~/.pitfall-expert` 误删 hook 日志（该目录同时是日志默认家，CODE-026 自踩），数据量不可确认；hook 日志自 11-02 重新起算。
+  - **取证补记（11-02 发版后，四路证据）**：该日志**从未积累真实数据**——①Claude Code 会话记录停在 05-25、history 停在 06-29（10-24 注册后零运行，踏板零触发）；②dsh 全配置无 `PITFALL_HOOK_LOG`（门控日志默认关，PRIVACY 零写入承诺）；③WorkBuddy 未注册 hooks；④全盘（~/.dsh 191 个会话缓存、~/.claude、~/Library/Logs、/tmp）无 hard_block/soft_warn 副本，APFS 仅系统卷快照、无 Time Machine。至多损失 10-28 真机端到端验证的 1 条测试数据。损失评估「可能毁掉一周真实数据」→「无真实损失」；删前不 ls 的流程违规不降级（元坑候选照旧）。启示：v0.7.8「一周真机数据」路线失效的真因是那辆车（Claude Code）一直没开，不是日志被删；真实飞行数据改由命中账本承担（四入口全记、无需选开）。
 - **给爸爸的安装包 T2 深审（docs-only）**：`docs/踩坑报告-爸爸安装包install.sh-T2-2026-11-02.md`——4 🐯（Gatekeeper 隔离拦双击 / 全局块写入≠agent 加载 / 审查者=作者 / 豆包卸载靠 rm 失效）+ token 账（全局块 367、完整技能 5627 + 领域卡库 14~23K）驱动安装包两层改造。同期 `docs/生活版-贴即用.md` 留档（非技术用户轻量版真源，不读卡库）。
 - **元坑候选**：「改需求时旧守卫变成破坏器」——同批三连（变体守卫 grep 旧文案自杀 / rsync 目标名写死致双技能覆盖 / 遗留清理逻辑删新组件且仍打印 ✓），全靠沙盒拦下零进包；根因=改一处只验一处，未验组合后新语义。
 - 验证：selfcheck 全过（含 4b 门、版本门三处 0.8.3、卡数门 121、副本门 8/8）、引擎 29/29、⑰号门 12/12 零增、fresh-clone-smoke 四判全过。
@@ -27,7 +28,7 @@
 - **🐯 干净克隆跑引擎必崩（自 v0.4.4 存在，11-02 真机复现）**：README 快速开始 `git clone … && sh install.sh` 后紧接 `node engine/src/cli.js`，但从未写 `npm install`——`Cannot find module 'js-yaml'`。根因=作者电脑永远装着依赖，此坑在作者电脑上不可见（CODE-003 触发词「works on my machine」自踩；与同 commit 登记的元坑⑭「知卡而踩」同源——4327275 一次踩两张自家卡，当天抓到 CODE-016、漏了这张）。修：`install.sh` 新增引擎依赖引导（有 node+npm → `npm install --omit=dev`，装后 `require(scanner.js)` 实测就绪；无 npm/失败 → 明说手动命令，**任何失败不阻塞技能安装**——技能是模型读卡模式）；README×2「命令行扫」补依赖说明；`eval/fresh-clone-smoke.sh` 真机门（工作树复制到零依赖目录 → 断言先崩 → install.sh → 断言能跑 → 断言注册片段在岗；进 RELEASING 检查单，需网络）；selfcheck 新增 4b 离线静态门（install.sh 含 npm install / 两处注册样例为 group 格式）。
 - **🐯 hooks/README 注册样例格式错误（10-14～11-02）**：样例把 handler `{type,command}` 直接放进 `PreToolUse` 数组；Claude Code 官方（code.claude.com/docs/en/hooks，11-02 WebFetch 核验）要求 matcher-group `{ "matcher"?: …, "hooks": [ {handler} ] }`，省略 matcher=全触发。照抄 README 的用户踏板注册不上；本机能用是因为手写的是 group 形式（与 README 不一致，无人察觉）。修：README 样例改 group 形式并注明差异；`install.sh` 末尾打印**填好绝对路径（带引号，含空格安全）的 group 格式片段**，用户合并进 `~/.claude/settings.json` 即可。
 - **门控注册决定收口**：v0.7.8 写「自动注册留待一周真实数据后决定（v0.8.0）」，v0.8.0/0.8.1/0.8.2 均未回头。按原则收口=**不自动写 settings.json**（拦人的东西不静默装；settings.json 是用户的文件，各 harness schema 不同且 WorkBuddy 未实测，写坏配置比少装门更糟），降摩擦走「打印填好路径的片段」；将来 `--with-hooks` 的前提=目标 harness schema 真实实测+备份+JSON 校验。写入 hooks/README「为什么不自动写」节。
-- **事故披露（本批次自踩，走漏报轨）**：装账本时两次 `rm -rf ~/.pitfall-expert` 重置冒烟假账，**该目录同时是 hook 日志默认家**（本机 Claude Code 自 10-28 注册 `block+LOG=1`，日志可能已积累）——删前未 `ls` 看目标，CODE-026「破坏性操作连带摧毁恢复路径」自踩；无本地快照不可恢复，有无数据/多少无法确认。后果：v0.7.8 的「一周真实数据」路线失效，门控注册决定改按原则收口（上条）；hook 日志自 11-02 重新起算。入元坑登记簿候选（见本批次踩坑报告回写预告）。
+- **事故披露（本批次自踩，走漏报轨）**：装账本时两次 `rm -rf ~/.pitfall-expert` 重置冒烟假账，**该目录同时是 hook 日志默认家**（本机 Claude Code 自 10-28 注册 `block+LOG=1`，日志可能已积累）——删前未 `ls` 看目标，CODE-026「破坏性操作连带摧毁恢复路径」自踩；无本地快照不可恢复，有无数据/多少无法确认。后果：v0.7.8 的「一周真实数据」路线失效，门控注册决定改按原则收口（上条）；hook 日志自 11-02 重新起算。入元坑登记簿候选（见本批次踩坑报告回写预告）。**→ 取证结论见 v0.8.3 节补记：日志从未积累真实数据，无真实损失。**
 - 验证：引擎 29/29、hooks 9/9、selfcheck 全过（含 4b 新门）、⑰号门 12/12 零增、fresh-clone-smoke 四判全过（真实复现环境）。报告：docs/踩坑报告-安装链修复-2026-11-02.md。
 
 

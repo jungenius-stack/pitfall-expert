@@ -22,8 +22,9 @@ KEEP_BACKUPS=24
 #   ~/.workbuddy     workbuddy 中国版（com.tencent.workbuddy.mac，renderer 5.8.3 ↔ app 5.8.3）
 #   ~/.workbuddy-ai  workbuddy 国际版（com.workbuddy.workbuddy-ai，renderer 5.8.4 ↔ app 5.8.4）
 #   ~/.agnes         Agnes code（agnesd 二进制原文：saves to ~/.agnes/skills，$name 调用）
-#   豆包 agent_mode 真技能目录 .skills/（含 111 个官方技能；路径含空格——列表必须按行读）
-# 注意：~/Doubao/skills 是死目录（豆包自建后从未使用），已从目标移除
+#   豆包 agent_mode 用户自建区 .user_skills/（2026-11-02 实测：.skills 官方区会被云端对账整个删除，
+#   .user_skills 两轮对账不删不改、被删后 30 秒自动恢复；路径含空格——列表必须按行读）
+# 注意：~/Doubao/skills 是死目录（豆包自建后从未使用）；.skills 是官方区（手动副本会被云端删除），均不放
 # 列表项 = 技能目录全路径（非父目录），豆包的 .skills 带点前缀由此直接表达
 TARGET_SKILL_DIRS="$HOME/.agents/skills
 $HOME/.claude/skills
@@ -32,7 +33,7 @@ $HOME/.codex/skills
 $HOME/.workbuddy/skills
 $HOME/.workbuddy-ai/skills
 $HOME/.agnes/skills
-$HOME/Library/Application Support/Doubao/Profile 1/.doubao/agent_mode/workspace/.skills"
+$HOME/Library/Application Support/Doubao/Profile 1/.doubao/agent_mode/workspace/.user_skills"
 
 fail() { printf '同步失败：%s\n' "$*" >&2; exit 1; }
 
