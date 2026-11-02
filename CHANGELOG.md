@@ -7,6 +7,17 @@
 **深审处置批次（同日第二批，docs/卡库深审-2026-11-01.md 裁决落地）**：①CODE-021 补 Knight Capital 事故锚（SEC Press Release 2013-222 验真：8 台服务器 1 台漏部署+Power Peg 复活，45 分钟约 $460M、罚款 $12M）——consensus→case、needs_verification→backed_by_context，检索史诚实保留（统计性实证仍缺，机制同构已标注「算法交易自动化非 AI」），fix/verifier 补熔断检查；②悬空 source_ref 全量修正：RD-001~008 cases/D1~D7→docs/cases/坑点案例库-v1.md、DeepDive 5 张→docs/reference/ 真实 zip 路径、AI纪要 4 张→「发现线索（未入仓）」、OpenDesign 报告 2 张→「原始记录未入仓，结论内联」；③卡库分层落地：13 张个人案例卡注入 origin: personal-case（RD-001~008 + CODE-016/019/020/040/042——CODE-022 剔除：发现线索虽为抖音纪要但证据已 AgenticFlict 学术锚化，非个人实践），README 双语加分层章节（公共 108 + 个人模板 13），card-format.md 补 origin/falsification 字段规范+修示例悬空路径。深审勘误：个人卡 14→13 张。
 **⑰号门首跑红灯实录（元坑⑲『高频词碎片』第三次应验）**：CODE-047 symptom「坏数据」+description「数据中心」2-gram 出「数据」撞任务 1「数据清洗」（SEC-001「元数据投毒」同款）；CODE-046 fix「检查…是否」撞任务 4。三处改词（坏数据→坏输出、数据中心→datacenter、检查是否→核验有无）后 12/12 零增冻结。**新卡入库时的高频词预检应进 selfcheck**（候选改进，未实施）。写死面 119→121 六文件同步（manifest/README×2/SKILL.md/battery/_cardCount）；AMiner 免费通道实测：search_paper_by_title/recommend_paper 免费，search_paper（pro）/get_paper_detail 收费。
 
+**交付对账·贴即用**（docs/交付对账-贴即用.md）：外部流传的「交付前自检」提示词吸收为入门版姊妹篇，管交工点数；开工前查坑仍归入门版/完整版——旗舰版定位不动（SKILL/cards/DoD 零改动，无卡数与版本变更）。四条对账=需求（防少做，CODE-002）/验证（贴不出原始输出=没跑，CODE-004）/改动（文件清单+git diff 证据，CODE-043 副作用断言）/残留（说"无"给依据）；强用法=新会话盘问=CODE-043 非执行者验证。入门版与两份 README 增互链。
+
+**命中账本 + 安装链修复批次（2026-11-02，engine 0.2.7→0.2.8，卡数不变 121）**
+
+- **命中账本（卡级出勤表；马斯克视角「最小切割版」第 2 步）**：`scanner.js` 新增 `appendLedger()`，`scan()` 返回前向 `~/.pitfall-expert/hits.jsonl` 追加一行（ts/source/tier/domain/任务前 60 字/命中卡 id+score+触发词）；四入口（cli/mcp/hook/dsh）各传 `source` 名牌。只写本机、不回传（PRIVACY 立场不变）；`PITFALL_LEDGER=off` 关闭——引擎测试、selfcheck、⑰号门三处质检内置关闭（负例已验：不带 env 跑质检，真账本零写入）。新增 `cli.js --stats` 出勤表：扫描总数/区间/入口分布/命中排名/零命中清单（空账本给诚实提示不报错）。两周后按四格分拣：零命中→测触发词/退役评审、高频+人工「救命」笔迹→主力卡、高频无救命→收窄触发词、新坑未召回→盲区信号。账本只答「召回了没有」，不答「召回得准不准」。
+- **🐯 干净克隆跑引擎必崩（自 v0.4.4 存在，11-02 真机复现）**：README 快速开始 `git clone … && sh install.sh` 后紧接 `node engine/src/cli.js`，但从未写 `npm install`——`Cannot find module 'js-yaml'`。根因=作者电脑永远装着依赖，此坑在作者电脑上不可见（CODE-003 触发词「works on my machine」自踩；与同 commit 登记的元坑⑭「知卡而踩」同源——4327275 一次踩两张自家卡，当天抓到 CODE-016、漏了这张）。修：`install.sh` 新增引擎依赖引导（有 node+npm → `npm install --omit=dev`，装后 `require(scanner.js)` 实测就绪；无 npm/失败 → 明说手动命令，**任何失败不阻塞技能安装**——技能是模型读卡模式）；README×2「命令行扫」补依赖说明；`eval/fresh-clone-smoke.sh` 真机门（工作树复制到零依赖目录 → 断言先崩 → install.sh → 断言能跑 → 断言注册片段在岗；进 RELEASING 检查单，需网络）；selfcheck 新增 4b 离线静态门（install.sh 含 npm install / 两处注册样例为 group 格式）。
+- **🐯 hooks/README 注册样例格式错误（10-14～11-02）**：样例把 handler `{type,command}` 直接放进 `PreToolUse` 数组；Claude Code 官方（code.claude.com/docs/en/hooks，11-02 WebFetch 核验）要求 matcher-group `{ "matcher"?: …, "hooks": [ {handler} ] }`，省略 matcher=全触发。照抄 README 的用户踏板注册不上；本机能用是因为手写的是 group 形式（与 README 不一致，无人察觉）。修：README 样例改 group 形式并注明差异；`install.sh` 末尾打印**填好绝对路径（带引号，含空格安全）的 group 格式片段**，用户合并进 `~/.claude/settings.json` 即可。
+- **门控注册决定收口**：v0.7.8 写「自动注册留待一周真实数据后决定（v0.8.0）」，v0.8.0/0.8.1/0.8.2 均未回头。按原则收口=**不自动写 settings.json**（拦人的东西不静默装；settings.json 是用户的文件，各 harness schema 不同且 WorkBuddy 未实测，写坏配置比少装门更糟），降摩擦走「打印填好路径的片段」；将来 `--with-hooks` 的前提=目标 harness schema 真实实测+备份+JSON 校验。写入 hooks/README「为什么不自动写」节。
+- **事故披露（本批次自踩，走漏报轨）**：装账本时两次 `rm -rf ~/.pitfall-expert` 重置冒烟假账，**该目录同时是 hook 日志默认家**（本机 Claude Code 自 10-28 注册 `block+LOG=1`，日志可能已积累）——删前未 `ls` 看目标，CODE-026「破坏性操作连带摧毁恢复路径」自踩；无本地快照不可恢复，有无数据/多少无法确认。后果：v0.7.8 的「一周真实数据」路线失效，门控注册决定改按原则收口（上条）；hook 日志自 11-02 重新起算。入元坑登记簿候选（见本批次踩坑报告回写预告）。
+- 验证：引擎 29/29、hooks 9/9、selfcheck 全过（含 4b 新门）、⑰号门 12/12 零增、fresh-clone-smoke 四判全过（真实复现环境）。报告：docs/踩坑报告-安装链修复-2026-11-02.md。
+
 
 ## v0.8.2（2026-10-31）
 

@@ -96,7 +96,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
   }
 
   try {
-    const result = scan(task.trim(), { domain, tier, cardsDir: cards_dir });
+    const result = scan(task.trim(), { domain, tier, cardsDir: cards_dir, source: 'mcp' });
     result.lang = lang === 'en' ? 'en' : 'zh';
     return { content: [{ type: 'text', text: buildReport(result) }] };
   } catch (e) {

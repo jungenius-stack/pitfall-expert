@@ -111,15 +111,17 @@ git clone https://github.com/jungenius-stack/pitfall-expert.git && cd pitfall-ex
 先踩坑：我打算把生产数据库从 MySQL 迁到 PostgreSQL
 ```
 
-**命令行扫**：
+**命令行扫**（`install.sh` 已顺手装好引擎依赖；只 clone 没跑 install.sh 的，先 `npm install`）：
 
 ```bash
 node engine/src/cli.js "把 users.csv 导入 SQLite，注意空值和编码" --tier standard
 ```
 
-**装门控（推荐）**——技能自动激活率只有 20–50%（社区实测，非同行评审测量），门控不靠任何人的自觉：见 [hooks/README.md](hooks/README.md)（默认先报告后放行；`PITFALL_HOOK_MODE=block` 硬拦 `rm -rf`、`git push --force`）与 [dsh-plugin/README.md](dsh-plugin/README.md)。
+**装门控（推荐）**——技能自动激活率只有 20–50%（社区实测，非同行评审测量），门控不靠任何人的自觉：`install.sh` 末尾会打印一段填好绝对路径的注册片段，合并进 `~/.claude/settings.json` 即可（不自动写入——拦人的东西不静默装）；细节与分级见 [hooks/README.md](hooks/README.md)（默认先报告后放行；`PITFALL_HOOK_MODE=block` 硬拦 `rm -rf`、`git push --force`）与 [dsh-plugin/README.md](dsh-plugin/README.md)。
 
 **不装也行**——零安装入门版：一段提示词贴进任何聊天模型，保命机制全保留（[docs/入门版-贴即用.md](docs/入门版-贴即用.md)）。
+
+**交工那一刻**——交付对账·贴即用姊妹篇：AI 说"做完了"，拿单子对——需求逐条打勾（防少做）+ 改动文件清单（防多做）（[docs/交付对账-贴即用.md](docs/交付对账-贴即用.md)）。
 
 ## 工作原理
 

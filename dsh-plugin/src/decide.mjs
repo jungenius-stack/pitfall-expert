@@ -122,7 +122,7 @@ export async function decide(exec, opts = {}) {
   let report;
   let result;
   try {
-    result = engine.scan(ext.task, { tier, domain: 'auto' });
+    result = engine.scan(ext.task, { tier, domain: 'auto', source: 'dsh' });
     report = engine.buildReport(result);
   } catch (e) {
     logDecision(logOn, { ts: new Date().toISOString(), event: 'pre-execute', mode, decision: 'error', tool: toolOf(exec), input: digestOf(ext.task) });

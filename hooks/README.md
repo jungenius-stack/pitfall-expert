@@ -9,27 +9,36 @@
 | `user-prompt-submit.sh` | UserPromptSubmit | 每次用户提交 prompt 前注入"值班指令 + ⚡快扫预报告" | stdout 追加进模型上下文（官方语义） |
 | `pre-tool-use.sh` | PreToolUse | 工具调用前分级判定：硬规则拦/软规则警告/放行 | exit 0 放行；exit 2 阻断（stderr 回给模型） |
 
-## 安装（WorkBuddy / Claude Code 通用，hooks 契约一致）
+## 安装（Claude Code 格式已核验；WorkBuddy 以其官方文档为准）
 
-在项目的 `.claude/settings.json` 或 `.workbuddy/settings.json`（WorkBuddy 为 `.workbuddy/settings.json`，以官方文档为准）加：
+**最省事**：跑一遍 `sh install.sh`，末尾会打印一段**已填好绝对路径**的注册片段，合并进 `~/.claude/settings.json`（用户级）或项目的 `.claude/settings.json` 即可。手写则照下面：
 
 ```json
 {
   "hooks": {
     "UserPromptSubmit": [
-      { "type": "command", "command": "/绝对路径/pitfall-expert/hooks/user-prompt-submit.sh" }
+      { "hooks": [ { "type": "command", "command": "'/绝对路径/pitfall-expert/hooks/user-prompt-submit.sh'" } ] }
     ],
     "PreToolUse": [
-      { "type": "command", "command": "PITFALL_HOOK_MODE=block /绝对路径/pitfall-expert/hooks/pre-tool-use.sh" }
+      { "hooks": [ { "type": "command", "command": "PITFALL_HOOK_MODE=block '/绝对路径/pitfall-expert/hooks/pre-tool-use.sh'" } ] }
     ]
   }
 }
 ```
 
-> 注意：路径必须绝对路径；环境变量可直接内联在 command 里（如上 `PITFALL_HOOK_MODE=block`）；
-> hook 注册文件的准确字段名以各 harness 官方文档为准
-> （WorkBuddy: workbuddy.cn/docs/cli/hooks；Claude Code: code.claude.com/docs/en/hooks）。
-> 若所用 harness 的事件名/字段不同，改 `hooks/*.sh` 里的 exec 一行即可，核心逻辑在 `lib/gate.js`。
+> **格式要点（2026-11-02 按 code.claude.com/docs/en/hooks 核验）**：每个事件数组的元素是一个「组」——`{ "matcher": …, "hooks": [ {handler}, … ] }`，handler 不能直接放进事件数组（扁平写法注册不上，这是本文件 2026-10-14～11-02 版本的错误样例，已改）。省略 `matcher`（或写 `"*"`）= 该事件全部触发；PreToolUse 可写 `"matcher": "Bash"` 只盯命令。
+> 路径必须绝对路径且建议加单引号（含空格安全）；环境变量可内联在 command 里。
+> WorkBuddy（workbuddy.cn/docs/cli/hooks）字段名未实测，以其文档为准；若事件名/字段不同，改 `hooks/*.sh` 里的 exec 一行即可，核心逻辑在 `lib/gate.js`。
+
+## 为什么不自动写 settings.json（设计原则，2026-11-02 收口）
+
+`install.sh` 只打印片段、不替用户写配置。这不是没做完，是定下来的原则：
+
+1. **拦人的东西不静默装**——门控会 exit 2 踩停工具调用，用户必须知道自己装了什么、装的哪一档（report/block）；
+2. **settings.json 是用户的文件**——各 harness 路径与 schema 不同（Claude Code 为 group 形式，已实测；WorkBuddy 未实测），写坏一份配置文件比少装一道门更糟；
+3. **降摩擦走「填好路径的片段」**，不走「替你写入」。将来若做 `install.sh --with-hooks`，前提是对目标 harness 的 schema 做过真机实测并带备份与 JSON 校验。
+
+v0.7.8 曾写「自动注册留待一周真机数据后决定」；该决定于 2026-11-02 按上述原则收口（当日 hook 日志目录被误删，数据路线不可用，详见 CHANGELOG）。
 
 ## 环境变量
 

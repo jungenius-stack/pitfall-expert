@@ -44,6 +44,7 @@ npx --yes github:jungenius-stack/pitfall-expert "重构支付模块" --tier quic
 - [ ] 卡库实数与 README/CHANGELOG 里写的数字一致（`node -e "console.log(require('./engine/src/scanner').loadCards('./cards').cards.length)"`）
 - [ ] 引擎测试全绿（`npm test`）
 - [ ] `sh skills/pitfall-expert/scripts/selfcheck.sh` 全过
+- [ ] `sh eval/fresh-clone-smoke.sh` 全过（需网络；把工作树复制到零依赖目录模拟新用户——2026-11-02 发现 README 快速开始从 v0.4.4 起就少 `npm install`，作者机永远装着依赖所以 selfcheck 看不见）
 - [ ] `npm pack --dry-run` 里 `cards/` 7 个 yaml 在清单中
 - [ ] 在干净目录 `npm install <tarball>` 后 CLI 与 MCP 都能跑
 

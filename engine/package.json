@@ -1,10 +1,10 @@
 {
   "name": "pitfall-expert-engine",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node --test test/*.test.js"
+    "test": "PITFALL_LEDGER=off node --test test/*.test.js"
   },
   "keywords": [],
   "author": "",

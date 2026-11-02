@@ -78,7 +78,7 @@ function main(json) {
     let report;
     try {
       const { scan, buildReport } = loadScanner();
-      report = buildReport(scan(prompt.slice(0, 2000), { tier, domain: 'auto' }));
+      report = buildReport(scan(prompt.slice(0, 2000), { tier, domain: 'auto', source: 'hook' }));
     } catch (e) {
       emit('【踩坑专家值班】引擎扫描失败——按诚实架构披露：本次未产出风险报告，不得理解为"没有坑"。需要时手动调用 scan_task。');
       process.exit(0);
@@ -125,7 +125,7 @@ function main(json) {
   let result;
   try {
     const { scan, buildReport } = loadScanner();
-    result = scan(ext.task, { tier, domain: 'auto' });
+    result = scan(ext.task, { tier, domain: 'auto', source: 'hook' });
     report = buildReport(result); // 只扫一次（v0.7.8 前的 block 路径扫两遍）
   } catch (e) {
     appendLog({ ts: new Date().toISOString(), event, mode, decision: 'error', tool, input: digest });

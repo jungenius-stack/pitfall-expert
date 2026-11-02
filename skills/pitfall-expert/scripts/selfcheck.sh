@@ -10,6 +10,7 @@ ENGINE_DIR="${PITFALL_ENGINE_DIR:-$REPO_ROOT/engine}"
 CARDS_DIR="${PITFALL_CARDS_DIR:-$REPO_ROOT/cards}"
 NODE_BIN="${NODE_BIN:-node}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
+export PITFALL_LEDGER=off   # 质检扫描（冒烟+电池）不入真账本——出勤表只收真实使用数据
 FAIL=0
 
 fail() { echo "[FAIL] $1"; FAIL=1; }
@@ -127,6 +128,16 @@ if [ -f "$REPO_ROOT/CHANGELOG.md" ]; then
   [ -f "$ENGINE_DIR/src/cli.js" ] && pass "引擎 CLI 存在" || fail "引擎缺失：$ENGINE_DIR/src/cli.js（可用 PITFALL_ENGINE_DIR 指定）"
 else
   [ -f "$ENGINE_DIR/src/cli.js" ] && pass "引擎 CLI 存在（副本环境外挂引擎）" || pass "引擎检查：技能副本不随附引擎（模型读卡模式不受影响），已跳过"
+fi
+
+# 4b. 安装链静态门（仓库环境专属；2026-11-02 两案：①干净克隆跑 node engine/src/cli.js 崩 Cannot find module 'js-yaml'——
+#     README 快速开始自 v0.4.4 起从未写 npm install，作者机永远装着依赖所以看不见，CODE-003「works on my machine」自踩；
+#     ②hooks/README 注册样例为扁平 {type,command}，Claude Code 官方要求 matcher-group {hooks:[...]}，照抄注册不上。
+#     真机版=eval/fresh-clone-smoke.sh（需网络，发版前跑）；本门只做离线静态断言，防两案回归。）
+if [ -f "$REPO_ROOT/install.sh" ] && [ -f "$REPO_ROOT/hooks/README.md" ]; then
+  grep -q "npm install" "$REPO_ROOT/install.sh" && pass "install.sh 含引擎依赖引导（npm install）" || fail "install.sh 缺引擎依赖引导——干净克隆跑引擎必崩（js-yaml 缺失）"
+  grep -q '"hooks": \[' "$REPO_ROOT/hooks/README.md" && pass "hooks/README 注册样例为 matcher-group 格式（Claude Code 官方 schema）" || fail "hooks/README 注册样例非 group 格式——照抄无法注册（code.claude.com/docs/en/hooks）"
+  grep -q '"hooks": \[' "$REPO_ROOT/install.sh" && pass "install.sh 打印的注册片段为 group 格式" || fail "install.sh 注册片段非 group 格式"
 fi
 
 # 5. 坑卡库加载（引擎严格校验：12 必填字段 + 枚举值 + S/O/D）

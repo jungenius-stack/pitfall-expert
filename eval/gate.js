@@ -11,11 +11,14 @@
  *   输出任何增量为正的域            ⇒ 门失败，exit 1
  *   输出「解析失败 / 引擎报错」      ⇒ 未判定，exit 2（不得当作通过）
  *
- * 副作用分类：只读（只跑引擎 quick 档，不写任何文件）。
+ * 副作用分类：只读（只跑引擎 quick 档；PITFALL_LEDGER 内置关闭，命中账本不写任何文件）。
  */
 const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+
+// 电池扫描不入真账本：质检数据会污染出勤表（命中账本 2026-11-02 起在岗，子进程继承本环境变量）
+process.env.PITFALL_LEDGER = 'off';
 
 const ROOT = path.resolve(__dirname, '..');
 const ENGINE = path.join(ROOT, 'engine', 'src', 'cli.js');

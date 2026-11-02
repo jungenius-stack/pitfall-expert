@@ -8,6 +8,7 @@
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const yaml = require('js-yaml');
 
@@ -202,6 +203,32 @@ function detectDomain(scored) {
   return { domain: best.domain, confidence, basis };
 }
 
+// ---------- 命中账本（黑匣子）：每次扫描追加一行，供周期性分拣 ----------
+// 目的：让每张卡知道自己被命中过几次（出勤表）——零命中卡→查触发词/退役评审；
+// 高频命中+人工补记"救命"笔迹→主力卡。分拣规则见 docs（2026-11-02 装配）。
+// 隐私：只写本机 ~/.pitfall-expert/hits.jsonl（append-only），不联网上传，任务原文只存前 60 字
+// 摘要（M1 最小化采集——任务文本可能含密钥/路径，不入账本）。
+// 关闭：环境变量 PITFALL_LEDGER=off（引擎测试套件默认携带，防测试数据污染真实账本）。
+// 失败披露：写账本失败仅向 stderr 披露一行，不影响扫描结果本身（不得静默，也不得反噬主流程）。
+function appendLedger(result) {
+  try {
+    if (process.env.PITFALL_LEDGER === 'off') return;
+    const dir = path.join(os.homedir(), '.pitfall-expert');
+    fs.mkdirSync(dir, { recursive: true });
+    const entry = {
+      ts: new Date().toISOString(),
+      source: result.source,
+      tier: result.tier,
+      domain: result.domain,
+      task: String(result.task || '').slice(0, 60),
+      hits: (result.matched || []).map(s => ({ id: s.card.id, score: s.m.score, trig: s.m.triggerHits }))
+    };
+    fs.appendFileSync(path.join(dir, 'hits.jsonl'), JSON.stringify(entry) + '\n');
+  } catch (e) {
+    process.stderr.write(`命中账本写入失败（不影响扫描结果）：${e.message}\n`);
+  }
+}
+
 // ---------- 主扫描流程 ----------
 
 function scan(task, opts = {}) {
@@ -261,9 +288,10 @@ function scan(task, opts = {}) {
   const verified = matched.filter(s => s.card.confidence === 'backed_by_context');
   const unverified = matched.filter(s => s.card.confidence !== 'backed_by_context');
 
-  return {
+  const result = {
     task,
     tier,
+    source: opts.source || 'unknown',
     requestedDomain,
     domain: detected,
     domainConfidence,
@@ -278,6 +306,8 @@ function scan(task, opts = {}) {
     cardVersions,
     cardsLoaded: cards.length
   };
+  appendLedger(result);
+  return result;
 }
 
 module.exports = { scan, loadCards, tokenize, scoreCard, detectDomain, triggerVariants, DOMAINS, TIERS, DEFAULT_CARDS_DIR };

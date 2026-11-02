@@ -125,17 +125,23 @@ You get a three-zone report like the mini-sample at the bottom of [`skills/pitfa
 
 ### Use the terminal
 
+`install.sh` also installs the engine's two runtime dependencies. If you only cloned and skipped it, run `npm install` first.
+
 ```bash
 node engine/src/cli.js "migrate users.csv into SQLite, watch nulls and encodings" --tier standard
 ```
 
 ### Make it mandatory (recommended)
 
-Skills auto-activate only 20–50% of the time (community measurements). The gate doesn't rely on anyone's discipline — see [`hooks/README.md`](hooks/README.md) (PreToolUse: report-by-default, `PITFALL_HOOK_MODE=block` hard-blocks `rm -rf` / `git push --force`) and [`dsh-plugin/README.md`](dsh-plugin/README.md).
+Skills auto-activate only 20–50% of the time (community measurements). The gate doesn't rely on anyone's discipline. `install.sh` ends by printing a registration snippet with absolute paths already filled in — merge it into `~/.claude/settings.json` (it is never written for you: anything that can block a tool call should not be installed silently). Tiers and details in [`hooks/README.md`](hooks/README.md) (PreToolUse: report-by-default, `PITFALL_HOOK_MODE=block` hard-blocks `rm -rf` / `git push --force`) and [`dsh-plugin/README.md`](dsh-plugin/README.md).
 
 ### Zero-install tryout
 
 No harness? Paste the lite prompt from [`docs/入门版-贴即用.md`](docs/入门版-贴即用.md) into any chat model — it keeps the four survival mechanisms (tier gate, specificity filter, three-zone disclosure, blocking checklist); card matching and verifiers are full-version features.
+
+### At delivery time
+
+Don't take "done" for an answer — paste the delivery-check prompt from [`docs/交付对账-贴即用.md`](docs/交付对账-贴即用.md): requirement-by-requirement checkoff (catches what was quietly skipped) plus a changed-files inventory backed by `git diff` (catches what was quietly touched). Best run in a fresh session, so the interrogator isn't the one that did the work.
 
 ## How it works
 
