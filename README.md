@@ -171,7 +171,7 @@ Numbers, not adjectives — every claim replay-tested:
 
 - **10/10** real failure-case replays passed (cards distilled from a 56K-char incident log);
 - **12/13** coverage on an *external* blind test — 13 real-world pitfalls from two practitioner talk transcripts (one uncovered item = collaboration-management domain, exactly where the capability table said "no cards");
-- **4 meta-pitfalls caught on ourselves** during development (e.g. an allow-list rule that silently passed `git push --force`) — logged openly in the [meta-pitfall registry](skills/pitfall-expert/references/meta-pitfalls.md), now 21 entries including two "looked like pure gain, rolled back same day" matching experiments;
+- **4 meta-pitfalls caught on ourselves** during development (e.g. an allow-list rule that silently passed `git push --force`) — logged openly in the [meta-pitfall registry](skills/pitfall-expert/references/meta-pitfalls.md), now 23 entries including two "looked like pure gain, rolled back same day" matching experiments;
 - **Dual-source red-team reviews** (v0.6): a fresh-context subagent and an out-of-family GLM-4.6 each attacked the design; 20+ failure modes archived, 13 fixed ([red team](docs/红队评审-v1.md) / [adversarial review](docs/沉思评审-v1.md));
 - Two independent implementations (built in parallel on two platforms) converged on the same honesty axioms — merged in v0.4. A 411K-star tool ([REA](https://github.com/morluto/rea)) independently ships the same skill+engine+plugin distribution shape.
 
