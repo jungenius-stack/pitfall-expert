@@ -15,10 +15,13 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
+# 2026-11-07：母卡试点批次（docs/作战包-母卡试点-2026-11-02.md）——CODE-048 半套生效（母卡）/CODE-049 重试放大（母卡）/
+#   CODE-050 没设超时=无限等（全库首张 parent 子卡，挂 CI-001）；8 份事故全部亲读核验，作战包两处日期笔误按原文修正
+#   （GitHub DNS=2014-01-08、GitHub 重试放大=2023-05-10）
 version: 0.7.10
 domain: code
-updated: '2026-11-01'
-card_count: 47
+updated: '2026-11-07'
+card_count: 50
 cards:
   - id: CODE-001
     title: 虚假不可能性
@@ -1580,3 +1583,134 @@ cards:
     hazard_type: 常见错误
     source_ref: 智谱 Scaling Pain + SGLang issue#12073 + TaxDC 学术脉络（2026-11-01 入库）
     falsification: 出现同类竞态在低负载下即可稳定复现的实证案例 ⇒ 修卡（说明触发条件不含负载维度）
+  - id: CODE-048
+    title: 半套生效：变更只落到系统的一部分
+    description: >-
+      一次变更（改配置/升级/迁移/重启）被应用到系统的一部分组件，另一部分仍运行旧状态；或「步骤都执行了」但「效果没处处生效」
+      （统计表未重建、缓存未失效、依赖组件未重启）。清单只验证步骤执行与否、不逐组件验证效果，半套状态带病上线；
+      恢复路径还常常依赖正在坏的那个组件（循环依赖），把小故障滚成大故障。与 CODE-005 分层：005 讲错误在多步任务间向后传播无检查点，
+      本卡讲单次变更对系统的作用只落一半——一个是时间维度的传播，一个是空间维度的覆盖。
+    symptom: >-
+      变更「机械上成功」但延迟/错误率异常（查询全量打盘、部分流量行为不一致）；分步验证只查「配置已应用」不查「每台都在用新值对外服务」；
+      恢复操作自己调用的 API 依赖被改坏的那套东西；同一次部署叠两道变更时后一道把前一道的生效动作抹掉（如 ANALYZE 被第二次升级作废）。
+    severity:
+      S: 6
+      O: 4
+      D: 7
+    evidence:
+      source: >-
+        GitHub DNS 事故 post-mortem（2014-01-08，42min 停机：Puppet 配置两台都收到但只重启了权威 DNS 未重启缓存 DNS → 缓存仍查旧 IP；
+        恢复时重建 zone 的 API 循环依赖 DNS 且输出未做 sanity check → 生成坏 zone 大量记录被删，
+        github.blog/news-insights/the-library/dns-outage-post-mortem/）+ CircleCI 2025-04-03 蓝绿库升级「机械成功」但统计表未更新全量查询打盘、
+        ANALYZE 被同批第二次大版本升级抹掉（discuss.circleci.com/t/53113）+ GitLab 2017-01-31 复制延迟半套+人工补删错库（前传证据，
+        主责归 CODE-026，about.gitlab.com/2017/02/10/postmortem-of-database-outage-of-january-31/）
+      level: case
+    fix: >-
+      变更后逐组件验证效果而非逐步骤验证执行：列出受影响组件清单，对每个查实际生效值（版本/配置/缓存/统计）并与预期 diff；
+      蓝绿/滚动切换后跑「新旧状态指纹比对」；同一次部署叠两道变更时，最后一道之后重跑使生效的动作（ANALYZE/缓存失效/重启）；
+      恢复流程不得依赖变更目标本身——演练时把它断掉试一次；自动生成的产物（zone/配置文件）先做条数与结构 sanity check 再下发。
+    verifier: >-
+      判定表——变更后逐组件查实际生效值（dig @每台 / EXPLAIN 看计划是否全表扫 / 配置回读）：任一组件仍为旧值或未生效 ⇒ 坑成立；
+      全部一致 ⇒ 不成立；组件不可查询 ⇒ 未判定（转黑盒探测：新旧路径行为对比）。副作用：只读。
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 蓝绿
+      - 滚动更新
+      - 只改了一半
+      - 部分生效
+      - 缓存没刷新
+      - blue-green
+      - rolling update
+      - partial deployment
+      - config drift
+      - cache invalidation
+      - 重启依赖
+      - 生效核验
+    hazard_type: 部署变更
+    source_ref: docs/作战包-母卡试点-2026-11-02.md A 组三份事故亲读核验（2026-11-07 入库，母卡）
+    falsification: 出现成批此类事故且发生在变更工具原生保证「逐组件生效校验」的系统里 ⇒ 修卡（机制已被工具层根治，触发条件失效）
+  - id: CODE-049
+    title: 重试放大：失败触发的重试把小故障打成大故障
+    description: >-
+      调用方在超时或失败时自动重试——重试是放大器不是修复器：一次小故障被 N 倍流量反复合上，压垮本可自愈的服务；
+      放大器可以藏在客户端（前端渲染循环里的重复调用、SDK 默认重试策略），服务端看到的只是「突然爆了」，首发原因反而隐形；
+      服务恢复瞬间全体客户端同步涌回（惊群）造成二次冲击；「为了扛住增长」做的变更本身也可能成为压垮系统的稻草。
+    symptom: >-
+      上游小抖动后流量或写延迟突增数倍（7x 级）；监控里分不清重试与新请求；服务重启/恢复瞬间再次被打挂；
+      低频高成本的调用点在面向高流量的监控里隐形；前端一次渲染发出多次同一请求。
+    severity:
+      S: 6
+      O: 4
+      D: 6
+    evidence:
+      source: >-
+        GitHub 2023-05-10 auth token 事故：低效 API 大写入+超时失败，新调用方超时即重试 → 写延迟放大 7 倍、失败率峰值 76%、6/10 服务降级
+        （github.blog/news-insights/company-news/addressing-githubs-recent-availability-issues/）+ Cloudflare 2025-09-12 控制台/API 宕机：
+        React useEffect 依赖数组含每次渲染重建的对象 → 单次渲染重复调用+失败重试压垮 Tenant Service，重启后惊群二次冲击
+        （blog.cloudflare.com/deep-dive-into-cloudflares-sept-12-dashboard-and-api-outage/）+ Google Cloud Storage 19002（2019-03-12，4h10m）：
+        为省元数据资源的配置变更压垮 blob 查找系统致级联（status.cloud.google.com/incident/storage/19002）
+      level: case
+    fix: >-
+      重试必须带三件套：次数上限、指数退避+随机抖动（防同步惊群）、全局重试预算；重试请求打可观测标记（区分 retry 与新请求）；
+      服务端以限流/优雅降级兜底放大流量；「为应对增长」的变更先在灰度/影子环境验证对关键路径的负载影响再全量；发布系统配自动回滚并覆盖所有关键服务。
+    verifier: >-
+      判定表——测试环境故障注入（令下游 1 次失败）后统计上游实际发出请求数：放大系数>2 ⇒ 坑成立；≤1（退避+预算生效）⇒ 不成立；
+      无法注入 ⇒ 未判定（转代码审查：重试循环是否含 backoff/jitter/上限三件套）。副作用：注入属写类，仅测试环境，附资源预算。
+    confidence: backed_by_context
+    pass_k_relevant: false
+    triggers:
+      - 自动重试
+      - 重试风暴
+      - 惊群
+      - retry storm
+      - thundering herd
+      - exponential backoff
+      - 失败重试
+      - 超时重试
+    hazard_type: 容错设计
+    source_ref: docs/作战包-母卡试点-2026-11-02.md B 组三份事故亲读核验（2026-11-07 入库，母卡）
+    falsification: 出现带退避+预算+抖动的重试实现在真实事故中仍把故障放大 ≥3 倍的一手 post-mortem ⇒ 修卡（约束条件不止「带三件套」）
+  - id: CODE-050
+    title: 没设超时=无限等：池耗尽表现为「随机慢」
+    description: >-
+      外部调用（数据库连接/锁/HTTP）不显式设超时时的缺省值往往是「无限等待」——CI-001「缺省语义按常识推断」在等待语义上的具体形态，
+      故挂为其子卡。连接池被大量短事务合计占满时，症状是散布在许多端点上的「随机 20 秒慢」而非某一条慢查询，排查方向天然错位；
+      更阴的变体：设了超时但对方挂死/持锁时根本不响应超时信号，连 kill 都无效。
+    symptom: >-
+      context canceled 错误簇；trace 显示耗时在连接池等待上（20s 级）而非查询本身；「找不到单条慢查询」本身是信号；
+      升级/重启后扩展挂死、持关键锁、不响应超时信号；池满时请求排队而非快速失败。
+    severity:
+      S: 5
+      O: 4
+      D: 8
+    evidence:
+      source: >-
+        incident.io 两周间歇超时复盘（大量短事务合计占满连接池 → 随机慢，两周 24 次部署才定位根因：Slack modal 提交开了不必要事务，
+        incident.io/blog/database-performance）+ incident.io PGAudit 挂死（2025-04-09，常规迁移触发扩展挂死持关键锁、不响应超时信号，
+        主动重启库 2 分钟止血，status.incident.io/incidents/01JRDFKAGE07YYDY0KZR137BX3/write-up）
+      level: case
+    fix: >-
+      所有外部调用显式设超时（含获取连接、锁等待、HTTP），缺省值按「未知」对待必查文档实测；给连接池等待加监控（pool wait 时长、
+      按操作聚合的连接持有时长）；池耗尽快速失败而非无限排队；升级后把「跑一遍常规迁移」当冒烟；验证 lock_timeout/statement_timeout
+      在持锁挂死场景下是否真被理会（不响应就准备重启预案）。
+    verifier: >-
+      判定表——逐个外部依赖检查超时参数：任一调用无超时设置或缺省>30s ⇒ 坑成立；全部显式且≤阈值 ⇒ 不成立；无法读代码 ⇒
+      未判定（转黑盒：测试环境人为占满池，看请求是快速失败还是挂起）。副作用：读代码只读；占池测试仅测试环境。
+    confidence: backed_by_context
+    pass_k_relevant: false
+    parent: CI-001
+    triggers:
+      - 没设超时
+      - 连接池
+      - 无限等待
+      - 随机慢
+      - timeout
+      - connection pool
+      - pool exhausted
+      - lock timeout
+      - statement_timeout
+      - context canceled
+    hazard_type: 缺省行为
+    source_ref: docs/作战包-母卡试点-2026-11-02.md C 组两份事故亲读核验（2026-11-07 入库，CI-001 首张 parent 子卡）
+    falsification: 出现主流客户端库新版本在未显式设超时时缺省即为合理有限超时（且覆盖锁等待）的官方文档证据 ⇒ 修卡（缺省=无限不再普遍成立，表述须改「版本依赖」）
