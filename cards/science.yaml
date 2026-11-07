@@ -12,7 +12,7 @@
 
 version: 0.7.5
 domain: science
-updated: '2026-10-28'
+updated: '2026-11-07'
 card_count: 10
 cards:
   - id: SCI-001
@@ -152,7 +152,8 @@ cards:
       source: >-
         量化社区多源共识（consensus）：Quantreo「实盘不可交易的真实案例」+ Mike Harris 检测方法论 + WallStreetMojo 偏差分类 +
         r/algotrading 社区讨论（Lookahead bias 普遍性）；Pine Script 官方生态承认 repaint 问题
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://www.ams.org/notices/201405/rnoti-p458.pdf——Bailey & López de Prado（AMS Notices 2014）：回测过拟合/信息泄漏使表现系统性虚高；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: >-
       信号时点与成交时点强制错开一根 bar（signal at close → trade at next open）；指标必须用已收盘 bar
       计算；时序任务按时间切分+walk-forward 验证；标的池用历史时点成分（防幸存者偏差）；归一化只用训练窗
@@ -188,7 +189,8 @@ cards:
       source: >-
         多源共识（consensus）：Train in Data 实例（dummy 99.83% 准确、零欺诈召回）+ Medium 实例（97.5% 准确、250 例欺诈全漏）+
         MachineLearningMastery 教程（accuracy 对不平衡分布失效的经典论证）
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://doi.org/10.1111/j.1539-6053.2008.00033.x——Gigerenzer 等：多数医生算不对「99% 准确」筛查的阳性预测值（注：网传 PMID 18269385 有误，正确 PMID 26161749 已核）；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 不平衡任务禁用裸 accuracy：先算哑基线（全预测多数类的分数），模型必须显著超过它才算数；换 precision/recall/F1/PR-AUC + 混淆矩阵汇报；汇报时附类别分布
     verifier: 先跑 dummy classifier（全预测多数类）——模型分数与哑基线差 <2 个点即命中；混淆矩阵查少数类召回是否为 0
     confidence: backed_by_context

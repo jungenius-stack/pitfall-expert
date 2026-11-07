@@ -17,7 +17,7 @@
 
 version: 0.7.10
 domain: agent-security
-updated: '2026-10-31'
+updated: '2026-11-07'
 card_count: 12
 cards:
   - id: SEC-001
@@ -269,7 +269,8 @@ cards:
       D: 8
     evidence:
       source: "OWASP Top 10 for Agentic Applications 2026 官方（genai.owasp.org 资源页 2025-12-09 直达；crosswalk 仓库 GenAI-Security-Project/crosswalk 的 Agentic_AITG.md，文件存在性经 GitHub API 核实）：ASI03 Identity & Privilege Abuse（Critical）——agents 继承并缓存凭据、攻击者借之横向移动、测试须覆盖凭据泄漏全路径与凭据作用域访问控制（crosswalk 原句未逐字复核）——原 Kaspersky B 级转述 2026-10-26 替换为官方一手；2026-10-28 保鲜：Vercel/Context.ai OAuth 事件（官方 KB 承认，2026-04 披露、2026-10-16 官布关闭）——员工给第三方 AI 工具授 Allow All，token 被 infostealer 窃取后打入 Vercel 内部，非敏感环境变量与部分客户凭据（GitHub token、npm 发布令牌）外泄，疑似 ShinyHunters 叫价 $2M：常设 OAuth grant 本身即入口的实名实证"
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://circleci.com/blog/jan-4-2023-incident-report——CircleCI 官方事故：SSO 凭证被窃横向打入生产、客户密钥外泄；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 给 agent 独立身份与最小权限（不共用人类长期凭证）；凭证可轮换且有有效期；对 agent 行为设基线，偏离基线的操作需人工确认；不可信输入会话不挂宽权限（与 SEC-003 三要素互为补充）
     verifier: 检查 agent 用的凭证——与人类账号同一个即命中；凭证创建超过 90 天未轮换即命中；答不出「agent 被允许做什么、不允许做什么」清单即命中
     confidence: backed_by_context

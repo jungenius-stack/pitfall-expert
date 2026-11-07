@@ -6,7 +6,7 @@
 
 version: 0.7.2
 domain: math
-updated: '2026-10-17'
+updated: '2026-11-07'
 card_count: 17
 cards:
   - id: MATH-001
@@ -19,7 +19,8 @@ cards:
       D: 4
     evidence:
       source: Stanford Math 79SI Common Proof Mistakes
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://en.wikipedia.org/wiki/Parallel_postulate——两千年证第五公设全翻车：偷用与待证等价的「显然」前提；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 动笔前写下"前提清单"与"目标"两张表；每一步只允许引用清单内条目；关键步标注依据编号
     verifier: 前提-步骤-结论追溯表：逐步标注引用了哪条前提/已知定理，无依据步即暴露循环
     confidence: backed_by_context
@@ -55,7 +56,8 @@ cards:
       D: 3
     evidence:
       source: Stanford Math 79SI; 中研院《數學證明錯誤類型》
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://en.wikipedia.org/wiki/Affirming_the_consequent——词条别名即 converse error：证了 B→A 当作证了 A→B；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 动笔前把原命题/逆命题/否命题/逆否命题四形式写出并标明要证哪个；全程核对逻辑方向与量词
     verifier: 四形式对照表 + 逐步核对蕴含方向与量词（任意/存在）使用
     confidence: backed_by_context
@@ -78,7 +80,8 @@ cards:
       D: 3
     evidence:
       source: Stanford Math 79SI Common Proof Mistakes
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://en.wikipedia.org/wiki/All_horses_are_the_same_color——Pólya「所有马同色」伪证：归纳步恰在 n=1→2 断链而基例完好；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 基例显式计算不省略；归纳步逐行标注假设来源；明确归纳对象与递推结构
     verifier: 前 3 个值手工验证 + 归纳步逐行审计（每行注明依据：假设/定义/定理）
     confidence: backed_by_context
@@ -102,7 +105,8 @@ cards:
       D: 3
     evidence:
       source: 中研院《數學證明錯誤類型》; 数学教学共识
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://en.wikipedia.org/wiki/Fermat_number——费马验前 5 个就断言全素，欧拉给 F5=641×6700417 反例；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 例子只用于启发与反驳（找反例），不作为证明；一般命题必须一般论证
     verifier: 证明文本中检索"代入/例如/取…得"附近是否存在论证跳跃；主动寻找反例尝试
     confidence: backed_by_context
@@ -125,7 +129,8 @@ cards:
       D: 3
     evidence:
       source: 量纲分析教材; 工程计算共识
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://llis.nasa.gov/llis_lib/pdf/1009464main1_0641-mr.pdf——火星气候探测器官方调查：磅力秒 vs 牛顿秒混用致 $1.25 亿坠毁；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 推导全程带单位；建立符号表（符号→含义→单位→取值范围）；换单位处显式标注换算
     verifier: 关键等式逐项做量纲检查（两边量纲必须一致）+ 符号表核对
     confidence: backed_by_context
@@ -148,7 +153,8 @@ cards:
       D: 4
     evidence:
       source: 数学分析教学共识; 0xelitesystem/agent-failure-modes
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://en.wikipedia.org/wiki/Uniform_convergence——柯西 1821 漏「一致收敛」前提成著名错定理，Abel 1826 反例；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 每个结论必须带适用范围声明；边界情形逐类列出并单独处理；极限换序给依据
     verifier: 边界清单对照表：端点/零/无穷/退化/空集/定义域外，逐项检查是否被结论覆盖
     confidence: backed_by_context
@@ -173,7 +179,8 @@ cards:
       D: 4
     evidence:
       source: Stanford Math 79SI Common Proof Mistakes
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://en.wikipedia.org/wiki/Four_color_theorem——Kempe 1879「证明」被接受 11 年后 Heawood 发现隐藏缺口；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 凡"显然"出现处强制展开为可复现的一步或两步；每步给出依据（定义/定理/假设编号）
     verifier: 独立复述测试：把每个"显然"步骤遮住，尝试仅凭前文一步复现，失败即缺口
     confidence: backed_by_context
@@ -195,7 +202,8 @@ cards:
       D: 3
     evidence:
       source: 数学教学共识; 中研院证明错误分类
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://en.wikipedia.org/wiki/Dirichlet%27s_principle——Riemann 未证存在性即引用 Dirichlet 原理，Weierstrass 反例掀翻；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 结论拆成存在性/唯一性/范围三问逐一回答；方程解完必须代回原式验根
     verifier: 三问检查表（存在？唯一？范围？）+ 增根检查（每个解代回原式）
     confidence: backed_by_context
@@ -218,7 +226,8 @@ cards:
       D: 3
     evidence:
       source: 中研院《數學證明錯誤類型》; 代数教学共识
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://en.wikipedia.org/wiki/USS_Yorktown_(CG-48)——1997 美舰智能舰：输入 0 除零致全网宕机 2 小时 45 分；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 每个除法/开方/取 log 前显式声明前提并验证；平方类操作后系统性验根；绝对值/分段显式分类
     verifier: 前提声明清单（每个限制运算对应一条前提）+ 全部解代回原式
     confidence: backed_by_context
@@ -244,7 +253,8 @@ cards:
       D: 3
     evidence:
       source: 数值分析教材 (Trefethen; Higham)
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://en.wikipedia.org/wiki/Vancouver_Stock_Exchange——温哥华交易所：每日约 3000 次截断累积，指数 1000「跌」至 524.8；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 稳定算法选型（如 Kahan 求和、中心化再相乘）；显式容差与收敛判据；关键计算估条件数
     verifier: 病态输入对比测试（数量级差异输入/近相关变量）+ 收敛曲线审查
     confidence: backed_by_context
@@ -269,7 +279,8 @@ cards:
       D: 3
     evidence:
       source: 概率论教学共识; Ioannidis PLoS Med 2005 (观点+实证混合)
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://www.courthouselibrary.ca/sites/default/files/inline-files/Royal%20Statistical%20Society%20Concerned%20by%20Issues%20Raised%20in%20Sally%20Clark%20Case.pdf——Sally Clark 冤案：独立相乘+条件概率倒置呈庭，皇家统计学会公开纠错；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 概率陈述先画样本空间或概率树；条件概率写全条件（谁给定谁）；基率显式入式
     verifier: 贝叶斯公式方向检查 + 数值小例手工计算对照
     confidence: backed_by_context

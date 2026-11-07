@@ -173,7 +173,8 @@ cards:
       D: 4
     evidence:
       source: OWASP Agentic Top 10 (2025-12); MAST NeurIPS 2025
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://en.wikipedia.org/wiki/Knight_Capital_Group——Knight Capital 2012：无熔断级联 45 分钟亏 $4.4 亿（页内附 SEC 处罚令）；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 每步设检查点（中间状态落盘/断言），失败即停不继续；步骤间传递结构化结果而非自由文本
     verifier: 每步结束后运行检查点断言，失败时中止流水线并报告断点位置
     confidence: backed_by_context
@@ -325,7 +326,8 @@ cards:
       D: 3
     evidence:
       source: awesome-falsehood (More Falsehoods about Time / Time Zones)
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://azure.microsoft.com/en-us/blog/summary-of-windows-azure-service-disruption-on-feb-29th-2012/——Azure 官方：闰年 2/29 生成非法日期，证书校验失败全区域宕机；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 所有时间显式带时区，内部统一 UTC 存储；边界日期进测试集；日期运算用成熟库
     verifier: 边界日期测试套件：2/29、12/31 23:59:59、夏令时切换小时、跨时区往返转换
     confidence: backed_by_context
@@ -352,7 +354,8 @@ cards:
       D: 3
     evidence:
       source: awesome-falsehood (Unicode/文件路径/编码)
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://git-scm.com/docs/git-config#coreprecomposeUnicode——Git 官方文档承认 macOS NFD 分解与 NFC 不一致致文件重复；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 文件名比较前归一化（NFC）；读写显式声明编码；路径拼接用 pathlib 类库
     verifier: 构造 NFD/NFC/中文/空格/超长文件名测试集跑一遍读写与匹配
     confidence: backed_by_context
@@ -379,7 +382,8 @@ cards:
       D: 3
     evidence:
       source: awesome-falsehood (浮点); 数值分析教材
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://www.gao.gov/products/IMTEC-92-26——爱国者导弹 GAO 官方调查：0.1 二进制误差 100 小时累积致拦截失败；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 相等用容差比较；金额用整数最小单位或 decimal 类型；大累加考虑 Kahan 求和或排序累加
     verifier: 容差断言 + 已知病态算式用例（0.1+0.2、1e16+1、大数吃小数序列）
     confidence: backed_by_context
@@ -405,7 +409,8 @@ cards:
       D: 3
     evidence:
       source: awesome-falsehood (版本号/包管理器)
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://blog.npmjs.org/post/141577284765/kik-left-pad-and-npm——npm 官方 left-pad 复盘：11 行传递依赖下架全球构建崩；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 关键服务锁死版本；lockfile 提交并校验一致性；升级必须跑全量测试
     verifier: lockfile 一致性检查（CI 中 npm ci 类严格安装）+ 依赖树 diff 审查
     confidence: backed_by_context
@@ -431,7 +436,8 @@ cards:
       D: 3
     evidence:
       source: 0xelitesystem/agent-failure-modes; 通用工程共识
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://www.bbc.com/future/article/20160325-the-names-that-break-computer-systems——Jennifer Null 真人实录：姓 Null 被订票/报税系统当空值拒绝；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 显式定义空值语义（文档写明）；区分 null/undefined/空/零；边界输入进测试集
     verifier: 空输入测试矩阵：空列表/空串/None/0/单元素/超长，逐项断言行为
     confidence: backed_by_context
@@ -457,7 +463,8 @@ cards:
       D: 2
     evidence:
       source: awesome-falsehood (CSV)
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://www.theguardian.com/politics/2020/oct/05/how-excel-may-have-caused-loss-of-16000-covid-tests-in-england——英 PHE：XLS 65,536 行上限静默截断 15,841 例阳性；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 用成熟解析器不手撕；显式声明编码（utf-8-sig 处理 BOM）；数字列按字符串读后自选精度
     verifier: 对抗样本 CSV 测试集：BOM/内嵌引号换行/Unicode/空行/科学计数法/超大整数
     confidence: backed_by_context
@@ -486,7 +493,8 @@ cards:
       source: >-
         multica-ai/andrej-karpathy-skills（219k★，LLM 编程四大通病）；腾讯云开发者（2026-06，B 级）：「只移动代码」却删 3
         个变量+改日志格式，字符串 == 比较行为改变——原 CODE-030 于 2026-10-26 深扫并入本卡
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://nvd.nist.gov/vuln/detail/CVE-2014-1266——Apple goto fail：范围外多一行静默绕过 TLS 签名校验；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: >-
       需求复述 + diff 审查双动作；范围外改动单独提交或明确征求同意；「纯移动/纯格式」任务必须用 git diff
       --ignore-all-space 机械检查（非空 diff 即偷改），不靠肉眼；要求 AI 列出全部非格式性修改并说明理由
@@ -706,7 +714,8 @@ cards:
       D: 8
     evidence:
       source: awesome-falsehood (kdeldycke, 27.8k★)，每条背后是真实事故
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://www.kalzumeus.com/2010/06/17/falsehoods-programmers-believe-about-names/——Falsehoods 人名版祖师爷原文；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 涉及时空/身份/国际化数据先过 awesome-falsehood 对应清单逐条自检数据假设，选最相关 3–5 条写进报告
     verifier: 取清单中最反直觉的 3 条构造边界输入跑一次（如夏令时切换日、单字姓名、无邮政编码国家）
     confidence: backed_by_context
@@ -1311,7 +1320,8 @@ cards:
       D: 7
     evidence:
       source: Splunk 故障模式 2（交接丢上下文、逐跳衰减）+ MLM 反模式 8（长任务上下文漂移，token 增长回忆下降）——双源共识（AMiner DeepDive 汇编）
-      level: consensus
+      level: case
+    endorsement: "免死背书 2026-11-07：https://arxiv.org/abs/2307.03172——Lost in the Middle 实证：长上下文中段信息回忆显著劣化；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
     fix: 关键约束写进持久文档随任务传递而非依赖对话历史；每跳交接附带「不可违反清单」原文（不摘要）；长任务定期重申原始验收标准；自动清理过期工具结果、限制单工具输出体积
     verifier: 任务中途抽查：让执行方复述最初的边界条件与验收标准——复述不出即漂移命中；对照最终产出与初始需求清单逐项 diff
     confidence: backed_by_context

@@ -6,7 +6,7 @@
 - **⑰号门首跑红**（先例同款）：CODE-048「多个」（symptom/fix）点亮任务 1、「检查」（description「检查单」+触发词「生效检查」）点亮任务 4——当场改表述（含多个→叠两道、检查单→清单、生效检查→生效核验）后 **12/12 零增冻结**；battery 基线 121→124，注记补本批记录。
 - **写死面十处已同步**（README×2 / package.json / report.js / index.js / battery.json / 入门版 / SKILL.md / manifest.json / code.yaml card_count 47→50），八端副本重跑 sync-all-agents.sh，selfcheck 全绿。
 - **掐表实测（⚠ 执行者=AI 代工，非人手；11-16 引用必须注明）**：①写 3 卡 109s（含起草思考）｜②③查重+校验 <1s｜④⑰号门 1s（另含一次红→定位→改词→重跑回合）｜⑤引擎测试 16s｜⑥selfcheck 2s｜**⑦写死面 23s（纯数字替换 sed 0s；battery 注记+人工核对占 23s）**｜⑧selfcheck+八端 sync 约 35s。十步合计 AI 侧约 3 分钟；「数字抄十遍」对 AI 近乎免费、对人手仍是纯开销——11-16 拍自动化时按「人手是否还会手跑这条流水线」定，不按 AI 耗时定。
-- 免死标 26 张：后台调研出链接草案中，人工裁决后另行入库（不混本 commit）。
+- **免死标执行（2026-11-07，用户裁决 B）**：25 张共识卡挂背书升 case——新可选字段 `endorsement:`（链接+一句对得上理由，全表见 docs/免死标-背书草案-2026-11-07.md）；SCI-002（匿名博客单源、无第三方核实）保持 consensus，进 11-16 退役候选池。level 分布 case 66 / empirical 57 / consensus 1；卡数不变 124、零触发词改动，⑰号门 12/12 零增、selfcheck 全绿、八端 sync。执行插曲（漏报轨当场修复）：批量脚本曾误替换 SCI-004/005 source 正文里自带的「consensus」字样，loadCards 红后两张手工修复重验——教训：source 正文含保留字的卡，批量替换必须锚定 `level:` 整行。
 
 ## v0.8.3（2026-11-02）
 
