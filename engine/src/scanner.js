@@ -11,6 +11,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const yaml = require('js-yaml');
+const crypto = require('crypto');
 
 const DEFAULT_CARDS_DIR = path.resolve(__dirname, '../../cards');
 
@@ -210,13 +211,26 @@ function detectDomain(scored) {
 // 摘要（M1 最小化采集——任务文本可能含密钥/路径，不入账本）。
 // 关闭：环境变量 PITFALL_LEDGER=off（引擎测试套件默认携带，防测试数据污染真实账本）。
 // 失败披露：写账本失败仅向 stderr 披露一行，不影响扫描结果本身（不得静默，也不得反噬主流程）。
+function makeTicket(result) {
+  const basis = [
+    result.ts || '',
+    result.tier,
+    result.domain || '',
+    String(result.task || '').slice(0, 60),
+    (result.matched || []).map(s => s.card.id).join(','),
+    result.cardsLoaded
+  ].join('|');
+  return crypto.createHash('sha256').update(basis).digest('hex').slice(0, 12);
+}
+
 function appendLedger(result) {
   try {
     if (process.env.PITFALL_LEDGER === 'off') return;
     const dir = path.join(os.homedir(), '.pitfall-expert');
     fs.mkdirSync(dir, { recursive: true });
     const entry = {
-      ts: new Date().toISOString(),
+      ts: result.ts || new Date().toISOString(),
+      ticket: result.ticket,
       source: result.source,
       tier: result.tier,
       domain: result.domain,
@@ -289,6 +303,7 @@ function scan(task, opts = {}) {
   const unverified = matched.filter(s => s.card.confidence !== 'backed_by_context');
 
   const result = {
+    ts: new Date().toISOString(),
     task,
     tier,
     source: opts.source || 'unknown',
@@ -306,6 +321,14 @@ function scan(task, opts = {}) {
     cardVersions,
     cardsLoaded: cards.length
   };
+  // 运行票据：把「这次真跑了引擎」变成可验证的事实，而不是模型的一句自称。
+  // 票据 = 时间 + 任务 + 命中卡集 + 卡库版本 的短哈希。模型无法凭空编出与任务匹配的票据；
+  // 报告里票据对不上账本记录 = 没跑却声称跑了（谎报），可 machine-check。
+  // 账本关闭时不发票据：票据的唯一价值是可核对，账本关了就核对不了，
+  // 发一张不可验证的票比不发更糟（会让「有票」失去意义）。
+  if (process.env.PITFALL_LEDGER !== 'off') {
+    result.ticket = makeTicket(result);
+  }
   appendLedger(result);
   return result;
 }

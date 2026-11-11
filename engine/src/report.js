@@ -59,6 +59,8 @@ function buildReport(r) {
   L.push(`- 任务：${r.task}`);
   L.push(`- 领域判定：${r.domain ? (DOMAINS[r.domain] || r.domain) : '未能判定'}（置信度：${r.domainConfidence}${r.domainBasis ? '；' + r.domainBasis : ''}）`);
   L.push(`- 扫描范围：已加载 ${r.cardsLoaded} 张坑卡，逐条对照率 100%（${coverageLine(r.coverage)}）`);
+  if (!r.ticket) L.push('- 运行票据：**未签发**（引擎在账本关闭状态下运行，本次无实跑凭据可核）');
+  if (r.ticket) L.push(`- 运行票据：\`${r.ticket}\`（${r.ts ? r.ts.slice(0, 19).replace('T', ' ') + ' UTC' : ''}｜引擎实跑凭据，已同步记入账本；引用本报告时须原样抄写此票据，缺失或与账本不符＝未真正跑引擎）`);
   if (r.sourceErrors.length) {
     L.push(`- ⚠️ 信源故障：${r.sourceErrors.map(e => `${e.file}（${e.error}）`).join('；')} —— 按元坑⑧显式披露，故障文件不计入覆盖率`);
     L.push('- 注意：信源故障不得被理解为“没有坑”——是“有卡但没读出来”，未加载的坑卡本次零对照');
