@@ -53,7 +53,7 @@ test('引擎分发：副本引擎可独立读到全部卡库', () => {
     });
     assert.equal(p.status, 0, p.stderr);
     assert.ok(p.stdout.includes('踩坑报告'));
-    assert.ok(p.stdout.includes('124'), '须加载 124 张卡');
+    assert.ok(p.stdout.includes('125'), '须加载 124 张卡');
     assert.equal(fs.existsSync(path.join(dir, '.pitfall-expert/hits.jsonl')), false);
   } finally { fs.rmSync(dir, {recursive: true, force: true}); }
 });

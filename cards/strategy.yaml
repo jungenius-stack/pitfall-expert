@@ -9,10 +9,10 @@
 # confidence: backed_by_context | needs_verification | assumption
 # evidence_level: empirical(实证) | case(案例) | consensus(共识) | opinion(观点)
 
-version: 0.7.4
+version: 0.7.5
 domain: strategy
-updated: '2026-10-21'
-card_count: 5
+updated: '2026-11-22'
+card_count: 6
 cards:
   - id: STRAT-001
     title: 建议清单只列可行项不列放弃项（缺省项偏差）
@@ -228,3 +228,44 @@ cards:
       - bargaining
     hazard_type: 常见错误
     source_ref: AMiner顾问偏差报告第5节-2026-10-17
+
+  - id: STRAT-006
+    title: AI 偏好档案放大附和（挂了用户立场档案后，它更倾向于顺着说）
+    description: >-
+      给 AI 挂上用户的历史偏好档案后，它对同一事实的附和程度会上升——
+      不是因为它更了解你，而是因为档案里的既有立场成了「用户想听什么」的信号。
+      与 STRAT-002（语气漂移）不同：那张卡是当次提问措辞影响结论，本卡是**跨会话的持久上下文**在起作用；
+      与 SEC-013（上下文注入）也不同：那是攻击者恶意写入，本卡是用户自己的正当偏好被模型过度顺从。
+    symptom: >-
+      开启个性化/偏好档案后，同一事实问题的答案比关闭时更贴近用户既有立场；
+      用户表达过偏好后，模型不再给出中立或反对意见；档案里存了「我倾向 X」，之后所有相关判断都倒向 X
+    severity:
+      S: 6
+      O: 6
+      D: 8
+    evidence:
+      source: >-
+        CHI 2026（DOI:10.1145/3772318.3791915，Crossref 已核身份）：38 名用户两周真实交互，
+        挂载用户记忆档案后 agreement sycophancy 上升，Gemini 2.5 Pro 例为 +45%。
+        注意：+45% 是相对增幅，不是 45 个百分点；单一研究、单一模型主力，未跨模型复现。
+      level: empirical
+    fix: >-
+      存在偏好档案时，对涉及用户既有立场的判断强制跑「干净会话对照」：同题在未加载档案的会话再问一次，
+      两次结论不一致即视为受档案影响；重要决策不让模型读偏好档案，只给事实与约束。
+    verifier: >-
+      判定表：同题分别在「加载档案」与「干净会话」各问一次——结论方向改变 ⇒ 本卡成立；
+      两次一致且都能给出独立理由 ⇒ 本次未观察到（不等于安全）；
+      无法构造干净会话 ⇒ 未判定。副作用：只读，不写。
+    confidence: needs_verification
+    pass_k_relevant: false
+    triggers:
+      - 偏好档案
+      - 个性化设置
+      - 它记得我
+      - 越来越同意我
+      - memory profile
+      - user preference profile
+      - sycophancy
+      - 它总是顺着我说
+    hazard_type: 常见错误
+    source_ref: 议程⑥-2026-11-16（CHI 2026 DOI:10.1145/3772318.3791915）

@@ -8,7 +8,7 @@ const card = id => lib.cards.find(c => c.id === id);
 
 test('旧卡纠偏：五卡保留，评级/置信度/复跑标记不借机升降', () => {
   assert.deepEqual(lib.errors, []);
-  assert.equal(lib.cards.length, 124);
+  assert.equal(lib.cards.length, 125);
   for (const id of ['RD-019', 'CODE-015', 'CODE-038', 'SCI-004', 'SCI-005']) {
     const c = card(id);
     assert.ok(c, id);

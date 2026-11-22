@@ -7,9 +7,9 @@ const { scan, loadCards } = require('../src/scanner');
 const lib = loadCards();
 const pilots = ['CODE-048', 'CODE-049', 'CODE-050'];
 
-test('试点卡：全库124张且ID唯一，三卡保留，050不再声明parent', () => {
+test('试点卡：全库125张且ID唯一，三卡保留，050不再声明parent', () => {
   assert.deepEqual(lib.errors, []);
-  assert.equal(lib.cards.length, 124);
+  assert.equal(lib.cards.length, 125);
   assert.equal(new Set(lib.cards.map(c => c.id)).size, lib.cards.length);
   for (const id of pilots) assert.ok(lib.cards.some(c => c.id === id), id);
   const card = lib.cards.find(c => c.id === 'CODE-050');

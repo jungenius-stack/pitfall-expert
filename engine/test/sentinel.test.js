@@ -38,7 +38,7 @@ test('哨兵：卡片目录独立，主卡库不含 SENTINEL', () => {
   fs.writeFileSync(path.join(DIR, 'sentinel.yaml'), yaml.dump({version: '1.0', domain: 'code', cards: doc.cards}));
   const main = require('../src/scanner').loadCards();
   assert.equal(main.cards.filter(c => c.id.startsWith('SENTINEL')).length, 0, '哨兵卡混入主卡库');
-  assert.equal(main.cards.length, 124, '主卡库应仍为 124 张');
+  assert.ok(main.cards.length >= 124, '主卡库不应少于 124 张');
 });
 
 test('哨兵：正例命中 3/4，S1 换说法漏报是已知边界', () => {

@@ -61,7 +61,7 @@ function buildReport(r) {
   if (en) {
     // 卡正文仍为中文；英文对照必须同时说明证据标签与任务验证的区别。
     L.push('');
-    L.push('> **Read this in English**: the card library (124 cards) is originally written in Chinese, so card bodies below stay in Chinese. Structure — `✅ 已查证区` = **verified for this task** (empty: this engine does not execute verifiers); `❓ 未验证区` = **unverified candidates**, including cards labeled backed_by_context; `🚫 盲区` = **declared blind spots**; `验证器清单` = **verifier list** (proposed checks, not executed here). Source links and evidence labels are library metadata, not sources inspected during this scan or proof that a pitfall applies. Field labels: 任务=task, 领域判定=domain routing, 扫描范围=cards scanned, 症状信号=symptom, 规避动作=mitigation, 卡库置信度=library confidence, 命中依据=why matched.');
+    L.push('> **Read this in English**: the card library (125 cards) is originally written in Chinese, so card bodies below stay in Chinese. Structure — `✅ 已查证区` = **verified for this task** (empty: this engine does not execute verifiers); `❓ 未验证区` = **unverified candidates**, including cards labeled backed_by_context; `🚫 盲区` = **declared blind spots**; `验证器清单` = **verifier list** (proposed checks, not executed here). Source links and evidence labels are library metadata, not sources inspected during this scan or proof that a pitfall applies. Field labels: 任务=task, 领域判定=domain routing, 扫描范围=cards scanned, 症状信号=symptom, 规避动作=mitigation, 卡库置信度=library confidence, 命中依据=why matched.');
   }
   L.push('');
   L.push(`- 任务：${r.task}`);
