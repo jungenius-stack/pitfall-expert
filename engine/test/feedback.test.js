@@ -42,14 +42,16 @@ function withFixture(fn) {
   }
 }
 
-test('反馈包：默认脱敏——不含任务原文，含版本/命中卡/三区标记', () => {
+test('反馈包：默认不含任务原文，卡库置信度与未验证状态分列', () => {
   withFixture(dir => {
     const r = scan(TASK, { tier: 'standard', cardsDir: dir });
     assert.strictEqual(r.cardVersions['fixture.yaml'], '9.9', 'loadCards 须暴露卡库版本');
     const fb = buildFeedback(r);
     assert.ok(fb.includes('FX-001') && fb.includes('9.9'), '反馈包含命中卡 ID 与卡库版本');
     assert.ok(fb.includes('pitfall-expert-engine'), '反馈包含引擎版本');
-    assert.ok(fb.includes('✅'), 'backed_by_context 卡标 ✅ 区');
+    assert.ok(fb.includes('❓ 未验证'), 'backed_by_context 卡仍是本任务未验证候选');
+    assert.ok(fb.includes('卡库把握程度') && fb.includes('本任务状态'), '卡库把握程度与本任务状态必须分列');
+    assert.ok(!fb.includes('✅'), '反馈包不能用来源置信度发任务验证绿灯');
     assert.ok(!fb.includes(TASK), '默认不得含任务原文（M1 最小化采集）');
     assert.ok(fb.includes('未包含'), '须显式声明任务原文未含及开启方式');
   });

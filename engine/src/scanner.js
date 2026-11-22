@@ -207,8 +207,8 @@ function detectDomain(scored) {
 // ---------- 命中账本（黑匣子）：每次扫描追加一行，供周期性分拣 ----------
 // 目的：让每张卡知道自己被命中过几次（出勤表）——零命中卡→查触发词/退役评审；
 // 高频命中+人工补记"救命"笔迹→主力卡。分拣规则见 docs（2026-11-02 装配）。
-// 隐私：只写本机 ~/.pitfall-expert/hits.jsonl（append-only），不联网上传，任务原文只存前 60 字
-// 摘要（M1 最小化采集——任务文本可能含密钥/路径，不入账本）。
+// 隐私：只写本机 ~/.pitfall-expert/hits.jsonl（append-only），默认不存任务原文/触发词。
+// taskHash 仅用于本机任务匹配，不是匿名化或防伪；PITFALL_LEDGER_TASK=on 才额外存前 60 字符。
 // 关闭：环境变量 PITFALL_LEDGER=off（引擎测试套件默认携带，防测试数据污染真实账本）。
 // 失败披露：写账本失败仅向 stderr 披露一行，不影响扫描结果本身（不得静默，也不得反噬主流程）。
 function makeTicket(result) {
@@ -216,30 +216,35 @@ function makeTicket(result) {
     result.ts || '',
     result.tier,
     result.domain || '',
-    String(result.task || '').slice(0, 60),
+    crypto.createHash('sha256').update(String(result.task || '')).digest('hex'),
     (result.matched || []).map(s => s.card.id).join(','),
-    result.cardsLoaded
+    result.cardsLoaded,
+    crypto.randomBytes(16).toString('hex')
   ].join('|');
   return crypto.createHash('sha256').update(basis).digest('hex').slice(0, 12);
 }
 
 function appendLedger(result) {
   try {
-    if (process.env.PITFALL_LEDGER === 'off') return;
+    if (process.env.PITFALL_LEDGER === 'off') return false;
     const dir = path.join(os.homedir(), '.pitfall-expert');
-    fs.mkdirSync(dir, { recursive: true });
+    fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
     const entry = {
+      schemaVersion: 2,
       ts: result.ts || new Date().toISOString(),
       ticket: result.ticket,
       source: result.source,
       tier: result.tier,
       domain: result.domain,
-      task: String(result.task || '').slice(0, 60),
-      hits: (result.matched || []).map(s => ({ id: s.card.id, score: s.m.score, trig: s.m.triggerHits }))
+      taskHash: crypto.createHash('sha256').update(String(result.task || '')).digest('hex'),
+      hits: (result.matched || []).map(s => ({ id: s.card.id, score: s.m.score }))
     };
-    fs.appendFileSync(path.join(dir, 'hits.jsonl'), JSON.stringify(entry) + '\n');
+    if (process.env.PITFALL_LEDGER_TASK === 'on') entry.task = String(result.task || '').slice(0, 60);
+    fs.appendFileSync(path.join(dir, 'hits.jsonl'), JSON.stringify(entry) + '\n', { mode: 0o600 });
+    return true;
   } catch (e) {
     process.stderr.write(`命中账本写入失败（不影响扫描结果）：${e.message}\n`);
+    return false;
   }
 }
 
@@ -298,9 +303,10 @@ function scan(task, opts = {}) {
   const loadedDomains = new Set(cards.map(c => c.domain));
   const unbuiltDomains = Object.keys(DOMAINS).filter(d => !loadedDomains.has(d));
 
-  // 三区划分
-  const verified = matched.filter(s => s.card.confidence === 'backed_by_context');
-  const unverified = matched.filter(s => s.card.confidence !== 'backed_by_context');
+  // 本引擎只召回，不执行验证器，也不接收调用方的验证结果回填。
+  // 保留 verified/unverified 返回字段，但卡片 confidence 不能充当当前任务已验证的依据。
+  const verified = [];
+  const unverified = matched;
 
   const result = {
     ts: new Date().toISOString(),
@@ -321,15 +327,20 @@ function scan(task, opts = {}) {
     cardVersions,
     cardsLoaded: cards.length
   };
-  // 运行票据：把「这次真跑了引擎」变成可验证的事实，而不是模型的一句自称。
-  // 票据 = 时间 + 任务 + 命中卡集 + 卡库版本 的短哈希。模型无法凭空编出与任务匹配的票据；
-  // 报告里票据对不上账本记录 = 没跑却声称跑了（谎报），可 machine-check。
+  // 运行票据：提供与本机账本核对任务的痕迹，不将模型自称当作执行证明。
+  // 票据含每次独立随机量，避免同任务同毫秒必然重号；12位短哈希仍可能碰撞。
+  // 无密钥且账本可编辑，不是防伪签名；没有可核对票据也不能单独证明引擎没跑。
   // 账本关闭时不发票据：票据的唯一价值是可核对，账本关了就核对不了，
   // 发一张不可验证的票比不发更糟（会让「有票」失去意义）。
   if (process.env.PITFALL_LEDGER !== 'off') {
     result.ticket = makeTicket(result);
   }
-  appendLedger(result);
+  result.ledgerStatus = process.env.PITFALL_LEDGER === 'off' ? 'off' : 'pending';
+  if (appendLedger(result)) result.ledgerStatus = 'written';
+  else if (result.ledgerStatus !== 'off') {
+    result.ledgerStatus = 'failed';
+    delete result.ticket;
+  }
   return result;
 }
 

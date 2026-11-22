@@ -4,7 +4,7 @@
  * 场景 1：代码域任务 → 领域判定 + 指定坑卡命中
  * 场景 2：数学域任务 → 领域判定 + 证明类坑卡命中
  * 场景 3：诚实性考题 → 科学域无卡，盲区必须显式声明
- * 场景 4：档位行为 → quick 不出验证器清单 / deep 出 RPN
+ * 场景 4：档位行为 → quick 不出验证器清单 / deep 出排序建议表
  * 场景 5：MCP stdio 冒烟 → initialize / tools/list / tools/call 全链路
  */
 
@@ -65,15 +65,15 @@ test('场景3 诚实性：无卡领域任务盲区显式声明而非沉默', () 
   }
 });
 
-test('场景4 档位行为：quick 不产验证器清单，deep 产 RPN 表', () => {
+test('场景4 档位行为：quick 不产验证器清单，deep 产排序建议表', () => {
   const quick = buildReport(scan('重构这个模块，顺便修一下告警', { tier: 'quick', cardsDir: CARDS_DIR }));
   assert.ok(!quick.includes('## 验证器清单'), '快扫档不得出验证器清单');
   assert.ok(quick.includes('快扫档不执行任何验证'), '快扫档须声明验证限制');
 
   const deep = buildReport(scan('帮我把 users.csv 按省份汇总人数，注意处理空值和重复行', { tier: 'deep', cardsDir: CARDS_DIR }));
-  assert.ok(deep.includes('FMEA RPN'), '深审档须出 RPN 表');
-  assert.ok(deep.includes('RPN 是排序启发式非风险度量'), 'RPN 须带方法论批评注记');
-  assert.ok(deep.includes('对抗追问'), '深审档须出对抗追问');
+  assert.ok(deep.includes('先查哪条的排序'), '深审档须出排序建议表');
+  assert.ok(deep.includes("只是排序建议，不是风险评分"), "排序表须带非风险评分说明");
+  assert.ok(deep.includes('再追问一句'), '深审档须出追问段');
 });
 
 test('场景5 边界：空任务被 grill-me 退回', () => {
@@ -87,8 +87,8 @@ test('场景6 信源失效：坑卡目录缺失时显式披露而非静默', () 
   const r = scan('任意一个任务描述用于测试', { cardsDir: '/tmp/definitely-not-exist-cards' });
   assert.ok(r.sourceErrors.length > 0, '目录缺失须记录信源故障');
   const report = buildReport(r);
-  assert.ok(report.includes('信源故障'), '报告须显式披露信源故障');
-  assert.ok(report.includes('不得被理解为'), '故障不得被理解为没有坑');
+  assert.ok(report.includes('卡库读取出问题'), '报告须显式披露读取失败');
+  assert.ok(report.includes('不等于"没有坑"'), '故障不得被理解为没有坑');
 });
 
 test('场景7 MCP stdio 冒烟：initialize / tools/list / tools/call 全链路', async () => {
@@ -130,6 +130,7 @@ test('场景7 MCP stdio 冒烟：initialize / tools/list / tools/call 全链路'
   try {
     const init = await send({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'replay-test', version: '1.0.0' } } });
     assert.strictEqual(init.result.serverInfo.name, 'pitfall-expert-engine', 'initialize 应返回服务名');
+    assert.strictEqual(init.result.serverInfo.version, require('../package.json').version, 'MCP 版本必须与引擎清单同源');
 
     // notifications/initialized 是通知（无 id），服务端不响应——直接写，不能 await
     child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
@@ -145,10 +146,10 @@ test('场景7 MCP stdio 冒烟：initialize / tools/list / tools/call 全链路'
     for (const hint of ['readOnlyHint', 'destructiveHint', 'idempotentHint', 'openWorldHint']) {
       assert.strictEqual(typeof ann[hint], 'boolean', `${hint} 必须是显式布尔值（非布尔会被 OpenAI 拒绝）`);
     }
-    // 值与实现一致：只读（不写文件）、非破坏性、幂等、不联网
-    assert.strictEqual(ann.readOnlyHint, true, 'scan_task 只读 cards/，应为 readOnlyHint: true');
+    // 值与默认行为一致：本地追加、非破坏性、非幂等、不联网；测试关账本不改变默认契约。
+    assert.strictEqual(ann.readOnlyHint, false, 'scan_task 默认写本地账本，应为 readOnlyHint: false');
     assert.strictEqual(ann.destructiveHint, false, 'scan_task 无删除/覆盖，应为 destructiveHint: false');
-    assert.strictEqual(ann.idempotentHint, true, 'scan_task 同输入逐字节相同，应为 idempotentHint: true');
+    assert.strictEqual(ann.idempotentHint, false, 'scan_task 默认追加记录，应为 idempotentHint: false');
     assert.strictEqual(ann.openWorldHint, false, 'scan_task 无网络调用，应为 openWorldHint: false');
 
     const call = await send({
@@ -158,6 +159,8 @@ test('场景7 MCP stdio 冒烟：initialize / tools/list / tools/call 全链路'
     const text = call.result.content[0].text;
     assert.ok(text.includes('踩坑报告'), 'tools/call 应返回踩坑报告');
     assert.ok(text.includes('CODE-013'), '报告应命中空值卡');
+    assert.ok(text.includes('## ✅ 已查证区（0 项）'), 'MCP 返回不得凭卡库置信度升级为已查证');
+    assert.ok(text.includes('这次查了没有：❓ 没有'), 'MCP 须明示当前任务未核验');
 
     const bad = await send({
       jsonrpc: '2.0', id: 4, method: 'tools/call',

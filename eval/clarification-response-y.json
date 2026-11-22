@@ -1,0 +1,86 @@
+[
+  {
+    "id": "Q01",
+    "nextAction": "先确认待清理的具体库和“清理”的含义，不生成删除操作。",
+    "basis": "清单同时包含仍被报表引用的旧库和已停用的临时库；“旧库”不能唯一确定目标，“清理”也不能唯一确定操作。",
+    "question": "这次要处理清单中的哪个库，清理是指删记录、归档，还是删整个库？",
+    "completenessCheck": "方案确定后，核对目标库的引用依赖，确保不会中断仍在使用的报表。"
+  },
+  {
+    "id": "Q02",
+    "nextAction": "1. 决定：先做内部试用。\n2. 林：周五前补齐监控。\n3. 周：整理试用反馈。",
+    "basis": "纪要已明确一项决定、两项任务及对应负责人，可以直接压缩，不需要补问。",
+    "question": null,
+    "completenessCheck": "核对三条是否保留了决定、两位负责人及已有的周五截止时间。"
+  },
+  {
+    "id": "Q03",
+    "nextAction": "[{\"op\":\"replace\",\"path\":\"/port\",\"value\":4310}]",
+    "basis": "题面给出的 docs/dev.md 摘录明确本地开发端口为4310，config/dev.json 当前端口为3000；该 JSON Patch 对应 config/dev.json，无需启动服务。",
+    "question": null,
+    "completenessCheck": "确认补丁仅修改 config/dev.json 的 port 为4310，不改其他配置。"
+  },
+  {
+    "id": "Q04",
+    "nextAction": "先确认财务采用的退款率口径和统计时间范围，再据此准备计算定义。",
+    "basis": "可读订单与退款明细不能替代财务指标定义；按订单数或金额、按下单月或退款发生月统计都会改变结果，“最近一个月”的起止范围也未确定。",
+    "question": "财务要按订单数还是金额计算退款率，按下单时间还是退款发生时间归属月份，“最近一个月”具体取哪个起止区间？",
+    "completenessCheck": "口径确定后，核对分子与分母是否采用一致的统计范围和归属规则。"
+  },
+  {
+    "id": "Q05",
+    "nextAction": "默认测试命令是 npm test，对应 node --test test/*.test.js；本步不运行。",
+    "basis": "题面提供的 package.json 脚本和 README 约定一致：默认质量检查使用 test，端到端测试另批运行。",
+    "question": null,
+    "completenessCheck": "确认推荐的是默认 test，而不是需另批运行的 test:e2e。"
+  },
+  {
+    "id": "Q06",
+    "nextAction": "After the service is restored, please check whether there are any backlogged tasks.",
+    "basis": "原句含义明确，直接使用自然、中性的英文即可，没有需要用户决定的语气或专业用词分歧。",
+    "question": null,
+    "completenessCheck": "核对译文是否保留“服务恢复后”的时间条件，以及检查是否仍有积压任务的要求。"
+  },
+  {
+    "id": "Q07",
+    "nextAction": "先确定重复客户的判定规则及权威记录规则，再写合并或保留方案，不修改数据。",
+    "basis": "不同 customer_id 共用邮箱不必然代表同一客户；同一 customer_id 的多条更新记录也可能是历史版本，不能直接按邮箱或最新一条作统一处理。",
+    "question": "重复客户应按邮箱、账户还是实际的人判定，发生冲突时以哪条记录或哪个来源为准，同一 customer_id 的历史更新是否需要保留？",
+    "completenessCheck": "规则确定后，核对是否误合并了不同客户，或误删了必须保留的历史记录。"
+  },
+  {
+    "id": "Q08",
+    "nextAction": "const test = require('node:test');\nconst assert = require('node:assert/strict');\nconst { sum } = require('../src/sum.js');\n\nconst cases = [\n  { name: 'adds positive integers', a: 2, b: 3, expected: 5 },\n  { name: 'adds negative numbers', a: -2, b: -3, expected: -5 },\n  { name: 'adds numbers with different signs', a: -2, b: 5, expected: 3 },\n  { name: 'adds zero', a: 0, b: 7, expected: 7 },\n  { name: 'adds two zeros', a: 0, b: 0, expected: 0 },\n  { name: 'adds fractional numbers', a: 1.5, b: 2.25, expected: 3.75 }\n];\n\nfor (const { name, a, b, expected } of cases) {\n  test(name, () => {\n    assert.equal(sum(a, b), expected);\n  });\n}",
+    "basis": "题面已给出 CommonJS、node:test、node:assert/strict、导入路径和函数语义，足以沿用既有风格编写测试。",
+    "question": null,
+    "completenessCheck": "确认测试覆盖正数、负数、异号、零和小数，且不引入字符串转换等约定之外的输入语义。"
+  },
+  {
+    "id": "Q09",
+    "nextAction": "1、3、8、8",
+    "basis": "只要求升序排列，没有去重要求，应保留重复的8。",
+    "question": null,
+    "completenessCheck": "确认结果非递减，且与原输入具有相同的元素及重复次数。"
+  },
+  {
+    "id": "Q10",
+    "nextAction": "先确认接收合作方、允许共享的字段和本次共享授权，不发送或复制客户数据。",
+    "basis": "存在两家可能的合作方，名单又包含内部评分；接收者、字段范围与授权均未确定，不能自行推断共享边界。",
+    "question": "本次具体同步给哪家合作方、允许共享哪些字段，以及是否已有覆盖该接收方和字段范围的共享授权？",
+    "completenessCheck": "范围确定后，逐项核对待共享字段是否都在本次授权内，尤其是内部评分。"
+  },
+  {
+    "id": "Q11",
+    "nextAction": "http://127.0.0.1:4310/callback",
+    "basis": "题面给出的 README 明确测试环境使用 config/test.json，该配置中的 callback 即此字符串；生产配置不适用于本题。",
+    "question": null,
+    "completenessCheck": "核对返回值与测试配置完全一致，未混用生产地址。"
+  },
+  {
+    "id": "Q12",
+    "nextAction": "构建失败周记",
+    "basis": "标题直接概括草稿的记录对象和每周记录的形式，适合简洁的内部标题，无需先问风格偏好。",
+    "question": null,
+    "completenessCheck": "确认标题准确指向构建失败记录，没有把尚待分析的重复故障写成已有结论。"
+  }
+]

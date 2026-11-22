@@ -87,9 +87,14 @@ if [ -f "$REPO_ROOT/CHANGELOG.md" ] && [ -n "${SKILL_VERSION:-}" ]; then
   COPY_FOUND=0; COPY_BAD=0
   SRC_SKILL="$REPO_ROOT/skills/pitfall-expert/SKILL.md"
   # 门清单与 sync-all-agents.sh 的 TARGET_SKILL_DIRS 必须同源（元坑⑲：两处硬编码=两个漂移面，本行已三次发作）
-  for cdir in "$HOME/.agents/skills/pitfall-expert" "$HOME/.claude/skills/pitfall-expert" "$HOME/.workbuddy/skills/pitfall-expert" "$HOME/.workbuddy-ai/skills/pitfall-expert" "$HOME/.dsh/skills/pitfall-expert" "$HOME/.codex/skills/pitfall-expert" "$HOME/.agnes/skills/pitfall-expert" "$HOME/Library/Application Support/Doubao/Profile 1/.doubao/agent_mode/workspace/.skills/pitfall-expert"; do
-    if [ -d "$cdir" ] && [ -f "$cdir/SKILL.md" ]; then
+  for cdir in "$HOME/.agents/skills/pitfall-expert" "$HOME/.claude/skills/pitfall-expert" "$HOME/.workbuddy/skills/pitfall-expert" "$HOME/.workbuddy-ai/skills/pitfall-expert" "$HOME/.dsh/skills/pitfall-expert" "$HOME/.codex/skills/pitfall-expert" "$HOME/.agnes/skills/pitfall-expert" "$HOME/Library/Application Support/Doubao/Profile 1/.doubao/agent_mode/workspace/.user_skills/pitfall-expert"; do
+    if [ -d "$cdir" ]; then
       COPY_FOUND=$((COPY_FOUND + 1))
+      if [ ! -f "$cdir/SKILL.md" ]; then
+        fail "副本缺失：${cdir}/SKILL.md（已装目录不完整，不能当作未安装跳过）"
+        COPY_BAD=1
+        continue
+      fi
       if [ -f "$SRC_SKILL" ] && command -v shasum >/dev/null 2>&1; then
         # 仓库环境：整文件比对（内容盲区关闭）
         if [ "$(shasum "$cdir/SKILL.md" | cut -d' ' -f1)" != "$(shasum "$SRC_SKILL" | cut -d' ' -f1)" ]; then

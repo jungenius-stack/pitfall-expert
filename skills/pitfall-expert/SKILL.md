@@ -5,12 +5,12 @@ display_name_en: Pitfall Expert
 description_zh: '先见坑，再动手。你的 AI 说做完了，真的做完了吗——以前只能赌，现在不用。124 张带出处的坑卡，覆盖代码、数学、决策、安全、科研、创作、战略七个领域，一次扫清。每张卡，一条规避动作，一个可执行验证器。查过的，附证据与出处。没查的，附五分钟内能做的检查动作。看不到的，直说。结尾一份阻断清单，做完再开工。全部本地运行，不联网、不收集、不追踪。踩坑专家——完成，等于披露完整。'
 description_en: 'See the pitfall before you step in. Your agent says done — is it? You used to guess. Now you no longer have to. 124 evidence-backed cards across seven domains (code, math, decisions, agent security, science, writing, strategy), scanned in one pass. Every card — one avoidance move, one runnable verifier. Verified comes with receipts. Unverified comes with a 5-minute check. Blind spots are declared, not hidden. A blocking checklist to finish before work begins. Fully local — no network, no collection, no tracking. Pitfall Expert. Done means fully disclosed.'
 category: 开发工具
-version: 0.8.5
+version: 0.8.6
 author: JunGenius
 description: '踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/做计划/写方案/拆任务/任务拆解/排期/里程碑/验收标准/开工前/动手前/怕返工/will this break/what could go wrong/premortem", or the task involves payments, irreversible deletion, publishing, data migration, or sending external communications. NOT for casual chat, single-fact lookups, or when the user explicitly says to skip the check and just do it. 完成等于披露完整，而非结果完美。'
 user-invocable: true
 metadata:
-  version: 0.8.5
+  version: 0.8.6
   updated: "2026-11-11"
 ---
 
@@ -30,10 +30,18 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 
 已连接引擎（MCP `scan_task` 或 CLI：`node <repo>/engine/src/cli.js "任务" --tier quick|standard|deep`）时，用它替代 **L1 第 3 路（坑卡召回）**——卡库随回写持续增长，人工逐卡扫描的注意力随卡数衰减，规模越大引擎越是必需而非可选；第 1、2 路仍由你执行（跳过=单层防御依赖，M9 禁止）。**防幻觉铁律**：未收到真实引擎输出之前一律视为引擎不可用——虚构引擎报告=谎报轨；不可用/报错 → 报告头声明「未使用引擎，匹配为人工对照」，引擎失败不得被理解为「没有坑」。
 
-**强制调用门（2026-11-02 补，实测证据）**：仓库环境下（`engine/src/cli.js` 可读）跑 T1/T2 时，**必须先实际执行一次引擎**，报告头写「引擎：已跑 <tier>，命中 N 张」；未跑必须在报告头写「引擎：未跑」+ 具体原因（无 node / 依赖缺失 / 命令报错原文）——**「引擎可用」不等于「引擎被用」**。依据：2026-11-02 实测，一次 T2 深查会话产出 268 行报告、质量不差（自行抓取了厂商文档原文），但**全程未调用引擎、未读任何坑卡**（报告内零卡号引用，命中账本无该次记录）——"读卡库"这一步被模型用通用知识替代了，121 张卡的真出处等于没起作用。该门不增加摩擦：引擎 60ms，失败即降级声明。
+**引擎路径优先级（2026-11-22 补，实测事故）**：按顺序找，**找到第一个能跑的立即用，不要继续全盘搜索**：
 
-**运行票据（2026-11-11 补，把「自称跑了」变成「可核对」）**：引擎实跑会在报告头打出一行 `运行票据：<12位哈希>`，同一票据同步写入 `~/.pitfall-expert/hits.jsonl`。**你引用引擎结果时，必须原样抄写该票据**；票据缺失、抄错、或与本次任务不对应，视为**没跑引擎**（谎报轨）。核对方式：`node tools/verify-ticket.mjs <报告文件>`（退出码 0=通过，1=不通过）。
-为什么需要这个：上面那条强制门要求「报告头写引擎：已跑」，但那只是**模型自己写的一句话**，没有约束力——模型完全可以不跑引擎、直接写「已跑」。票据是引擎签发、账本留存的，模型编不出与本次任务匹配的票。**「已跑」是承诺，票据是证据。**
+1. `<本技能目录>/engine/src/cli.js`——**技能副本自带精简引擎**，直接 `node "<skill_dir>/engine/src/cli.js" "任务" --tier standard`；
+2. 仓库路径：`~/Downloads/踩坑专家项目/engine/src/cli.js`；
+3. 以上都没有才声明「未使用引擎」。
+
+**禁止用 `find /Users/m1 -name cli.js` 之类全盘搜索**：2026-11-22 实测，模型全盘搜索时命中了 `~/Downloads/pitfall`（2026-10-20 的旧副本，120 张卡，缺 4 张新卡），并基于旧引擎产出了报告——用户看到的是过期结果却以为是当前版本。副本自带引擎已包含全部卡库，无需外找；若 `engine/` 不存在，说明该副本为旧版，应提示用户重跑 `sync-all-agents.sh`。
+
+**强制调用门（2026-11-02 补，实测证据）**：仓库环境下（`engine/src/cli.js` 可读）跑 T1/T2 时，**必须先实际执行一次引擎**，报告头写「引擎：已跑 <tier>，命中 N 张」；未跑必须在报告头写「引擎：未跑」+ 具体原因（无 node / 依赖缺失 / 命令报错原文）——**「引擎可用」不等于「引擎被用」**。依据：2026-11-02 实测，一次 T2 深查会话产出 268 行报告、质量不差（自行抓取了厂商文档原文），但**全程未调用引擎、未读任何坑卡**（报告内零卡号引用，命中账本无该次记录）——"读卡库"这一步被模型用通用知识替代了，当时 121 张卡的真出处等于没起作用。该门不增加摩擦：引擎 60ms，失败即降级声明。
+
+**运行票据（2026-11-19 隐私边界修正）**：启用账本且写入成功时，报告会打印 `运行票据：<12位哈希>`；引用时必须原样抄写。核对方式：在仓库运行 `node tools/verify-ticket.mjs <报告文件>`，或 `node tools/verify-ticket.mjs --ticket <票据> --task "<完整任务>"`（0=对应，1=无法核对，2=用法错误；没有该工具的安装包须声明不可用，不能假称已验票）。新记录默认只留完整任务的 SHA-256 摘要，不留任务原文或触发词；`PITFALL_LEDGER_TASK=on` 才额外留前60字符，`PITFALL_LEDGER=off` 完全关闭。旧记录不改动，只能按其原有前缀核对。
+**边界**：引擎的命中项全部是 ❓ 候选，✅ 区为空；卡库来源/置信度不是本任务验证，调用方须另记实际检查、原始结果和适用边界，不能凭引用升 ✅。摘要不是匿名化，票据不是防伪签名；账本可编辑，不能证明模型读懂卡片或验证器已执行。关闭账本或写入失败会无票，必须声明具体原因，**不能只凭无票断言没跑**。诊断扫描应关闭账本并保留真实工具输出，不编造票据；票据抄错或任务不符须先解决，不能当成核验通过。
 
 ## 主流程（L0–L5，严格顺序；摩擦预算与档位成正比）
 
@@ -123,6 +131,18 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 5. 禁止无用户约束画像输出「够用/兼容/匹配」类结论（M1）；
 6. 禁止 🐯 真坑缺验证器/判定表/执行结果（M13）；
 7. 🚫 盲区声明必须包含「未建卡领域」与「本次未覆盖的范围」（M7/DoD 5）。
+
+## 退出与回归（报告交付后强制，2026-11-22 补）
+
+**本技能是「用一次的工具」，不是整段对话的身份。**
+
+1. **报告交付即结束**：给出报告后立即回到用户原本的说话方式与语气；不复述内部术语、不延续"值班/老司机"人格、不主动追加风险清单。
+2. **不复读黑话**：报告之外的解释一律用日常词。禁止在收尾后继续使用 M1–M13、三区、DoD、兜底轨、漏报轨、谎报轨、纸老虎、Tiger 三分类、RPN、pass^k 等内部词；必须提及时先用一句大白话解释。
+3. **留存不等于继续**：卡片、编号、术语只在报告内有效；用户没重新要求，不再主动提起踩坑话题。
+4. **重新触发才恢复**：再次需要扫描时由用户重新说「先踩坑/查坑」等触发词，或领域明显涉及不可逆操作时按 description 激活——不靠"上次用过"自动延续。
+5. **创意类任务默认不激活**：纯创作、润色、改句、想意象等无不可逆面的任务不主动触发；创意域卡覆盖仅「设定/设定前后一致性」一侧（6 张），不要用通用机制给创作建议打包票。
+
+**报告正文仍然允许使用技能术语**——那是交付物；本条约束的是报告之外的对话语气与主动续接。
 
 ## 完成标准（DoD 六条，产出报告后自检）
 

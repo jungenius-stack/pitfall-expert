@@ -47,7 +47,7 @@ v0.7.8 曾写「自动注册留待一周真机数据后决定」；该决定于 
 | `PITFALL_HOOK_MODE` | `report` | report=先报告后放行（默认）；block=硬规则命中才拦 |
 | `PITFALL_HOOK_TIER` | `quick` | 扫描档位，控时延；报告内容完整审查请用 skill 升档 |
 | `PITFALL_HOOK_DISABLE` | `0` | 1= kill switch，全部放行 |
-| `PITFALL_HOOK_LOG` | `0` | 1= 拦截日志（本地 JSONL，见下节；默认关以兑现 PRIVACY.md 零写入承诺） |
+| `PITFALL_HOOK_LOG` | `0` | 1= 拦截日志（本地 JSONL，默认关；与默认开启的引擎命中账本独立，见下节） |
 | `PITFALL_HOOK_LOG_FILE` | `~/.pitfall-expert/hook-log.jsonl` | 日志路径（测试/自定义用） |
 | `PITFALL_ENGINE_DIR` | 自动定位 | 指向 engine/ 目录 |
 | `NODE_BIN` | `node` | node 可执行文件路径 |
@@ -68,7 +68,13 @@ v0.7.8 曾写「自动注册留待一周真机数据后决定」；该决定于 
 
 ## 拦截日志（选开）
 
-`PITFALL_HOOK_LOG=1` 时每次非跳过的门控决策追加一行 JSONL 到 `~/.pitfall-expert/hook-log.jsonl`（字段：ts/mode/decision/tool/rules/cards/input 摘要≤200 字符）。**默认关**——扫描零写入是 PRIVACY.md 的硬承诺；日志只写本机 home 目录、永不入库。聚合查看：`node hooks/log-summary.js`（决策分布/规则频次/软警告暴露序号——后者是评测协议 §八.2 习惯化测量的数据出口）。
+`PITFALL_HOOK_LOG=1` 时每次非跳过的门控决策追加一行 JSONL 到 `~/.pitfall-expert/hook-log.jsonl`（字段：ts/mode/decision/tool/rules/cards/input 摘要，实为输入前缀，≤200 个 UTF-16 码元，可能含敏感任务文本）。**默认关仅指这份决策日志，不代表扫描零写入**；默认写本机，不自动上传，分享前需审查。聚合查看：`node hooks/log-summary.js`（决策分布/规则频次/软警告暴露序号——后者是评测协议 §八.2 习惯化测量的数据出口）。
+
+### 独立的命中账本与报告
+
+引擎扫描默认写 `~/.pitfall-expert/hits.jsonl`，与上述日志独立。即将采用的源码默认为 `schemaVersion: 2`，只存时间、票据、来源、档位、领域、完整任务的 SHA-256 匹配摘要及命中卡的 `id`/`score`，不存任务原文或 `trig`；无盐摘要不是匿名化、防伪或抗字典措施。`PITFALL_LEDGER_TASK=on` 才额外保存前 60 个 UTF-16 码元，可能泄密，不建议公开。`PITFALL_LEDGER=off` 关闭命中账本且不签票，不关闭独立的 hook 日志或删除旧记录。
+
+此默认变更仅涉及源码，尚未同步已安装端、未发版；旧记录原样保留。报告 stdout 仍含完整任务，会交给 AI 客户端处理，可能进入会话记录。完整字段、权限及新旧验票边界见 [PRIVACY.md](../PRIVACY.md#中文)；票据不是签名，有票不证明 verifier 已执行。
 
 ## 跳过启发式（门控防自我瘫痪——元坑①的自指应用）
 

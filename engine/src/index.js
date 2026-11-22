@@ -14,9 +14,10 @@ const {
 } = require('@modelcontextprotocol/sdk/types.js');
 const { scan, DOMAINS } = require('./scanner');
 const { buildReport } = require('./report');
+const { version: engineVersion } = require('../package.json');
 
 const server = new Server(
-  { name: 'pitfall-expert-engine', version: '0.2.0' },
+  { name: 'pitfall-expert-engine', version: engineVersion },
   { capabilities: { tools: {} } }
 );
 
@@ -24,22 +25,21 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [{
     name: 'scan_task',
     // 能力注解（MCP 2025-06 规范）：客户端据此决定调用前是否需确认。
-    // 逐条与实现对齐（2026-10-21 实测，非推定）：
-    //   readOnlyHint    —— true：工具路径只 readdirSync/readFileSync 读 cards/*.yaml，
-    //                      grep writeFile|appendFile|mkdir|unlink|rename 零命中
-    //   destructiveHint —— false：无删除/覆盖/不可逆副作用
-    //   idempotentHint  —— true：同输入连调两次 buildReport 输出逐字节相同（实测 ===）
-    //   openWorldHint   —— false：依赖只有 fs/path/js-yaml，无 fetch/http/net/dns
-    // 注意：这些是机器读的安全契约，不是注释。值写错 = 让下游客户端按错误前提自动放行。
+    // 逐条与默认行为对齐（2026-11-19）：
+    //   readOnlyHint    —— false：默认追加本机命中账本，不是零写入工具
+    //   destructiveHint —— false：不删除/覆盖旧记录
+    //   idempotentHint  —— false：每次追加新记录，报告时间/票据也可能不同
+    //   openWorldHint   —— false：匹配只读本地卡库，不发网络请求
+    // 关闭账本可减少副作用，但注解按默认行为保守声明，不能假称始终只读。
     annotations: {
       title: '任务前风险扫描（踩坑预检）',
-      readOnlyHint: true,
+      readOnlyHint: false,
       destructiveHint: false,
-      idempotentHint: true,
+      idempotentHint: false,
       openWorldHint: false
     },
     description: '踩坑专家扫描引擎：在 AI 执行任务之前，对该任务做系统性风险预判。' +
-      '按领域坑卡库逐条对照，输出三区诚实报告（✅已查证 / ❓未验证 / 🚫盲区声明）+ 验证器清单。' +
+      '按领域坑卡库逐条对照，输出三区报告（✅区为空：引擎不执行核验 / ❓词面候选 / 🚫盲区声明）+ 待执行验证器清单。' +
       '卡库覆盖七域：代码、数学、调研/决策、Agent 安全、科学/ML、创意写作、战略；' +
       '未建卡领域（decision/meta）会在盲区显式声明。' +
       '当用户要求“踩坑/避坑/预判风险/动手前先查坑/premortem”，或任何任务执行前的风险审查场景时使用。',
@@ -111,7 +111,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('[pitfall-expert] engine v0.2.0 ready (stdio)');
+  console.error(`[pitfall-expert] engine v${engineVersion} ready (stdio)`);
 }
 
 main().catch(e => {

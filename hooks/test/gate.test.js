@@ -81,12 +81,24 @@ test('拦截日志：PITFALL_HOOK_LOG=1 写 JSONL（含 decision 与截断摘要
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
-test('日志默认关：不产生任何文件（PRIVACY.md 零写入承诺）', () => {
+test('决策日志默认关：不创建hook-log，不代表引擎扫描零写入', () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pitfall-hook-test-'));
   const logFile = path.join(tmp, 'hook-log.jsonl');
-  runHook(bashCall('rm -rf ./build'), { PITFALL_HOOK_MODE: 'block', PITFALL_HOOK_LOG_FILE: logFile });
-  assert.strictEqual(fs.existsSync(logFile), false, 'PITFALL_HOOK_LOG 未设时不得写文件');
+  runHook(bashCall('rm -rf ./build'), { PITFALL_HOOK_MODE: 'block', PITFALL_HOOK_LOG: '', PITFALL_HOOK_LOG_FILE: logFile });
+  assert.strictEqual(fs.existsSync(logFile), false, 'PITFALL_HOOK_LOG 未开启时不得写决策日志');
   fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+test('UserPromptSubmit：候选不进已查证区，值班规则不把卡库来源当放行证', () => {
+  const r = spawnSync(process.execPath, [GATE, 'UserPromptSubmit'], {
+    input: JSON.stringify({prompt: '帮我把 users.csv 按省份汇总人数，注意空值'}),
+    env: {...process.env, PITFALL_LEDGER: 'off', PITFALL_HOOK_LOG: '0', PITFALL_HOOK_DISABLE: '0'},
+    encoding: 'utf8'
+  });
+  assert.strictEqual(r.status, 0);
+  assert.ok(r.stdout.includes('## ✅ 已查证区（0 项）'));
+  assert.ok(r.stdout.includes('候选卡均为 ❓ 未验证'));
+  assert.ok(!r.stdout.includes('✅ 区命中项执行时逐条规避'));
 });
 
 test('只读工具 exit 0 且零输出', () => {

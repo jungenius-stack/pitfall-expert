@@ -132,6 +132,7 @@ test('block 模式：普通命令放行（调用 next）', async () => {
     );
     assert.strictEqual(nextCalled, true, '普通命令应放行');
     assert.deepStrictEqual(decision, { kind: 'allow' });
+    assert.ok(ctx.logs.info.some(m => m.includes('## ✅ 已查证区（0 项）')), '插件日志里的预报告也不得自动认定任务已验证');
   } finally {
     if (prev === undefined) delete process.env.PITFALL_HOOK_MODE; else process.env.PITFALL_HOOK_MODE = prev;
   }

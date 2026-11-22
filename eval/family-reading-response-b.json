@@ -1,0 +1,35 @@
+[
+  {
+    "id": "R01",
+    "directIds": ["FX-MOTHER"],
+    "indexOnlyIds": [],
+    "checks": [{"id":"FX-MOTHER","actions":["确认端到端预算","核多层尝试链，区分逻辑操作与每层尝试","核累计资源成本"],"missing":"缺观测则未判定。"}],
+    "verified": false,
+    "safeToProceed": false,
+    "realPaymentAuthorized": false,
+    "basis": "直接命中1张，仅归属ID为0；不补未命中子卡检查。报告仅词面召回，未执行验证器或核读外部来源，不能据此判安全；未提供真实支付授权，且本任务仅限阅读。"
+  },
+  {
+    "id": "R02",
+    "directIds": ["FX-CHILD"],
+    "indexOnlyIds": ["FX-MOTHER"],
+    "checks": [{"id":"FX-CHILD","actions":["确认端到端预算","核同一逻辑支付的幂等键","核重复扣款证据","核回滚边界与补偿路径","未经授权不发真实支付请求"],"missing":"缺记录则未判定。"}],
+    "verified": false,
+    "safeToProceed": false,
+    "realPaymentAuthorized": false,
+    "basis": "直接命中1张，仅归属ID为1；母卡未命中，不新增其检查。报告未执行验证器，无真实支付记录，不能据此判安全；没有真实支付授权，且本任务仅限阅读。"
+  },
+  {
+    "id": "R03",
+    "directIds": ["FX-MOTHER", "FX-CHILD"],
+    "indexOnlyIds": [],
+    "checks": [
+      {"id":"FX-MOTHER","actions":["区分逻辑操作与每层尝试","核累计资源成本","核端到端预算"],"missing":"缺观测则未判定。"},
+      {"id":"FX-CHILD","actions":["确认端到端预算","核同一逻辑支付的幂等键","核重复扣款证据","核回滚边界与补偿路径","未经授权不发真实支付请求"],"missing":"缺记录则未判定。"}
+    ],
+    "verified": false,
+    "safeToProceed": false,
+    "realPaymentAuthorized": false,
+    "basis": "直接命中2张，仅归属ID为0；母卡正文收起不取消命中或其完整检查清单。两卡均未核验，归属与格式完整不构成安全证明；没有真实支付授权，且本任务仅限阅读。"
+  }
+]

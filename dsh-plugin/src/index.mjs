@@ -74,7 +74,7 @@ export async function apply(ctx, config) {
       if (typeof defineTool === 'function') {
         ctx.tools.register(defineTool({
           name: 'pitfall_scan',
-          description: '踩坑专家：对给定任务描述执行系统性风险预判，输出三区诚实报告（✅已查证/❓未验证/🚫盲区声明）与验证器清单。在动手执行任务前调用。',
+          description: '踩坑专家：对任务描述召回候选坑卡，输出三区报告（✅区为空：不执行核验/❓词面候选/🚫盲区声明）与待执行验证器清单。卡有出处不等于本任务已验证。在动手执行任务前调用。',
           parameters: {
             task: { type: 'string', required: true, description: '待执行任务的自然语言描述' },
             tier: { type: 'string', description: '服务档位：quick/standard/deep，默认 quick' }

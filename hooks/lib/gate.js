@@ -13,7 +13,7 @@
  *   PITFALL_HOOK_TIER=quick|standard|deep（默认 quick，控制时延）
  *   PITFALL_HOOK_DISABLE=1 总开关（kill switch）
  *   PITFALL_ENGINE_DIR 指向 engine/（默认相对本文件定位）
- *   PITFALL_HOOK_LOG=1 选开拦截日志（默认关，保 PRIVACY.md「零写入」承诺）
+ *   PITFALL_HOOK_LOG=1 选开拦截日志（默认关；与默认开启的引擎命中账本独立）
  *   PITFALL_HOOK_LOG_FILE 日志路径（默认 ~/.pitfall-expert/hook-log.jsonl；仅供测试/自用观察）
  *
  * v0.7.8 分级语义（元坑⑳「少而重」）：
@@ -87,7 +87,7 @@ function main(json) {
     emit('');
     emit(report);
     emit('');
-    emit('【值班规则】✅ 区命中项执行时逐条规避；❓ 区决定是否升档；🚫 区原文告知用户，不许删改弱化。');
+    emit('【值班规则】候选卡均为 ❓ 未验证：先核任务适用性，再按授权执行检查；不得将来源、词面命中或票据当作放行证。🚫 区原文告知用户，不许删改弱化。');
     process.exit(0);
   }
 

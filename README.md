@@ -72,31 +72,32 @@ Your agent said **"done"** — and the migration isn't. It agreed with the doome
 
 The failure modes come with receipts, because they've been measured: agents declare solvable tasks impossible (54.9% of WebArena failures), claim completion while the environment is unchanged (MAST), pass weak test suites (7.8% of "passing" SWE-bench patches are wrong), mistake single-run luck for reliability (pass^8 < 25%), and side with a wrong user over half the time (*Science*, 2026: 51%). Those exact findings are seed cards in this library — card counts live in `cards/`; trust the directory over any number in prose.
 
-Everything runs locally: a keyword scan over YAML cards, no network calls, no task text leaving your machine.
+Matching runs locally over YAML cards, without engine network calls. Reports still contain the full task and are returned to your AI client, which may retain or transmit them; see [Local data and privacy](#local-data-and-privacy).
 
 > **Effect ceiling (honest disclosure, added 2026-10-18)**: the evidence for comparable checklist interventions is **split**. WHO surgical checklist cut mortality with RR≈0.53 across 8 hospitals (Haynes, NEJM 2009) — but Ontario's mandatory rollout across 101 hospitals with n≈215,000 operations showed **zero effect** (death OR=0.91, P=0.13; Urbach, NEJM 2014). The mediating variable is **implementation fidelity** (a Norwegian stepped-wedge RCT found the effect only where all three parts were actually done). So this tool's benefit depends on whether you actually execute the blocking todos in the report; under checkbox compliance the effect can collapse to zero. We do not promise "installing this makes you safer" — we promise you can tell checked from guessed.
 
 <details>
-<summary><strong>What your agent hands back</strong> — real output, abbreviated (report skeleton is Chinese-native; fields translated here)</summary>
+<summary><strong>What your agent hands back</strong> — abbreviated engine output from the unreleased workspace (Chinese-native report)</summary>
 
 ```text
 # 踩坑报告 · ⚡ 快扫
-- 任务：aggregate users.csv by province, mind nulls and duplicate rows
-- 领域判定：code (medium) · 124 cards checked one by one, 100% coverage
+- 任务：帮我把 users.csv 按省份汇总人数，注意处理空值和重复行
+- 领域判定：代码（中） · 124 cards loaded and scored, not fact-checked
 
-## ✅ 已查证区（4 项）
-### [CODE-014] CSV/数据解析
-- 症状信号：row counts off; a column suddenly all-empty; mojibake; precision loss
-- 证据：awesome-falsehood (CSV) — consensus
-- 规避动作：use a real parser; declare encoding (utf-8-sig for BOM); read numerics as strings first
-- 命中依据：trigger `csv` + fields fix/triggers
+## ✅ 已查证区（0 项）
+This engine does not execute verifiers or inspect external sources.
+
+## ❓ 未验证区（5 项）
+### [CODE-014] CSV/数据解析 …
+- 本次任务状态：❓ 仅词面召回；未执行验证器，尚不能判断本任务是否存在此坑
 ### [CODE-013] 空值与边界输入 …
-### [CODE-036] 代码正确 ≠ 数据正确（静默列错位与不可能值）…
+… three more candidates omitted, not three confirmed failures
 
-## ❓ 未验证区（0 项）
 ## 🚫 盲区声明
-- 系统性盲区：业务逻辑正确性（数值在业务上该不该为负）——能力表已声明「不能防」
+Sources and additional links were not inspected during this scan.
 ```
+
+The task asks to aggregate a CSV by province while handling nulls and duplicate rows. The five candidates above are actual recall results, not five proven risks. Original card sources and additional URLs are shown separately as leads; a library evidence label is not validation for this task. Verification and final reporting remain the caller's responsibility.
 
 </details>
 
@@ -185,6 +186,12 @@ node engine/src/cli.js "your task" --tier standard --feedback
 
 > **Showcase**: if it caught a real pit for you, open an issue labeled `showcase` — real cases become new cards, credited in `source_ref`.
 
+## Local data and privacy
+
+The engine writes a local hit ledger to `~/.pitfall-expert/hits.jsonl` by default for statistics and ticket checks; nothing is automatically uploaded. **Source-only change, not released or synchronized to installed copies:** the upcoming default stores only `schemaVersion: 2`, `ts`, `ticket`, `source`, `tier`, `domain`, `taskHash` (SHA-256 of the complete task), and `hits` containing only `id`/`score`, without task text or `trig`. The unsalted digest is for matching, not anonymity, tamper protection, or resistance to dictionary guessing. Old records remain unchanged.
+
+`PITFALL_LEDGER_TASK=on` explicitly adds the first 60 UTF-16 code units as `task`; even that prefix may leak secrets and should not be published. `PITFALL_LEDGER=off` disables ledger writes and ticket issuance, not existing records, full-task reports on stdout/to your AI client, or separate logs. Optional hook decision logging is off by default but can retain up to 200 UTF-16 code units of input when enabled. See [PRIVACY.md](PRIVACY.md#english) for file permissions, client handling, and the limits of new/legacy ticket checks; a ticket is not a signature or proof that a verifier ran.
+
 ## FAQ
 
 <details>
@@ -211,7 +218,7 @@ Update first — `git pull`. The card library evolves, and stale cards cause mos
 <details>
 <summary><strong>Do I need Node.js?</strong></summary>
 
-No for the skill (the model reads cards directly). Yes for the engine, CLI and hooks (Node ≥18, one dependency). Everything degrades loudly, never silently: missing resources are declared, never fabricated.
+No for the skill (the model reads cards directly). Yes for the engine, CLI and hooks (Node ≥20; direct dependencies: js-yaml and the MCP SDK). Everything degrades loudly, never silently: missing resources are declared, never fabricated.
 
 </details>
 

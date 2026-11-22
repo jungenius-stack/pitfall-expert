@@ -42,6 +42,12 @@ pnpm dsh web --patch /绝对路径/pitfall-expert/dsh-plugin/cordis.yml
 | `PITFALL_HOOK_LOG` | `0` | 1=拦截日志写 `~/.pitfall-expert/hook-log.jsonl`（与 hooks 层同一账本；cordis config.log: true 等效） |
 | `PITFALL_ENGINE_DIR` | 自动定位 | 引擎目录（显式设置时独占，无效不静默回退） |
 
+## 本地数据与隐私
+
+`log` / `PITFALL_HOOK_LOG` 默认关；开启后，独立的 `hook-log.jsonl` 决策日志可能含输入前 200 个 UTF-16 码元，并非无任务文本。它与引擎默认开启的 `~/.pitfall-expert/hits.jsonl` 命中账本不同，关掉前者不等于零写入；预报告仍含完整任务，并会进入 dsh logger，由外壳/AI 客户端处理。
+
+即将采用的源码默认是 `schemaVersion: 2`：只存时间、票据、来源、档位、领域、完整任务的 SHA-256 匹配摘要及命中卡的 `id`/`score`，不存任务原文或 `trig`。摘要无盐，不是匿名化、防伪或抗字典措施。`PITFALL_LEDGER_TASK=on` 才额外保存前 60 个 UTF-16 码元，可能泄密，不建议公开；`PITFALL_LEDGER=off` 关闭命中账本且不签票，不关闭独立日志或删除旧记录。此变更仅涉及源码，尚未同步已安装端、未发版，旧记录原样保留。完整字段、权限及验票边界见 [PRIVACY.md](../PRIVACY.md#中文)。
+
 ## API 依据与风险披露
 
 - `ctx.on('tools/pre-execute', async (exec, next) => ...)`、`{ kind: 'deny', reason }`、`defineTool`、cordis.yml `insert` 覆盖层——均于 2026-10-14 拉取 deepseek-ai/deepseek-harness 官方仓库文档核验（官方文档站当时 404，文档在仓库 docs/ 目录）。

@@ -45,6 +45,32 @@ STAGE="$(mktemp -d)" || fail "mktemp"
 trap 'rm -rf "$STAGE"' EXIT
 cp -R "$SKILL_SRC" "$STAGE/$NAME" || fail "复制技能源失败"
 cp -R "$CARDS_SRC" "$STAGE/$NAME/cards" || fail "复制卡库失败"
+
+# 精简引擎随机分发（2026-11-22 补）：只装 CLI 链路需要的 engine/src + js-yaml。
+# 动机：WorkBuddy 等"只装技能"的应用此前没有引擎，模型只能靠 find 全盘找，
+# 实测找到了 /Users/m1/Downloads/pitfall 这个 10-20 的旧副本（120 卡），跑出过旧版报告。
+# 不带 @modelcontextprotocol/sdk（28M）：CLI 不用它，MCP 走仓库/独立安装。
+# 失败不阻塞技能分发——引擎是加速器，不是技能可用性的前提。
+ENGINE_OK=0
+if [ -f "$REPO_ROOT/engine/src/cli.js" ]; then
+  mkdir -p "$STAGE/$NAME/engine"
+  if cp -R "$REPO_ROOT/engine/src" "$STAGE/$NAME/engine/src" 2>/dev/null \
+     && cp "$REPO_ROOT/engine/package.json" "$STAGE/$NAME/engine/package.json" 2>/dev/null; then
+    if [ -d "$REPO_ROOT/engine/node_modules/js-yaml" ]; then
+      mkdir -p "$STAGE/$NAME/engine/node_modules"
+      cp -R "$REPO_ROOT/engine/node_modules/js-yaml" "$STAGE/$NAME/engine/node_modules/js-yaml" \
+        && ENGINE_OK=1
+    fi
+  fi
+fi
+if [ "$ENGINE_OK" = "1" ]; then
+  # 装进 staging 后立刻实测：能加载卡库才算数，不靠"文件复制成功"
+  ENGINE_CARDS=$(node -e "try{const{loadCards}=require('$STAGE/$NAME/engine/src/scanner');const r=loadCards('$STAGE/$NAME/cards');if(r.errors.length)process.exit(1);console.log(r.cards.length)}catch(e){process.exit(1)}" 2>/dev/null) \
+    || fail "精简引擎自检失败：副本内引擎读不出卡库"
+  printf '引擎：已随技能分发（%s 张卡可读，未含 MCP SDK）\n' "$ENGINE_CARDS"
+else
+  printf '引擎：未随技能分发（技能仍可用，模型读卡模式；引擎功能不可用）\n'
+fi
 find "$STAGE" -name .DS_Store -delete
 
 CARD_TOTAL="$(awk '/^card_count:/{s+=$2} END{print s+0}' "$STAGE/$NAME/cards"/*.yaml 2>/dev/null)"
@@ -94,9 +120,11 @@ sync_one() {
   if [ -d "$target" ]; then
     label="$(printf '%s' "$skills_dir" | sed "s|^$HOME/||; s|/|_|g")"
     bdir="$BACKUP_ROOT/$(date '+%Y%m%d-%H%M%S')-${label}"
-    if ! { mkdir -p "$bdir" && cp -R "$target" "$bdir/$NAME"; } 2>/dev/null; then
-      printf 'BACKUP-FAIL    %s（留档失败，跳过覆盖保住旧副本；请人工检查 %s）\n' "$target" "$BACKUP_ROOT"
-      return 0
+    # 引擎副本不备份：它由仓库可再生，且每份约 2M；24 份 × 8 端会白占数百 MB。
+    # 备份的目的是保住用户对技能文本的本地改动，不是保引擎。
+    if ! { mkdir -p "$bdir" && cp -R "$target" "$bdir/$NAME" 2>/dev/null \
+           && rm -rf "$bdir/$NAME/engine"; } 2>/dev/null; then
+      fail "留档失败，未覆盖 $target；请人工检查 $BACKUP_ROOT"
     fi
   fi
   mkdir -p "$skills_dir" || fail "无法创建 $skills_dir"
@@ -129,7 +157,7 @@ IFS="$OLD_IFS"
 # 备份轮转：按份数留档。KEEP 必须大于目标数（一轮全量刷新就产生 8 份，
 # 留太少会把本轮刚生成的备份在同一轮里删掉——2026-10-25 首跑实测踩过）
 # 备份轮转：只留最近 KEEP_BACKUPS 份
-if [ -d "$BACKUP_ROOT" ]; then
+if [ "$CHECK_ONLY" != "--check" ] && [ -d "$BACKUP_ROOT" ]; then
   ls -1t "$BACKUP_ROOT" 2>/dev/null | tail -n +$((KEEP_BACKUPS + 1)) | while IFS= read -r old; do
     rm -rf "$BACKUP_ROOT/$old"
   done

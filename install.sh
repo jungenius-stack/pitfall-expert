@@ -32,6 +32,32 @@ if [ ! -f "$SKILL_SRC/SKILL.md" ]; then
 fi
 
 installed=0
+
+# 精简引擎装配（2026-11-22 补，与 sync-all-agents.sh 同步语义）：
+# 只带 CLI 链路需要的 engine/src + js-yaml，不带 MCP SDK（28M 用不上）。
+# 让"只装技能、没装引擎"的应用（WorkBuddy 等）也能真跑扫描、出票据、记本地账本——
+# 此前这类应用只能靠模型全盘 find 找引擎，实测找到过 10-20 的旧副本并跑出旧报告。
+install_engine() {
+  target="$1"
+  [ -f "$REPO_ROOT/engine/src/cli.js" ] || { say "⚠ 引擎源缺失，跳过引擎装配（技能仍可用）"; return 0; }
+  mkdir -p "$target/engine"
+  cp -r "$REPO_ROOT/engine/src" "$target/engine/src" || { say "⚠ 引擎源码复制失败（技能仍可用）"; return 0; }
+  cp "$REPO_ROOT/engine/package.json" "$target/engine/package.json" 2>/dev/null || true
+  if [ -d "$REPO_ROOT/engine/node_modules/js-yaml" ]; then
+    mkdir -p "$target/engine/node_modules"
+    cp -r "$REPO_ROOT/engine/node_modules/js-yaml" "$target/engine/node_modules/js-yaml" || { say "⚠ js-yaml 复制失败（引擎不可用，技能可用）"; return 0; }
+  else
+    say "⚠ 未找到 engine/node_modules/js-yaml——副本引擎不可用，可稍后在仓库 npm install"
+    return 0
+  fi
+  # 装完即测：读不出卡库就当没装，不靠"复制成功"冒充可用
+  if node -e "const{loadCards}=require('$target/engine/src/scanner');const r=loadCards('$target/cards');process.exit(r.errors.length?1:0)" 2>/dev/null; then
+    say "  └ 副本引擎已装配（可本地扫描，未含 MCP SDK）"
+  else
+    say "  └ ⚠ 副本引擎装配后自检失败（技能仍可用，扫描请走仓库）"
+  fi
+}
+
 for dir in "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.codex/skills" "$HOME/.workbuddy/skills"; do
   parent="$(dirname "$dir")"
   # 目录已存在（= 用户在用该外壳）才安装；不替用户凭空创建外壳目录
@@ -40,6 +66,7 @@ for dir in "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.codex/skills" "
     rm -rf "${dir}/${NAME}"
     cp -r "$SKILL_SRC" "${dir}/${NAME}"
     cp -r "$REPO_ROOT/cards" "$dir/$NAME/cards"
+    install_engine "${dir}/${NAME}"
     installed=$((installed + 1))
     say "✓ 已安装到 ${dir}/${NAME}（含卡库副本）"
   fi
@@ -50,6 +77,7 @@ if [ "$installed" = "0" ]; then
   rm -rf "$HOME/.agents/skills/${NAME}"
   cp -r "$SKILL_SRC" "$HOME/.agents/skills/${NAME}"
   cp -r "$REPO_ROOT/cards" "$HOME/.agents/skills/$NAME/cards"
+  install_engine "$HOME/.agents/skills/${NAME}"
   installed=1
   say "✓ 未检测到已知外壳目录，默认安装到 ~/.agents/skills/${NAME}（ZCode / dsh 等共享此目录）"
 fi
@@ -78,7 +106,7 @@ if command -v node >/dev/null 2>&1; then
     say "⚠ 有 node 无 npm——技能已装好可用；引擎需手动装依赖（js-yaml、@modelcontextprotocol/sdk）"
   fi
 else
-  say "提示：未检测到 node——技能可用（模型读卡），引擎/门控需要 Node ≥18"
+  say "提示：未检测到 node——技能可用（模型读卡），引擎/门控需要 Node ≥20"
 fi
 
 # 门控（踏板）注册片段：只打印，不写用户的 settings.json——拦人的东西不静默装（设计原则，见 hooks/README.md）。

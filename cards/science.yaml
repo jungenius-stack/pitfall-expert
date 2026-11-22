@@ -12,7 +12,7 @@
 
 version: 0.7.5
 domain: science
-updated: '2026-11-07'
+updated: '2026-11-19'
 card_count: 10
 cards:
   - id: SCI-001
@@ -141,23 +141,26 @@ cards:
   - id: SCI-004
     title: 时序回测用了未来数据（look-ahead bias 与指标重绘）
     description: >-
-      回测用了决策时刻不可能有的信息：用当根收盘价出信号又按当根收盘成交、指标用当前 bar
-      收盘值重绘（repaint，实盘无法复现）、幸存者偏差（只用至今活着的标的）、全量数据归一化。结果：回测永远赚钱，实盘「从一开始就不可交易」。
-    symptom: 回测收益好到不信；指标在历史图上完美但实时图不断改写；实盘与回测持续背离
+      回测使用决策时不可得的信息，例如指标引用未来值、归一化利用未来样本，可能使表现虚高、实盘难以复现。
+      最终收盘值出信号并假设以同一收盘价成交时，须另核成交机制；缺乏依据只说明成交假设待核，不自动证明前视泄漏。
+      重绘须区分是否使用未来信息；幸存者偏差是另一类选择偏差，不与前视泄漏混为一病。
+    symptom: 回测收益异常优异；历史指标与实时记录不同；实盘与回测持续背离——均为排查信号，不能单独证明泄漏
     severity:
       S: 8
       O: 4
       D: 8
     evidence:
       source: >-
-        量化社区多源共识（consensus）：Quantreo「实盘不可交易的真实案例」+ Mike Harris 检测方法论 + WallStreetMojo 偏差分类 +
-        r/algotrading 社区讨论（Lookahead bias 普遍性）；Pine Script 官方生态承认 repaint 问题
+        原来源线索：Quantreo 案例、Mike Harris 检测方法、WallStreetMojo 偏差分类、r/algotrading 讨论与 Pine Script 文档。
+        原卡记为量化社区共识；本次未取得这些外部原文，不能据线索确认具体案例、重绘类型或频率；
+        信息可得时间与成交机制需分别核对。
       level: case
-    endorsement: "免死背书 2026-11-07：https://www.ams.org/notices/201405/rnoti-p458.pdf——Bailey & López de Prado（AMS Notices 2014）：回测过拟合/信息泄漏使表现系统性虚高；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
+    endorsement: "邻证范围修正 2026-11-19：https://www.ams.org/notices/201405/rnoti-p458.pdf 与 https://www.davidhbailey.com/dhbpapers/backtest-pseudo.pdf ——据 docs/复盘-二十五条背书-2026-11-16.md，取得 Bailey、Borwein、López de Prado、Zhu 的作者预印本，未取得所挂刊版且未比较版本差异；支持多配置选择的回测过拟合背景，不是前视泄漏或指标重绘的直接证据。本次未重核外部原文。"
     fix: >-
-      信号时点与成交时点强制错开一根 bar（signal at close → trade at next open）；指标必须用已收盘 bar
-      计算；时序任务按时间切分+walk-forward 验证；标的池用历史时点成分（防幸存者偏差）；归一化只用训练窗
-    verifier: 把信号整体前移一根 bar 重跑回测——收益大幅变化即存在时点泄漏；对比实盘前 N 笔与回测同期——持续背离即命中
+      明确每项输入的实际可得时间、信号时点与可执行成交时点。最终收盘值出信号时，不假设可无条件以同一收盘价成交，
+      可采用下一可执行时点或另证成交机制；指标不得引用未来信息。按时间切分并约束预处理拟合范围；标的池另按历史成分核对。
+      延迟成交不能保证消除其他泄漏。
+    verifier: 文字判定表，未实跑回测：将成交延后一根 bar 作敏感性分析；收益变化或实盘背离仅作排查线索，不能据此认定泄漏。逐项核对数据可得时间、特征计算、指标历史改写与订单机制；证实使用决策时不可得的信息或无法成立的成交假设，再记录对应缺陷，不把成交假设失真一律叫前视泄漏。缺时点或执行记录则未判定
     confidence: backed_by_context
     pass_k_relevant: true
     triggers:
@@ -178,8 +181,8 @@ cards:
   - id: SCI-005
     title: 准确率悖论（不平衡数据：99% 准确率、0 召回的废模型）
     description: >-
-      欺诈率 0.1–1% 时，「全部预测为正常」的哑模型轻松拿到 99%+ 准确率却抓不到一个欺诈；医疗同理——99% 准确率从未识别出一个病人，实际无用。AI 汇报「模型准确率
-      99%」时若未看类别分布与召回，等于汇报了一个漂亮的废物。
+      构造例：1000 条样本含 10 条真实正类，全部预测负类时 accuracy=99%、recall=0。这说明单报高准确率不代表能识别稀有正类，
+      不是实际训练实验，也不能把敏感度、特异度、总体 accuracy 与 PPV 都叫「99% 准确」。是否满足任务要求还须看漏报/误报成本和评估范围。
     symptom: 以 accuracy 为唯一指标汇报；类别分布严重倾斜（正类 <5%）；哑基线（全预测多数类）分数接近模型分数
     severity:
       S: 7
@@ -187,12 +190,12 @@ cards:
       D: 6
     evidence:
       source: >-
-        多源共识（consensus）：Train in Data 实例（dummy 99.83% 准确、零欺诈召回）+ Medium 实例（97.5% 准确、250 例欺诈全漏）+
-        MachineLearningMastery 教程（accuracy 对不平衡分布失效的经典论证）
+        原来源线索：Train in Data 的 dummy 99.83%/零欺诈召回、Medium 的 97.5%/250 例欺诈全漏，以及 MachineLearningMastery 教程；
+        原例数值本次未核，不冒充本次训练结果。1% 正类且全预测负类的 99% accuracy/0 recall 是可独立复算的构造反例，不靠医生论文证明。
       level: case
-    endorsement: "免死背书 2026-11-07：https://doi.org/10.1111/j.1539-6053.2008.00033.x——Gigerenzer 等：多数医生算不对「99% 准确」筛查的阳性预测值（注：网传 PMID 18269385 有误，正确 PMID 26161749 已核）；链接正文亲读核对，全表见 docs/免死标-背书草案-2026-11-07.md"
-    fix: 不平衡任务禁用裸 accuracy：先算哑基线（全预测多数类的分数），模型必须显著超过它才算数；换 precision/recall/F1/PR-AUC + 混淆矩阵汇报；汇报时附类别分布
-    verifier: 先跑 dummy classifier（全预测多数类）——模型分数与哑基线差 <2 个点即命中；混淆矩阵查少数类召回是否为 0
+    endorsement: "邻证范围修正 2026-11-19：https://doi.org/10.1111/j.1539-6053.2008.00033.x ——据 docs/复盘-二十五条背书-2026-11-16.md，仅取得 PMID 26161749 对应记录与摘要、未取得全文；是健康统计素养与基率/PPV 误读的邻证，不是零召回分类器实验，不据此复述「多数医生算不对99%筛查」的未核比例。本次未重核外部原文。"
+    fix: 在同一评估集列出类别分布、dummy 基线、混淆矩阵、precision/recall/F1/PR-AUC 及阈值；按漏报/误报成本约定要求，不以 accuracy 固定提升幅度判定有效；指标未定义时明说原因
+    verifier: 文字判定表，未训练模型：核同一评估集的真实标签、预测及阈值；存在真实正类且 recall=0 时，仅说明该集合上未识别任何正类，不能用高 accuracy 证明正类识别能力。无真实正类时 recall 不可评估；无预测正类时 precision 分母为零，注明未定义或实现约定；accuracy 与 dummy 的差距只作线索，不用固定两百分点裁决，缺数据则未判定
     confidence: backed_by_context
     pass_k_relevant: false
     triggers:

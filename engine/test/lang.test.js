@@ -37,6 +37,8 @@ test('lang=en：前置英文对照段，说明三区与字段含义', () => {
   }
   // 必须如实声明卡库仍为中文，不得谎称已英化
   assert.ok(out.includes('stay in Chinese'), 'en 模式须声明卡正文仍为中文');
+  assert.ok(out.includes('empty: this engine does not execute verifiers'), 'en 模式须说明已查证区为空');
+  assert.ok(out.includes('including cards labeled backed_by_context'), '卡库标签不等于本任务已核验');
 });
 
 test('lang=en：不改变正文结论（卡 ID 与三区仍在）', () => {
