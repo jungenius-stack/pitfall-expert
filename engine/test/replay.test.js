@@ -32,8 +32,8 @@ test('场景1 代码域：CSV 汇总任务命中空值卡与 CSV 卡', () => {
   const totalAll = Object.values(r.coverage).reduce((s, d) => s + d.total, 0);
   assert.strictEqual(totalAll, r.cardsLoaded, '各域 coverage 总和必须等于 cardsLoaded（防 yaml 加载静默丢卡）');
   const report = buildReport(r);
-  assert.ok(report.includes('## ✅ 已查证区'), '报告须含已查证区');
-  assert.ok(report.includes('## ❓ 未验证区'), '报告须含未验证区');
+  assert.ok(report.includes('## ✅ 这次扫描确认了什么'), '报告须含扫描确认区');
+  assert.ok(report.includes('## ❓ 需要你去查的'), '报告须含待查区');
   assert.ok(report.includes('## 🚫 盲区声明'), '报告须含盲区声明');
   assert.ok(report.includes('科学/ML'), '盲区须声明科学/ML 域未建卡');
   assert.ok(report.includes('验证器清单'), '标准档须产验证器清单');
@@ -159,7 +159,7 @@ test('场景7 MCP stdio 冒烟：initialize / tools/list / tools/call 全链路'
     const text = call.result.content[0].text;
     assert.ok(text.includes('踩坑报告'), 'tools/call 应返回踩坑报告');
     assert.ok(text.includes('CODE-013'), '报告应命中空值卡');
-    assert.ok(text.includes('## ✅ 已查证区（0 项）'), 'MCP 返回不得凭卡库置信度升级为已查证');
+    assert.ok(text.includes('## ✅ 这次扫描确认了什么'), 'MCP 返回不得凭卡库置信度升级为已查证');
     assert.ok(text.includes('这次查了没有：❓ 没有'), 'MCP 须明示当前任务未核验');
 
     const bad = await send({

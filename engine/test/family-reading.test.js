@@ -24,12 +24,15 @@ test('母子阅读材料：两臂各三题同问题，内容冻结不冒称真�
 });
 
 test('母子阅读材料：模拟收起只去母正文，全部检查和诚实边界还在', () => {
+  // 这两个 JSON 是 2026-11-19 实验的冻结快照，报告文案属于当时版本，不随引擎改版更新。
+  // 本测试保护的是"这两份材料本身的信息完整性"，不是"当前报告格式"。
+  // 当前格式的回归在 report.test.js / plain-language.test.js。
   for (let i = 0; i < 3; i++) {
     const left = a.tasks[i].report, right = b.tasks[i].report;
     const ids = [...left.matchAll(/^### \[([^\]]+)\]/gm)].map(m => m[1]);
     assert.deepEqual([...right.matchAll(/^### \[([^\]]+)\]/gm)].map(m => m[1]), ids);
     assert.equal(right.slice(right.indexOf('## 验证器清单')), left.slice(left.indexOf('## 验证器清单')));
-    assert.ok(right.includes('## ✅ 已查证区（0 项）'));
+    assert.ok(right.includes('## ✅ 已查证区（0 项）'), '快照须保留当时的 ✅ 区标题');
     assert.ok(right.includes('不能凭本报告放行'));
     assert.equal(right.includes('<details>'), false);
     assert.equal(right.includes('[模拟收起正文：'), i === 2);

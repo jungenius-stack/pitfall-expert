@@ -52,7 +52,7 @@ for (const tier of ['quick', 'standard', 'deep']) {
     // 夹具卡自身文本里没有黑话，因此整份报告都应干净。
     assert.deepEqual(findJargon(out), [], `报告${tier}出现黑话`);
     // 必须保留可读的三区与边界声明，不能为了去黑话删掉诚实边界。
-    assert.ok(out.includes('## ✅ 已查证区（0 项）'));
+    assert.ok(out.includes('## ✅ 这次扫描确认了什么'));
     assert.ok(out.includes('这次查了没有'));
     // 空 ✅ 区必须带"不能据此认为安全"的否定语义，不绑定具体句式。
     assert.ok(/不等于|不代表|不能凭|别凭/.test(out), '报告须否定"无命中即安全"');
@@ -78,7 +78,7 @@ test('反馈包：表格表头与边界说明不含黑话', () => fixture(dir =>
 test('去黑话不牺牲诚实：来源仍标未核读、✅ 仍为空、不承诺安全', () => fixture(dir => {
   const out = buildReport(scan('plain-fixture 任务', {cardsDir: dir, source: 'diagnostic'}));
   assert.ok(out.includes('本次未核读') || out.includes('未核读'));
-  assert.ok(out.includes('## ✅ 已查证区（0 项）'));
+  assert.ok(out.includes('## ✅ 这次扫描确认了什么'));
   assert.equal(out.includes('已验证通过'), false);
   assert.equal(out.includes('没有问题'), false);
   assert.equal(out.includes('可以放行'), false);

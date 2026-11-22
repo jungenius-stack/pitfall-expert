@@ -31,9 +31,9 @@ for (const tier of ['quick', 'standard', 'deep']) {
     assert.deepEqual(r.verified, []);
     assert.deepEqual(r.unverified, r.matched);
     const out = buildReport(r);
-    assert.ok(out.includes('## ✅ 已查证区（0 项）'));
-    assert.ok(out.includes('## ❓ 未验证区（3 项）'));
-    const verified = out.split('## ✅ 已查证区')[1].split('## ❓ 未验证区')[0];
+    assert.ok(out.includes('## ✅ 这次扫描确认了什么'));
+    assert.ok(out.includes('## ❓ 需要你去查的（3 项）'));
+    const verified = out.split('## ✅ 这次扫描确认了什么')[1].split('## ❓ 需要你去查的')[0];
     assert.equal(verified.includes('### ['), false);
     for (const hit of r.matched) assert.equal(out.split(`### [${hit.card.id}]`).length - 1, 1);
     assert.ok(out.includes('卡库原始来源（本次未核读）'));
@@ -61,8 +61,8 @@ test('报告：旧verified数组和调用方伪回填不能将词面候选升为
   r.unverified = [];
   r.verificationResults = [{id: 'FX-001', status: 'verified', result: '自称通过'}];
   const out = buildReport(r);
-  assert.ok(out.includes('## ✅ 已查证区（0 项）'));
-  assert.ok(out.includes('## ❓ 未验证区（3 项）'));
+  assert.ok(out.includes('## ✅ 这次扫描确认了什么'));
+  assert.ok(out.includes('## ❓ 需要你去查的（3 项）'));
   assert.equal(out.includes('自称通过'), false);
 }));
 
@@ -83,8 +83,8 @@ test('报告：补充背书只显示网址待核线索，不复述历史认证�
 test('报告：无命中与卡库故障都不能当已验证安全', () => fixture(dir => {
   const empty = scan('zzzz-unrelated', {cardsDir: dir, source: 'diagnostic'});
   const out = buildReport(empty);
-  assert.ok(out.includes('## ✅ 已查证区（0 项）'));
-  assert.ok(out.includes('## ❓ 未验证区（0 项）'));
+  assert.ok(out.includes('## ✅ 这次扫描确认了什么'));
+  assert.ok(out.includes('## ❓ 需要你去查的（0 项）'));
   assert.ok(out.includes('不等于任务没有风险'));
   const missing = buildReport(scan('report-fixture 任务', {cardsDir: path.join(dir, 'missing'), source: 'diagnostic'}));
   assert.ok(missing.includes('卡库读取出问题'));

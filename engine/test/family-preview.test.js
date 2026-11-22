@@ -28,7 +28,7 @@ for (const c of cases) {
     assert.equal(JSON.stringify(r), snapshot);
     assert.equal(stripPreview(candidate), baseline);
     assert.equal(candidate.slice(candidate.indexOf('## 验证器清单')), baseline.slice(baseline.indexOf('## 验证器清单')));
-    assert.ok(candidate.includes('## ✅ 已查证区（0 项）'));
+    assert.ok(candidate.includes('## ✅ 这次扫描确认了什么'));
     for (const s of r.matched) {
       assert.equal(candidate.split(`### [${s.card.id}]`).length - 1, 1);
       assert.ok(candidate.includes(s.card.evidence.source));

@@ -23,7 +23,7 @@ function buildFamilyPreview(result, cards) {
     if (byId.get(s.card.id) !== s.card) throw Error('命中卡与实验卡库不对应');
   }
   const baseline = buildReport(result);
-  const start = `## ❓ 未验证区（${ids.length} 项）`;
+  const start = `## ❓ 需要你去查的（${ids.length} 项）`;
   const end = '## 🚫 盲区声明';
   if (baseline.includes(MARK) || baseline.split(start).length !== 2 || baseline.split(end).length !== 2) {
     throw Error('报告分区或实验标记有歧义');

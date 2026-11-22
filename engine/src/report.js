@@ -68,7 +68,7 @@ function buildReport(r) {
   L.push(`- 领域判定：${r.domain ? (DOMAINS[r.domain] || r.domain) : '没判出来'}（把握：${r.domainConfidence}${r.domainBasis ? '；' + r.domainBasis : ''}）`);
   L.push(`- 扫描范围：已加载 ${r.cardsLoaded} 张坑卡，逐条对照率 100%（${coverageLine(r.coverage)}）`);  if (!r.ticket) L.push(`- 运行票据：**未签发**（${r.ledgerStatus === 'failed' ? '账本写入失败' : '账本关闭或无可核对记录'}，本次无账本凭据可核；不等于引擎未运行）`);
   if (r.ticket) L.push(`- 运行票据：\`${r.ticket}\`（${r.ts ? r.ts.slice(0, 19).replace('T', ' ') + ' UTC' : ''}｜本机运行记录，已同步记入账本；不是防伪签名，不证明验证器已执行；引用时须原样抄写）`);
-  L.push('- 核验边界：下面这些条目只是"任务描述里出现了相关词"，不是"已经查过"。命中、卡库的出处记录和票据，都不能说明你的任务安全。');
+  L.push('- 扫描方式：从本地卡库按任务描述筛出可能相关的条目（词面匹配，不做语义推理，也不跑检查）');
   if (r.sourceErrors.length) {
     L.push(`- ⚠️ 卡库读取出问题：${r.sourceErrors.map(e => `${e.file}（${e.error}）`).join('；')} —— 这些文件没读出来，不算进下面的统计`);
     L.push('- 注意：这不等于"没有坑"，而是"有卡但没读出来"，没读到的卡这次完全没参与对照');
@@ -77,16 +77,35 @@ function buildReport(r) {
   L.push('');
 
   // ✅ 区只留给当前任务的实际核验；此扫描接口不执行或接收验证结果。
-  L.push('## ✅ 已查证区（0 项）');
+  // ✅ 区改版（2026-11-23）：原来固定写「已查证区（0 项）」，用户读完只知道"引擎没验过"，
+  // 看不出工具到底干了什么，容易觉得"这技能不好用"。
+  // 现在改为陈述本次扫描确实完成的工作（可核对的事实），并紧跟边界：
+  // 确认的是"筛选过程"，不是"你的任务安全"。两条不能混——11-16 复盘的核心教训。
+  L.push('## ✅ 这次扫描确认了什么');
   L.push('');
-  L.push('（本区为空是正常的——这个引擎只负责"从卡库里挑出可能相关的条目"，它不跑检查、也不读外部资料。卡上有出处，不代表你的任务已经查过。真正的检查要你自己或调用方做，做完记下原始结果，别凭这份报告放行。）');
+  const scannedDomains = Object.keys(r.coverage).length;
+  L.push(`- 逐条比对 **${r.cardsLoaded} 张**坑卡，覆盖 ${scannedDomains} 个领域，逐条对照率 100%`);
+  L.push(`- 从库里筛出 **${matched.length} 条**与本次任务相关的候选${matched.length === 0 ? '（本次没有匹配到）' : ''}`);
+  if (matched.length > 0) {
+    const listed = matched.slice(0, 5).map(s => s.card.id).join('、');
+    L.push(`  主要命中：${listed}${matched.length > 5 ? ` 等 ${matched.length} 条` : ''}`);
+  }
+  L.push(`- 领域判定：${r.domain ? (DOMAINS[r.domain] || r.domain) : '未能判定'}（把握：${r.domainConfidence}）`);
+  if (r.ticket) L.push(`- 运行票据：\`${r.ticket}\`（可核对本次确实执行，不是模型自称）`);
+  L.push('');
+  L.push('> ⚠️ 以上确认的是**"这次扫描做了什么"**（扫了多少、筛出哪些、跑了没有），**不是"你的任务安全"**。');
+  L.push('> 卡库里的出处和标签，也不代表这次任务已经查过。你的任务有没有坑，看下面 ❓ 区。');
   L.push('');
 
-  L.push(`## ❓ 未验证区（${matched.length} 项）`);
+  L.push(`## ❓ 需要你去查的（${matched.length} 项）`);
   L.push('');
   if (matched.length === 0) {
-    L.push('（本区为空——任务描述里没有和任何卡对得上的词，但这不等于任务没有风险。）');
+    L.push('（本次没有候选——任务描述里没有和任何卡对得上的词。但这不等于任务没有风险：可能是卡库没覆盖，也可能是说法不同没匹配上。）');
   } else {
+    if (r.tier !== 'quick') {
+      L.push('下面这些是**你或调用方要执行**的检查。做了就记下原始结果，没做就保持 ❓——别凭这份报告直接放行。');
+      L.push('');
+    }
     for (const s of matched) L.push(cardEntry(s), '');
   }
   if (r.tier === 'quick') {
