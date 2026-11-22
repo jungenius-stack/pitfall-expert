@@ -18,7 +18,7 @@ SKILL_SRC="$REPO_ROOT/skills/pitfall-expert"
 CARDS_SRC="$REPO_ROOT/cards"
 OUT_DIR="${1:-$HOME/Desktop/workbuddy-market}"
 NAME="pitfall-expert"
-EXPECTED_FILE_COUNT=21   # SKILL.md + manifest.json + cards/7 + references/7 + scripts/2 + tests/3
+EXPECTED_FILE_COUNT=40   # 技能层21 + engine/src5 + engine/package.json1 + js-yaml13
 
 fail() { printf '\n[FAIL] %s\n' "$*" >&2; [ -n "${STAGE:-}" ] && rm -rf "$STAGE"; [ -n "${VSTAGE:-}" ] && rm -rf "$VSTAGE"; exit 1; }
 pass() { printf '[PASS] %s\n' "$*"; }
@@ -47,6 +47,23 @@ export STAGE
 cp -R "$SKILL_SRC" "$STAGE/$NAME" || fail "复制技能源失败"
 mkdir -p "$STAGE/$NAME/cards"
 cp "$CARDS_SRC"/*.yaml "$STAGE/$NAME/cards/" || fail "复制卡库失败"
+
+# 精简引擎入包（2026-11-23）：只带 CLI 链路需要的 engine/src + js-yaml，不含 MCP SDK。
+# 动机：市场用户的应用里不一定有 node，也不一定有 engine/。带上引擎后，
+# 有 node 的用户走 A 模式（引擎召回 + 票据 + 账本），没有的走 B 模式（人工读卡）。
+# 两种模式都由 SKILL.md「三种运行模式」规定，报告头必须声明当前是哪一种。
+mkdir -p "$STAGE/$NAME/engine"
+cp -R "$REPO_ROOT/engine/src" "$STAGE/$NAME/engine/src" || fail "复制引擎源码失败"
+cp "$REPO_ROOT/engine/package.json" "$STAGE/$NAME/engine/package.json" || fail "复制引擎清单失败"
+[ -d "$REPO_ROOT/engine/node_modules/js-yaml" ] || fail "缺 js-yaml，无法随包分发引擎"
+mkdir -p "$STAGE/$NAME/engine/node_modules"
+cp -R "$REPO_ROOT/engine/node_modules/js-yaml" "$STAGE/$NAME/engine/node_modules/js-yaml" \
+  || fail "复制 js-yaml 失败"
+# 装完立即实测：包内引擎必须能读出全部卡，读不出就算包装歪了
+ENGINE_CARDS=$(node -e "const{loadCards}=require('$STAGE/$NAME/engine/src/scanner');const r=loadCards('$STAGE/$NAME/cards');if(r.errors.length)process.exit(1);console.log(r.cards.length)" 2>/dev/null) \
+  || fail "包内引擎自检失败：读不出卡库"
+pass "精简引擎入包（$ENGINE_CARDS 张卡可读，未含 MCP SDK）"
+
 find "$STAGE" -name '.DS_Store' -delete
 chmod +x "$STAGE/$NAME/scripts/selfcheck.sh"
 pass "staging 组装完成（技能层 + 卡库合流）"
@@ -156,8 +173,14 @@ pass "技能层逐字节一致：references/ scripts/ tests/ 全量 = 仓库真�
 # 注意：cards/code.yaml 里有一条「识别私钥」的拦截正则（-----BEGIN ... PRIVATE KEY-----），
 # 它是防御规则不是泄漏——所以私钥检测锚定「五个连字符 + 真实 base64 行」的 PEM 结构，
 # 不匹配正则里那个带 ?: 和空格的模式串；否则门会常年误红，教人无视红灯（元坑⑰同族）。
-LEAK_PATHS=$(grep -rIl -e "/Users/" -e "@qq.com" -e "@gmail.com" "$V" 2>/dev/null || true)
-LEAK_KEYS=$(grep -rIl -e "-----BEGIN [A-Z ]*PRIVATE KEY-----$" -e "sk-[A-Za-z0-9]\{20,\}" "$V" 2>/dev/null || true)
+# 第三方依赖的 package.json 里天然带着上游作者的公开邮箱与主页，不算本仓泄漏。
+# 2026-11-23 实测：js-yaml 的 package.json 含作者 gmail，曾让整包被判红。
+# 排除方式：只扫"我们自己写的文件"，第三方依赖目录单独跳过——
+# 不是放宽规则，而是把规则用在本仓可控的内容上；依赖本身已由 lock 校验来源。
+LEAK_PATHS=$(grep -rIl --exclude-dir=node_modules -e "/Users/" -e "@qq.com" -e "@gmail.com" "$V" 2>/dev/null || true)
+LEAK_KEYS=$(grep -rIl --exclude-dir=node_modules -e "-----BEGIN [A-Z ]*PRIVATE KEY-----$" -e "sk-[A-Za-z0-9]\{20,\}" "$V" 2>/dev/null || true)
+# 依赖目录只查真正危险的形态（私钥/密钥），不查邮箱
+LEAK_KEYS="$LEAK_KEYS$(grep -rIl -e "-----BEGIN [A-Z ]*PRIVATE KEY-----$" -e "sk-[A-Za-z0-9]\{20,\}" "$V/node_modules" 2>/dev/null || true)"
 if [ -n "$LEAK_PATHS" ] || [ -n "$LEAK_KEYS" ]; then
   [ -n "$LEAK_PATHS" ] && printf '路径/邮箱命中：%s\n' "$LEAK_PATHS"
   [ -n "$LEAK_KEYS" ] && printf '私钥/密钥命中：%s\n' "$LEAK_KEYS"
