@@ -31,7 +31,14 @@ npx --yes github:jungenius-stack/pitfall-expert "重构支付模块" --tier quic
 4. npmjs.com → 头像 → **Staged Packages** → 等 Validating 自动审查完（几分钟）→ **Approve**（2FA）
 5. 验证：`npm view pitfall-expert version` + 干净目录 `npm install pitfall-expert` 真机跑一次
 
-**踩过的坑**：web-login token 一天就过期（报 401 Unable to authenticate = 重走第 1 步换 token）；网络对 registry 抽风（ECONNRESET）重试即可；token 只贴终端不进聊天/代码。
+**2026-11-22 实测记录（v0.8.6，可作为下次的对照基线）**：staging id 形如 `28935e4e-...`；Approve 后 registry 的 `dist-tags.latest` 立即变更；干净目录安装后 `loadCards` 应返回 124 张 0 错误，且报告文案是"这次查了没有"这一版（若出现"仅词面召回"说明装到了旧包）。
+
+**踩过的坑**：
+
+- **classic token 不支持 `stage publish`（2026-11-22 实测，最容易误判成"权限不够"）**：`~/.npmrc` 里已有的 40 位 `npm_xxx` classic token，`/-/whoami` 返回正确用户名、`/-/package/pitfall-expert/collaborators` 返回 `{"jungenius":"write"}`——**看起来权限完全够**，但 `stage publish` 仍报 `E403 You may not perform that action with these credentials`。根因是**token 类型**而非权限范围：stage 流程只认 granular token。判据：classic 是 40 位 `npm_` 开头；granular 更长且前缀不同。换 granular 后一次通过。
+- **`npm config get` 报 protected 是成功信号，不是错误**：它表示 token 已存上且不可回显。此时改用 `ls -la ~/.npmrc` 看修改时间、`grep _authToken ~/.npmrc | sed 's/.*_authToken=//' | cut -c1-20` 看前缀是否变化，来确认到底换没换。
+- **改完必须验文件时间**：2026-11-22 首次以为"好了"，实际 `~/.npmrc` 的 mtime 仍是 11-09 旧值——命令没生效却无报错。**验证方式：mtime 应是刚才 + 前缀应改变**，两者缺一不可。
+- web-login token 一天就过期（报 401 Unable to authenticate = 重走第 1 步换 token）；网络对 registry 抽风（ECONNRESET）重试即可；token 只贴终端不进聊天/代码。
 
 **撤销**：72h 窗口 + name@version 永不可重发；发错优先发新 patch 版本 + `npm deprecate pitfall-expert@"<x.y.z" "superseded"`。
 
