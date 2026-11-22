@@ -80,11 +80,21 @@ function buildStats(cardsDir) {
   }
   const entries = [];
   let badLines = 0;
+  let probeCount = 0;
   for (const line of raw.split('\n')) {
     if (!line.trim()) continue;
-    try { entries.push(JSON.parse(line)); } catch (e) { badLines++; }
+    try {
+      const e = JSON.parse(line);
+      // 诊断记录默认排除（元坑㉔）：带 probe 标记，或 source 明显是探针/测试。
+      // 历史行没有 probe 字段，但 source 里写 cli 的仍会被计入——这是保守选择：
+      // 宁少排除，不误删真实使用。
+      if (e.probe === true || /^(probe|test|diagnostic)\b/i.test(String(e.source || ''))) probeCount++;
+      else entries.push(e);
+    } catch (err) { badLines++; }
   }
-  if (entries.length === 0) return `命中账本存在但还没有记录（坏行 ${badLines} 条已跳过）。`;
+  if (entries.length === 0) {
+    return `命中账本存在但没有有效使用记录（诊断记录 ${probeCount} 条已排除，坏行 ${badLines} 条已跳过）。`;
+  }
   const counts = {};
   const sources = {};
   let first = null, last = null;
@@ -107,6 +117,7 @@ function buildStats(cardsDir) {
   for (const [id, n] of ranked) out.push(`  ${String(n).padStart(4)}  ${id}`);
   out.push(`零命中卡 ${zero.length} 张（先测触发词，再谈退役）：`);
   out.push(zero.length ? '  ' + zero.join(', ') : '  （无——全库都有出勤）');
+  if (probeCount) out.push(`（另有诊断记录 ${probeCount} 条已排除，不计入出勤）`);
   if (badLines) out.push(`⚠️ 账本坏行 ${badLines} 条已跳过`);
   if (lib.errors.length) out.push(`⚠️ 卡库加载错误 ${lib.errors.length} 条（零命中清单可能失真）：${lib.errors.map(e => e.file).join(', ')}`);
   return out.join('\n');

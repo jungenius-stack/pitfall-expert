@@ -77,9 +77,14 @@ function main() {
   const led = loadLedger(args.ledger);
 
   const cutoff = args.days ? Date.now() - args.days * 86400000 : null;
-  const rows = cutoff
+  const timed = cutoff
     ? led.rows.filter(r => { const t = Date.parse(r.ts); return Number.isFinite(t) && t >= cutoff; })
     : led.rows;
+  // 诊断记录默认排除（元坑㉔）：probe 标记或 probe/test/diagnostic 开头的 source。
+  // 历史行无 probe 字段，仍按 source 保守判断，避免误删真实使用。
+  const isProbe = r => r.probe === true || /^(probe|test|diagnostic)\b/i.test(String(r.source || ''));
+  const rows = timed.filter(r => !isProbe(r));
+  const probeCount = timed.length - rows.length;
 
   const count = new Map();       // id -> 次数
   const sourceCount = new Map(); // source -> 次数
@@ -102,6 +107,7 @@ function main() {
     exists: led.exists,
     badLines: led.bad,
     scans: rows.length,
+    probesExcluded: probeCount,
     range: minTs === null ? null : { from: new Date(minTs).toISOString(), to: new Date(maxTs).toISOString() },
     sources: Object.fromEntries([...sourceCount].sort((a, b) => b[1] - a[1])),
     cardsTotal: cardIds.size,

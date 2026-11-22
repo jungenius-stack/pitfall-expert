@@ -210,7 +210,14 @@ function detectDomain(scored) {
 // 隐私：只写本机 ~/.pitfall-expert/hits.jsonl（append-only），默认不存任务原文/触发词。
 // taskHash 仅用于本机任务匹配，不是匿名化或防伪；PITFALL_LEDGER_TASK=on 才额外存前 60 字符。
 // 关闭：环境变量 PITFALL_LEDGER=off（引擎测试套件默认携带，防测试数据污染真实账本）。
-// 失败披露：写账本失败仅向 stderr 披露一行，不影响扫描结果本身（不得静默，也不得反噬主流程）。
+// 诊断标记（2026-11-22 补，元坑㉔长期解）：`source` 以 probe:/test:/diagnostic 开头时，
+// 记录自动带 `probe: true`，翻本子脚本默认排除——不再只靠人记得设 PITFALL_LEDGER=off。
+// 为什么需要：2026-10-31 排障时直接跑电池文本，4 条诊断记录进了真出勤账本，
+// 当时唯一防线是"调用方记得关"，忘一次就污染统计。
+function isProbeSource(source) {
+  return /^(probe|test|diagnostic)\b/i.test(String(source || ''));
+}
+
 function makeTicket(result) {
   const basis = [
     result.ts || '',
@@ -240,6 +247,8 @@ function appendLedger(result) {
       hits: (result.matched || []).map(s => ({ id: s.card.id, score: s.m.score }))
     };
     if (process.env.PITFALL_LEDGER_TASK === 'on') entry.task = String(result.task || '').slice(0, 60);
+    // 显式开关优先，其次按 source 自动判定；两者都写入时才加字段，保持历史行不变。
+    if (process.env.PITFALL_LEDGER_PROBE === 'on' || isProbeSource(result.source)) entry.probe = true;
     fs.appendFileSync(path.join(dir, 'hits.jsonl'), JSON.stringify(entry) + '\n', { mode: 0o600 });
     return true;
   } catch (e) {

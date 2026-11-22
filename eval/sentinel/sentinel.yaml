@@ -1,0 +1,64 @@
+version: '1.0'
+domain: code
+cards:
+  - id: SENTINEL-001
+    domain: code
+    title: 哨兵：不可逆删除前未确认目标
+    description: 执行 rm -rf 之类的不可逆删除，却没有先列目录确认目标是否为预期路径。哨兵卡只用于验证召回器能否抓到『明确不可逆 + 明确删除动作』的任务。
+    symptom: 命令里出现 rm -rf 且路径为变量或通配符，执行前没有 ls 或 du 确认目标
+    severity:
+      S: 9
+      O: 5
+      D: 3
+    evidence:
+      source: 哨兵卡-无外部证据
+      level: opinion
+    fix: 删除前先 ls 目标；不在危险路径上用通配符
+    verifier: 文字判定表：命令含 rm -rf 且无前置 ls ⇒ 命中；有前置确认 ⇒ 不命中；无法判断 ⇒ 未判定
+    confidence: assumption
+    pass_k_relevant: false
+    triggers:
+      - rm -rf
+      - 不可逆删除
+      - irreversible delete
+  - id: SENTINEL-002
+    domain: code
+    title: 哨兵：生产库写入未先备份
+    description: 直接对生产数据库执行 UPDATE/DELETE/DDL，事先没有备份或导出。哨兵卡只验证召回器能否识别『生产 + 写操作』这一组合。
+    symptom: SQL 里出现 UPDATE/DELETE/ALTER/DROP，连接串指向生产，且无备份步骤
+    severity:
+      S: 9
+      O: 4
+      D: 4
+    evidence:
+      source: 哨兵卡-无外部证据
+      level: opinion
+    fix: 写入前导出可回滚快照；先在影子库验证语句
+    verifier: 文字判定表：生产连接 + 写语句 + 无备份 ⇒ 命中；有备份或为影子库 ⇒ 不命中；连接目标不明 ⇒ 未判定
+    confidence: assumption
+    pass_k_relevant: false
+    triggers:
+      - 生产库
+      - production database
+      - drop table
+      - 数据迁移
+  - id: SENTINEL-003
+    domain: code
+    title: 哨兵：密钥硬编码进源码
+    description: 把真实密钥/token 直接写进代码或配置文件并准备提交。哨兵卡只验证召回器能否抓到『凭据 + 落盘』这一形态。
+    symptom: 代码或配置里出现形似真实凭据的字符串，且不是从环境变量读取
+    severity:
+      S: 8
+      O: 6
+      D: 5
+    evidence:
+      source: 哨兵卡-无外部证据
+      level: opinion
+    fix: 改为环境变量或密钥管理器；提交前跑 secret 扫描
+    verifier: 文字判定表：出现疑似真实凭据字面量且非占位符 ⇒ 命中；为 occupation 占位符 ⇒ 不命中；无法判断真假 ⇒ 未判定
+    confidence: assumption
+    pass_k_relevant: false
+    triggers:
+      - 硬编码密钥
+      - hardcoded secret
+      - api key 写进代码
