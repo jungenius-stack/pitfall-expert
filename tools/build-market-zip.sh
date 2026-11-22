@@ -18,7 +18,7 @@ SKILL_SRC="$REPO_ROOT/skills/pitfall-expert"
 CARDS_SRC="$REPO_ROOT/cards"
 OUT_DIR="${1:-$HOME/Desktop/workbuddy-market}"
 NAME="pitfall-expert"
-EXPECTED_FILE_COUNT=40   # 技能层21 + engine/src5 + engine/package.json1 + js-yaml13
+EXPECTED_FILE_COUNT=27   # 技能层21 + engine/6（scanner report cli gate-core js-yaml version.json）
 
 fail() { printf '\n[FAIL] %s\n' "$*" >&2; [ -n "${STAGE:-}" ] && rm -rf "$STAGE"; [ -n "${VSTAGE:-}" ] && rm -rf "$VSTAGE"; exit 1; }
 pass() { printf '[PASS] %s\n' "$*"; }
@@ -48,21 +48,13 @@ cp -R "$SKILL_SRC" "$STAGE/$NAME" || fail "复制技能源失败"
 mkdir -p "$STAGE/$NAME/cards"
 cp "$CARDS_SRC"/*.yaml "$STAGE/$NAME/cards/" || fail "复制卡库失败"
 
-# 精简引擎入包（2026-11-23）：只带 CLI 链路需要的 engine/src + js-yaml，不含 MCP SDK。
-# 动机：市场用户的应用里不一定有 node，也不一定有 engine/。带上引擎后，
-# 有 node 的用户走 A 模式（引擎召回 + 票据 + 账本），没有的走 B 模式（人工读卡）。
-# 两种模式都由 SKILL.md「三种运行模式」规定，报告头必须声明当前是哪一种。
-mkdir -p "$STAGE/$NAME/engine"
-cp -R "$REPO_ROOT/engine/src" "$STAGE/$NAME/engine/src" || fail "复制引擎源码失败"
-cp "$REPO_ROOT/engine/package.json" "$STAGE/$NAME/engine/package.json" || fail "复制引擎清单失败"
-[ -d "$REPO_ROOT/engine/node_modules/js-yaml" ] || fail "缺 js-yaml，无法随包分发引擎"
-mkdir -p "$STAGE/$NAME/engine/node_modules"
-cp -R "$REPO_ROOT/engine/node_modules/js-yaml" "$STAGE/$NAME/engine/node_modules/js-yaml" \
-  || fail "复制 js-yaml 失败"
-# 装完立即实测：包内引擎必须能读出全部卡，读不出就算包装歪了
-ENGINE_CARDS=$(node -e "const{loadCards}=require('$STAGE/$NAME/engine/src/scanner');const r=loadCards('$STAGE/$NAME/cards');if(r.errors.length)process.exit(1);console.log(r.cards.length)" 2>/dev/null) \
-  || fail "包内引擎自检失败：读不出卡库"
-pass "精简引擎入包（$ENGINE_CARDS 张卡可读，未含 MCP SDK）"
+# 引擎入包（2026-11-23 改版）：平台只接受两级目录，所以用 tools/pack-engine-flat.sh
+# 把 engine/src/* + js-yaml 单文件版压平成 <skill>/engine/<file>（不再有 engine/src/ 这层）。
+# 编译后的引擎自包含：js-yaml 内联、版本号写成 version.json、卡库路径指向 ../cards。
+# 不含 MCP server（index.js），因为它依赖 28M 的 SDK，市场版用不上。
+sh "$REPO_ROOT/tools/pack-engine-flat.sh" "$STAGE/$NAME/engine" "$STAGE/$NAME/cards" \
+  || fail "引擎压平失败"
+pass "精简引擎入包（压平为两级目录）"
 
 find "$STAGE" -name '.DS_Store' -delete
 chmod +x "$STAGE/$NAME/scripts/selfcheck.sh"
