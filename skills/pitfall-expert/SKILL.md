@@ -5,12 +5,12 @@ display_name_en: Pitfall Expert
 description_zh: '先见坑，再动手。你的 AI 说做完了，真的做完了吗——以前只能赌，现在不用。125 张带出处的坑卡，覆盖代码、数学、决策、安全、科研、创作、战略七个领域，一次扫清。每张卡，一条规避动作，一个可执行验证器。查过的，附证据与出处。没查的，附五分钟内能做的检查动作。看不到的，直说。结尾一份阻断清单，做完再开工。全部本地运行，不联网、不收集、不追踪。踩坑专家——完成，等于披露完整。'
 description_en: 'See the pitfall before you step in. Your agent says done — is it? You used to guess. Now you no longer have to. 125 evidence-backed cards across seven domains (code, math, decisions, agent security, science, writing, strategy), scanned in one pass. Every card — one avoidance move, one runnable verifier. Verified comes with receipts. Unverified comes with a 5-minute check. Blind spots are declared, not hidden. A blocking checklist to finish before work begins. Fully local — no network, no collection, no tracking. Pitfall Expert. Done means fully disclosed.'
 category: 开发工具
-version: 0.8.6
+version: 0.8.7
 author: JunGenius
 description: '踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/做计划/写方案/拆任务/任务拆解/排期/里程碑/验收标准/开工前/动手前/怕返工/will this break/what could go wrong/premortem", or the task involves payments, irreversible deletion, publishing, data migration, or sending external communications. NOT for casual chat, single-fact lookups, or when the user explicitly says to skip the check and just do it. 完成等于披露完整，而非结果完美。'
 user-invocable: true
 metadata:
-  version: 0.8.6
+  version: 0.8.7
   updated: "2026-11-11"
 ---
 
@@ -36,7 +36,7 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 2. 仓库路径：`~/Downloads/踩坑专家项目/engine/src/cli.js`；
 3. 以上都没有才声明「未使用引擎」。
 
-**禁止用 `find /Users/m1 -name cli.js` 之类全盘搜索**：2026-11-22 实测，模型全盘搜索时命中了 `~/Downloads/pitfall`（2026-10-20 的旧副本，120 张卡，缺 4 张新卡），并基于旧引擎产出了报告——用户看到的是过期结果却以为是当前版本。副本自带引擎已包含全部卡库，无需外找；若 `engine/` 不存在，说明该副本为旧版，应提示用户重跑 `sync-all-agents.sh`。
+**禁止全盘搜索引擎**（如 `find ~ -name cli.js`）：2026-11-22 实测，模型全盘搜索时命中了用户主目录下某个旧副本（120 张卡，缺 4 张新卡），并基于旧引擎产出了报告——用户看到的是过期结果却以为是当前版本。副本自带引擎已包含全部卡库，无需外找；若 `engine/` 不存在，说明该副本为旧版，应提示用户重跑同步脚本。
 
 **强制调用门（2026-11-02 补，实测证据）**：仓库环境下（`engine/src/cli.js` 可读）跑 T1/T2 时，**必须先实际执行一次引擎**，报告头写「引擎：已跑 <tier>，命中 N 张」；未跑必须在报告头写「引擎：未跑」+ 具体原因（无 node / 依赖缺失 / 命令报错原文）——**「引擎可用」不等于「引擎被用」**。依据：2026-11-02 实测，一次 T2 深查会话产出 268 行报告、质量不差（自行抓取了厂商文档原文），但**全程未调用引擎、未读任何坑卡**（报告内零卡号引用，命中账本无该次记录）——"读卡库"这一步被模型用通用知识替代了，当时 121 张卡的真出处等于没起作用。该门不增加摩擦：引擎 60ms，失败即降级声明。
 
