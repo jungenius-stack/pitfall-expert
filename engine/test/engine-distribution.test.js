@@ -33,7 +33,7 @@ test('引擎分发：install.sh 同步具备引擎装配与失败降级', () => 
 test('引擎分发：SKILL.md 规定副本优先且禁止全盘搜索', () => {
   const s = fs.readFileSync(path.join(ROOT, 'skills/pitfall-expert/SKILL.md'), 'utf8');
   assert.ok(s.includes('<本技能目录>/engine/src/cli.js'), '须声明技能副本自带引擎为首选路径');
-  assert.ok(s.includes('禁止用 `find'), '须显式禁止全盘 find');
+  assert.ok(s.includes('禁止全盘搜索引擎'), '须显式禁止全盘 find');
   assert.ok(s.includes('旧副本'), '须记录旧副本事故作为理由');
 });
 
