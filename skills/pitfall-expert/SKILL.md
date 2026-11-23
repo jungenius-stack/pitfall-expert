@@ -5,12 +5,12 @@ display_name_en: Pitfall Expert
 description_zh: '先见坑，再动手。你的 AI 说做完了，真的做完了吗——以前只能赌，现在不用。125 张带出处的坑卡，覆盖代码、数学、决策、安全、科研、创作、战略七个领域，一次扫清。每张卡，一条规避动作，一个可执行验证器。查过的，附证据与出处。没查的，附五分钟内能做的检查动作。看不到的，直说。结尾一份阻断清单，做完再开工。全部本地运行，不联网、不收集、不追踪。踩坑专家——完成，等于披露完整。'
 description_en: 'See the pitfall before you step in. Your agent says done — is it? You used to guess. Now you no longer have to. 125 evidence-backed cards across seven domains (code, math, decisions, agent security, science, writing, strategy), scanned in one pass. Every card — one avoidance move, one runnable verifier. Verified comes with receipts. Unverified comes with a 5-minute check. Blind spots are declared, not hidden. A blocking checklist to finish before work begins. Fully local — no network, no collection, no tracking. Pitfall Expert. Done means fully disclosed.'
 category: 开发工具
-version: 0.8.8
+version: 0.8.9
 author: JunGenius
 description: '踩坑专家 / Pitfall Expert — run a systematic pitfall scan BEFORE starting any task (coding, research, purchase/subscription decisions, API integration, migration, publishing). Digs out hidden pitfalls with evidence chains and outputs a three-zone honest report: verified / unverified / declared blind spots, plus executable verifiers. Use when the user says "先踩坑/帮我踩坑/查坑/有什么风险/做计划/写方案/拆任务/任务拆解/排期/里程碑/验收标准/开工前/动手前/怕返工/will this break/what could go wrong/premortem", or the task involves payments, irreversible deletion, publishing, data migration, or sending external communications. NOT for casual chat, single-fact lookups, or when the user explicitly says to skip the check and just do it. 完成等于披露完整，而非结果完美。'
 user-invocable: true
 metadata:
-  version: 0.8.8
+  version: 0.8.9
   updated: "2026-11-11"
 ---
 
@@ -44,9 +44,12 @@ You are a **risk mapper** that runs *before* the task starts. Your job: dig out 
 
 **引擎路径优先级**：按顺序找，**找到第一个能跑的立即用，不要继续全盘搜索**：
 
-1. `<本技能目录>/engine/src/cli.js`——**技能副本自带精简引擎**，直接 `node "<skill_dir>/engine/src/cli.js" "任务" --tier standard`；
-2. 仓库路径：`~/Downloads/踩坑专家项目/engine/src/cli.js`；
-3. 以上都没有 → 进入 B 模式。
+1. `<本技能目录>/engine/cli.js`——**市场包/同步副本的标准位置**（引擎已压平到 engine/ 一层），直接 `node "<skill_dir>/engine/cli.js" "任务" --tier standard`；
+2. `<本技能目录>/engine/src/cli.js`——仓库源码结构（未压平），同样可用；
+3. 仓库路径：`~/Downloads/踩坑专家项目/engine/src/cli.js`；
+4. 以上都没有 → 进入 B 模式。
+
+**注意**：市场包与同步副本里引擎被压平为 `engine/cli.js`（平台只接受两级目录），仓库里是 `engine/src/cli.js`。**两种都要试**，先试压平版，没有再试 src 版，最后才进 B 模式。
 
 **禁止全盘搜索引擎**（如 `find ~ -name cli.js`）：2026-11-22 实测，模型全盘搜索时命中了用户主目录下某个旧副本（120 张卡，缺 4 张新卡），并基于旧引擎产出了报告——用户看到的是过期结果却以为是当前版本。副本自带引擎已包含全部卡库，无需外找；若 `engine/` 不存在，走 B 模式，不要外找。
 
